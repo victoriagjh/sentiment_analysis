@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 <!DOCTYPE html>
-<html lang="en">
+<html>
   {% block head %}
   <head>
     <meta charset="utf-8">
@@ -13,12 +13,10 @@
   <body>
     {% block body %}
     <div>
-        <h1>Sentiment Analysis</h1>
+        <h1>Result</h1>
     </div>
-    <form action="#" method="get">
-      <input type="file" name="fileUpload" accept="txt"></input>
-      <button name="submitFileAndTools" type="submit" value="Submit">Submit</button>
-    </form>
+    <input type="file" name="userUploadFile" accept="txt/"></input>
+    <input type="submit"></input>
     {% endblock %}
   </body>
 </html>

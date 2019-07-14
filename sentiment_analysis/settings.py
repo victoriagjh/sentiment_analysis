@@ -55,7 +55,7 @@ ROOT_URLCONF = 'sentiment_analysis.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        "DIRS": ["sentimentAnalysis/templates/"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
