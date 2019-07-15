@@ -15,8 +15,20 @@
     <div>
         <h1>Sentiment Analysis</h1>
     </div>
+    <div className="description">
+      <h5>"hihi"</h5>
+    </div>
     <form action="#" method="get">
-      <input type="file" name="fileUpload" accept="txt"></input>
+      <div class="filebox">
+         <input type="file" id="userFile" accept=".doc,.docx,.xls,.xlsx,.csv,.json,.txt">
+      </div>
+      <div class="toolbox">
+         <input type="checkbox" id="tool1" value="nltk"> nltk <br>
+         <input type="checkbox" id="tool2" value="spacy"> spacy <br>
+         <input type="checkbox" id="tool3" value="scikit"> scikit <br>
+         <input type="checkbox" id="tool4" value="R"> R <br>
+         <input type="checkbox" id="tool5" value="bagOfWords"> bag of words <br>
+      </div>
       <button name="submitFileAndTools" type="submit" value="Submit">Submit</button>
     </form>
     {% endblock %}
