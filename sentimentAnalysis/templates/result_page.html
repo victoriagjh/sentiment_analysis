@@ -1,22 +1,10 @@
 {% extends "base.html" %}
-<!DOCTYPE html>
-<html>
-  {% block head %}
-  <head>
-    <meta charset="utf-8">
-    <title>Sentiment Analysis</title>
-    <script type="text/javascript" language="Javascript" src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.11.3.min.js">
+{% load static %}
 
-    </script>
-  </head>
-  {% endblock %}
-  <body>
-    {% block body %}
-    <div>
-        <h1>Result</h1>
-    </div>
-    <input type="file" name="userUploadFile" accept="txt/"></input>
-    <input type="submit"></input>
-    {% endblock %}
-  </body>
-</html>
+{% block content%}
+  <div>
+    <h1>Result</h1>
+    {% csrf_token %}
+    <a id="id_uploaded_file" href="{text/test.txt" download>{uploadFileModel.file.name}</a>
+  </div>
+{% endblock %}

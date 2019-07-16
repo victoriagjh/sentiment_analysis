@@ -1,36 +1,17 @@
 {% extends "base.html" %}
-<!DOCTYPE html>
-<html lang="en">
-  {% block head %}
-  <head>
-    <meta charset="utf-8">
-    <title>Sentiment Analysis</title>
-    <script type="text/javascript" language="Javascript" src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.11.3.min.js">
+{% load static %}
 
-    </script>
-  </head>
-  {% endblock %}
-  <body>
-    {% block body %}
+    {% block content %}
     <div>
         <h1>Sentiment Analysis</h1>
     </div>
-    <div className="description">
-      <h5>"hihi"</h5>
-    </div>
-    <form action="#" method="get">
-      <div class="filebox">
-         <input type="file" id="userFile" accept=".doc,.docx,.xls,.xlsx,.csv,.json,.txt">
-      </div>
-      <div class="toolbox">
-         <input type="checkbox" id="tool1" value="nltk"> nltk <br>
-         <input type="checkbox" id="tool2" value="spacy"> spacy <br>
-         <input type="checkbox" id="tool3" value="scikit"> scikit <br>
-         <input type="checkbox" id="tool4" value="R"> R <br>
-         <input type="checkbox" id="tool5" value="bagOfWords"> bag of words <br>
-      </div>
-      <button name="submitFileAndTools" type="submit" value="Submit">Submit</button>
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Upload</button>
     </form>
+    <div className="description">
+      <h5>description</h5>
+    </div>
+  
     {% endblock %}
-  </body>
-</html>
