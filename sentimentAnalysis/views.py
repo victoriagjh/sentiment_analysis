@@ -7,14 +7,22 @@ def sentimentAnalysis(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            #handle_uploaded_file(request.FILES['file'])
+            content = handle_uploaded_file(request.FILES['file'])
             form.save()
-            return render(request, "result_page.html")
+            form.name = request.FILES['file'].name
+            form.content = content
+            context = {
+                'form':form,
+            }
+            return render(request, "result_page.html",context)
     else:
         form = UploadFileForm()
     return render(request, 'main_page.html', {'form': form})
 
 def handle_uploaded_file(f):
-    with open('text/test.txt', 'wb+') as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
+    fileName="text/"+f.name
+    file = open(fileName, "r")
+    content=""
+    for line in file:
+        content+=line
+    return content

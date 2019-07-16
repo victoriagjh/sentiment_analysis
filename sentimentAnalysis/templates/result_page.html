@@ -5,6 +5,8 @@
   <div>
     <h1>Result</h1>
     {% csrf_token %}
-    <a id="id_uploaded_file" href="{text/test.txt" download>{uploadFileModel.file.name}</a>
+    <a id="id_uploaded_file" href="{text/test.txt}" download>{{form.name}}</a>
+    <br>
+    {{form.content}}
   </div>
 {% endblock %}
