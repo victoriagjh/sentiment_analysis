@@ -1,11 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import UploadFileForm
-import logging
-
-
-logger = logging.getLogger(__name__)
-
 
 # Create your views here.
 def sentimentAnalysis(request):
