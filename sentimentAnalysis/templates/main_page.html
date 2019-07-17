@@ -1,16 +1,24 @@
 {% extends "base.html" %}
 {% load static %}
 
-    {% block content %}
-    <div>
-        <h1>Sentiment Analysis</h1>
-    </div>
-    <form method="post" enctype="multipart/form-data" novalidate>
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Upload</button>
-    </form>
-    <div className="description">
-      <h5>description</h5>
-    </div>
-    {% endblock %}
+{% block content %}
+  <div>
+      <h1>Sentiment Analysis</h1>
+  </div>
+  <div className="description">
+    <h5>description</h5>
+  </div>
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <h5>choose the tools</h5>
+    {% for tool in toolForm%}
+      {{tool.label}}
+       :
+      {{tool}}
+      <br>
+    {% endfor %}
+    <br>
+    <button type="submit">Submit</button>
+  </form>
+{% endblock %}
