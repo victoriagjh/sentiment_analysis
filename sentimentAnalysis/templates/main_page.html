@@ -2,12 +2,13 @@
 {% load static %}
 
 {% block content %}
-  <div>
+  <div align="center">
       <h1>Sentiment Analysis</h1>
   </div>
-  <div className="description">
-    <h5>description</h5>
+  <div className="description", align="center">
+    <h7>This web application allows users to upload their text files, experiment with several commonly used sentiment anlaysis tools, get sentiment scores and compare their performances.</h7>
   </div>
+  <div align="center">
   <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     {{ form.as_p }}
@@ -21,4 +22,5 @@
     <br>
     <button type="submit">Submit</button>
   </form>
+  </div>
 {% endblock %}
