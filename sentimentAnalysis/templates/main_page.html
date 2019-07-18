@@ -6,10 +6,11 @@
       <h1>Sentiment Analysis</h1>
   </div>
   <div className="description", align="center">
+    <h4>Description</h4>
     <h7>This web application allows users to upload their text files, experiment with several commonly used sentiment anlaysis tools, get sentiment scores and compare their performances.</h7>
   </div>
   <div align="center">
-    <table>
+    <table width="700px">
           <tr>
             <th>
           <form method="post" enctype="multipart/form-data" novalidate>
@@ -25,7 +26,6 @@
               <br>
             {% endfor %}
             <div class="tools-checkbox"></div>
-            <br>
               NLTK : <input type='checkbox' name='nltk' value='nltk'/>       <br>
               Spacy : <input type='checkbox' name='spacy' value='spacy'/>       <br>
               Scikit : <input type='checkbox' name='scikit' value='scikit'/>       <br>
@@ -35,7 +35,7 @@
           </th>
           </tr>
           </table>
-    <button type="submit">Submit</button>
+    <button type="submit" class="btn btn-primary">Submit</button>
   </form>
   {% if messages %}
     <ul class="messages">
