@@ -2,15 +2,42 @@
 {% load static %}
 
     {% block content %}
-    <div>
+    <div class = "page-header", align="center">
         <h1>Sentiment Analysis</h1>
     </div>
-    <form method="post" enctype="multipart/form-data" novalidate>
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Upload</button>
-    </form>
-    <div className="description">
-      <h5>description</h5>
+    <div className="description", align="center">
+      <h7>This web application allows users to upload their text files, experiment with several commonly used sentiment anlaysis tools, get sentiment scores and compare their performances.</h7>
     </div>
-    {% endblock %}
+    <div align="center">
+      <table>
+        <tr>
+          <th>
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          {{ form.as_p }}
+        </th>
+        <th>
+          <h5>choose the tools</h5>
+          {% for tool in toolForm%}
+            {{tool.label}}
+             :
+            {{tool}}
+            <br>
+          {% endfor %}
+          <div class="tools-checkbox"></div>
+          <br>
+          <ul>
+            NLTK : <input type='checkbox' name='nltk' value='nltk'/>       <br>
+            Spacy : <input type='checkbox' name='spacy' value='spacy'/>       <br>
+            Scikit : <input type='checkbox' name='scikit' value='scikit'/>       <br>
+            R : <input type='checkbox' name='r' value='r'/>       <br>
+            Bag of Words : <input type='checkbox' name='bagOfWords' value='bagOfWords'/>       <br>
+          </ul>
+          </div>
+        </th>
+        </tr>
+        </table>
+          <button type="button" class="btn btn-primary">Submit</button>
+        </form>
+        </div>
+      {% endblock %}
