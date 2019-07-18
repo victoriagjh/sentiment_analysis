@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-  <div align="center">
+  <div class="page-header"align="center">
       <h1>Sentiment Analysis</h1>
   </div>
   <div className="description", align="center">
@@ -19,6 +19,7 @@
       {{tool}}
       <br>
     {% endfor %}
+
     <br>
     NLTK : <input type='checkbox' name='nltk' value='nltk'/><br>
     Spacy : <input type='checkbox' name='spacy' value='spacy'/><br>
