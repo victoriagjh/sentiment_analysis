@@ -9,24 +9,32 @@
     <h7>This web application allows users to upload their text files, experiment with several commonly used sentiment anlaysis tools, get sentiment scores and compare their performances.</h7>
   </div>
   <div align="center">
-  <form method="post" enctype="multipart/form-data" novalidate>
-    {% csrf_token %}
-    {{ form.as_p }}
-    <h5>choose the tools</h5>
-    {% for tool in toolForm%}
-      {{tool.label}}
-       :
-      {{tool}}
-      <br>
-    {% endfor %}
-
-    <br>
-    NLTK : <input type='checkbox' name='nltk' value='nltk'/><br>
-    Spacy : <input type='checkbox' name='spacy' value='spacy'/><br>
-    Scikit : <input type='checkbox' name='scikit' value='scikit'/><br>
-    R : <input type='checkbox' name='r' value='r'/><br>
-    Bag of Words : <input type='checkbox' name='bagOfWords' value='bagOfWords'/><br>
-
+    <table>
+          <tr>
+            <th>
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            {{ form.as_p }}
+          </th>
+          <th>
+            <h5>choose the tools</h5>
+            {% for tool in toolForm%}
+              {{tool.label}}
+               :
+              {{tool}}
+              <br>
+            {% endfor %}
+            <div class="tools-checkbox"></div>
+            <br>
+              NLTK : <input type='checkbox' name='nltk' value='nltk'/>       <br>
+              Spacy : <input type='checkbox' name='spacy' value='spacy'/>       <br>
+              Scikit : <input type='checkbox' name='scikit' value='scikit'/>       <br>
+              R : <input type='checkbox' name='r' value='r'/>       <br>
+              Bag of Words : <input type='checkbox' name='bagOfWords' value='bagOfWords'/>       <br>
+            </div>
+          </th>
+          </tr>
+          </table>
     <button type="submit">Submit</button>
   </form>
   {% if messages %}
