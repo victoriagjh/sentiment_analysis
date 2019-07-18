@@ -9,6 +9,18 @@
     <br>
     {{form.content}}
     <br>
-    {{form.tool}}
+    <table width="700px">
+      <tr>
+        <th>
+          <h5>Show the Results</h5>
+        </th>
+      </tr>
+        {% for tool in form.tool%}
+          <tr>
+            <td>{{tool}}</td>
+          <td>this is the result of {{tool}}</td>
+          </tr>
+        {% endfor %}
+    </table>
   </div>
 {% endblock %}
