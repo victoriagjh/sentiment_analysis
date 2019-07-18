@@ -128,3 +128,6 @@ MEDIA_URL = '/text/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'text')
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+from django.contrib.messages import constants as message_constants
+MESSAGE_LEVEL = message_constants.DEBUG

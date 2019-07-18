@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import UploadFileForm
+from django.contrib import messages
 
 # Create your views here.
 def sentimentAnalysis(request):
@@ -28,6 +29,8 @@ def sentimentAnalysis(request):
                     'form':form,
                     }
                 return render(request, "result_page.html",context)
+            if not tools:
+                messages.warning(request, 'You should check the tool at least 1!', extra_tags='alert')
     else:
         form = UploadFileForm()
     context = {

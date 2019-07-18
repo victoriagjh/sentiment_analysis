@@ -28,5 +28,14 @@
 
     <button type="submit">Submit</button>
   </form>
+  {% if messages %}
+    <ul class="messages">
+    {% for message in messages %}
+    <div className="alert alert-success" role="alert">
+      {{ message }}
+      </div>
+    {% endfor %}
+    </ul>
+  {% endif %}
   </div>
 {% endblock %}
