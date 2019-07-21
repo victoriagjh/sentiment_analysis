@@ -9,13 +9,15 @@
     color: #ffffff;
     font-size: 45pt;
     font-weight: 750;
+    font-family: 'Roboto', sans-serif;
     text-decoration: none;
 }
 
-h1 {
-    font-family: 'Roboto', sans-serif;
-}
 
 .tools{
     margin-left: 20px;
+}
+
+h2 {
+    font-family: 'Roboto', sans-serif;
 }

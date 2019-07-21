@@ -3,17 +3,10 @@
 
 {% block content%}
   <div class ="page-header" align= "center">
-    <h1>Result</h1>
+    <h1>Last</h1>
   </div>
-  <form method="post" action="http://localhost:8000/result/">
+  <form method="post">
     {% csrf_token %}
-    <a id="id_uploaded_file" href="{text/test.txt}" download>{{form.name}}</a>
-    <br>
-    {% for content in form.content%}
-      {{content}}
-    {% endfor %}
-    <br>
-    <br>
     <h3 align= "center">Show the Results</h3>
     <table width="700px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
     <tr>
@@ -33,6 +26,5 @@
       </tr>
     </table>
     {{context.spacy}}
-    {{context.nltk}}
     </form>
 {% endblock %}

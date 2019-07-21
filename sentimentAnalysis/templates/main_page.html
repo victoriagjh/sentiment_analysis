@@ -19,18 +19,12 @@
           </th>
           <th>
             <h5>choose the tools</h5>
-            {% for tool in toolForm%}
-              {{tool.label}}
-               :
-              {{tool}}
-              <br>
-            {% endfor %}
             <div class="tools-checkbox"></div>
-              NLTK : <input type='checkbox' name='nltk' value='nltk'/>       <br>
-              Spacy : <input type='checkbox' name='spacy' value='spacy'/>       <br>
-              Scikit : <input type='checkbox' name='scikit' value='scikit'/>       <br>
-              R : <input type='checkbox' name='r' value='r'/>       <br>
-              Bag of Words : <input type='checkbox' name='bagOfWords' value='bagOfWords'/>       <br>
+              NLTK : <input type='checkbox' name='nltk' value='nltk' checked/>       <br>
+              Spacy : <input type='checkbox' name='spacy' value='spacy' checked/>       <br>
+              Scikit : <input type='checkbox' name='scikit' value='scikit' checked/>       <br>
+              R : <input type='checkbox' name='r' value='r' checked/>       <br>
+              Bag of Words : <input type='checkbox' name='bagOfWords' value='bagOfWords' checked/>       <br>
             </div>
           </th>
           </tr>

@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from sentimentAnalysis import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include("sentimentAnalysis.urls")),
-
+    path('result/', views.result_page, name='result_page'),
+    path('', views.sentimentAnalysis, name='sentimentAnalysis'),
 ]

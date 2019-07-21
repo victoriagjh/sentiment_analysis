@@ -22,7 +22,9 @@ def sentimentAnalysis(request):
             if tools:
                 form.save()
                 form.name = request.FILES['file'].name
-                content = handle_uploaded_file(request.FILES['file'])
+                text = handle_uploaded_file(request.FILES['file'])
+                content = getContent(text)
+                form.text = text
                 form.content = content
                 form.tool = tools
                 context = {
@@ -38,10 +40,35 @@ def sentimentAnalysis(request):
     }
     return render(request, 'main_page.html', context)
 
+def result_page(request):
+    if request.method == 'POST':
+        if 'spacy_button' in request.POST:
+            context = {
+            'spacy':"spacy",
+            }
+            return render(request, 'last.html', context)
+    return render(request,'main_page.html',context)
+
 def handle_uploaded_file(f):
     fileName="text/"+f.name
     file = open(fileName, "r")
-    content=""
-    for line in file:
-        content+=line
+    text=file.readlines()
+    textList=[]
+    for i in text:
+        i=i.replace('\n','\t')
+        i=i.replace('   ','\t')
+        i=i.split('\t')
+        for j in i:
+            if j!='':
+                textList.append(j)
+    file.close()
+    return textList
+
+def getContent(text):
+    content=[]
+    s=0
+    for i in text:
+        if s%3==1 and s!=1:
+            content.append(i)
+        s+=1
     return content
