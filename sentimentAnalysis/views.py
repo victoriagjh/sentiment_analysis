@@ -2,7 +2,7 @@ from sys import platform as sys_pf
 if sys_pf == 'darwin':
     import matplotlib
     matplotlib.use("TkAgg")
-    
+
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import UploadFileForm
@@ -28,7 +28,8 @@ def sentimentAnalysis(request):
             if type(request.POST.get('spacy')) != type(None):
                 tools.append(request.POST.get('spacy'))
             if type(request.POST.get('scikit')) != type(None):
-                tools.append(request.POST.get('scikit'))
+                tools.a
+                ppend(request.POST.get('scikit'))
             if type(request.POST.get('r')) != type(None):
                 tools.append(request.POST.get('r'))
             if type(request.POST.get('bagOfWords')) != type(None):
