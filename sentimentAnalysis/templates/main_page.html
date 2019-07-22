@@ -7,8 +7,8 @@
   </div>
   <div className="description", align="center">
     <h3>Description</h3>
-    <h5>This web application allows users to upload their text files, </h5>
-    <h5> experiment with several commonly used sentiment anlaysis tools, get sentiment scores and compare their performances.</h5>
+    <h4>This web application allows users to upload their text files, </h4>
+    <h4> experiment with several commonly used sentiment anlaysis tools, get sentiment scores and compare their performances.</h4>
   </div>
   <div align="center">
     <table width="700px">
@@ -19,13 +19,24 @@
             {{ form.as_p }}
           </th>
           <th>
-            <h3>choose the tools</h3>
+            <h5>choose the tools</h5>
             <div class="tools-checkbox"></div>
-              NLTK : <input type='checkbox' name='nltk' value='nltk' checked/>       <br>
-              Spacy : <input type='checkbox' name='spacy' value='spacy' checked/>       <br>
-              Scikit : <input type='checkbox' name='scikit' value='scikit' checked/>       <br>
-              R : <input type='checkbox' name='r' value='r' checked/>       <br>
-              Bag of Words : <input type='checkbox' name='bagOfWords' value='bagOfWords' checked/>       <br>
+            <input type="checkbox" checked="checked" id="NLTK" name="NLTK" style="width:20px;height:20px;"/>
+            <label for="NLTK"><span style="font-size: 15pt">NLTK</span></label> <br>
+
+            <input type="checkbox" checked="checked" id="Spacy" name="Spacy" style="width:20px;height:20px;"/>
+            <label for="Spacy"><span style="font-size: 15pt">Spacy</span></label> <br>
+
+            <input type="checkbox" checked="checked" id="Scikit" name="Scikit" style="width:20px;height:20px;"/>
+            <label for="Scikit"><span style="font-size: 15pt">Scikit</span></label> <br>
+
+
+            <input type="checkbox" checked="checked" id="R" name="R" style="width:20px;height:20px;"/>
+            <label for="R"><span style="font-size: 15pt">R</span></label> <br>
+
+
+            <input type="checkbox" checked="checked" id="Bag of Words" name="Bag of Words" style="width:20px;height:20px;"/>
+            <label for="Bag of Words"><span style="font-size: 15pt">Bag of Words</span></label> <br>
             </div>
           </th>
           </tr>
@@ -43,7 +54,30 @@
     </ul>
   {% endif %}
   </div>
-  <div class="tool-explanation">
-    
+  <br>
+  <div class="tool-explanation" align="center">
+    <h4>About Tools for NLP</h4>
+    <table width="700px" height="400px" className="tool-explanation">
+      <tr>
+        <th width = "125px" style="text-align:center"> NLTK </th>
+        <th> NLTK is a leading platform for building Python programs to work with human language data. It provides easy-to-use interfaces to over 50 corpora and lexical. </th>
+      </tr>
+      <tr>
+        <th width = "125px" style="text-align:center"> Spacy </th>
+        <th> spaCy is a free, open-source library for advanced Natural Language Processing (NLP) in Python. spaCy is designed specifically for production use and helps you build applications that process and “understand” large volumes of text. </th>
+      </tr>
+      <tr>
+        <th width = "125px" style="text-align:center"> Scikit </th>
+        <th> Scikit-learn is simple and efficient tools for data mining and data analysis. It is built on Numpy,SciPy, and matplotlib </th>
+      </tr>
+      <tr>
+        <th width = "125px" style="text-align:center"> R </th>
+        <th> R is a language and environment for statistical computing and graphics. R provides a wide variety of statistical and graphical techniques, and is highly extensible. </th>
+      </tr>
+      <tr>
+        <th width = "125px" style="text-align:center"> Bag of Words </th>
+        <th> The bag-of-words model is a simplifying representation used in natural language processing and information retrieval (IR). In this model, a text is represented as the bag (multiset) of its words, disregarding grammar and even word order but keeping multiplicity. </th>
+      </tr>
+    </table>
   </div>
 {% endblock %}

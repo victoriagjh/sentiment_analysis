@@ -22,6 +22,10 @@
   'line-height:400%'
 }
 
+.tool-explanation table {
+  border: 1px solid black;
+}
+
 .tools{
     margin-left: 20px;
 }
