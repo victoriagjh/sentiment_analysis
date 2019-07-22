@@ -28,8 +28,7 @@ def sentimentAnalysis(request):
             if type(request.POST.get('spacy')) != type(None):
                 tools.append(request.POST.get('spacy'))
             if type(request.POST.get('scikit')) != type(None):
-                tools.a
-                ppend(request.POST.get('scikit'))
+                tools.append(request.POST.get('scikit'))
             if type(request.POST.get('r')) != type(None):
                 tools.append(request.POST.get('r'))
             if type(request.POST.get('bagOfWords')) != type(None):

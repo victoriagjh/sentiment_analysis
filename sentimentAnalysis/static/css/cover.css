@@ -12,7 +12,15 @@
     font-family: 'Roboto', sans-serif;
     text-decoration: none;
 }
-
+.file-content {
+  margin-right: 50px;
+  margin-left: 50px;
+}
+.file-content h5{
+  font-weight: 700;
+  font-family: 'Roboto', sans-serif;
+  'line-height:400%'
+}
 
 .tools{
     margin-left: 20px;
@@ -20,4 +28,14 @@
 
 h2 {
     font-family: 'Roboto', sans-serif;
+}
+
+h5 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+}
+
+h3 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
 }

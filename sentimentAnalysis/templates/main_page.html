@@ -6,8 +6,9 @@
       <h1>Sentiment Analysis</h1>
   </div>
   <div className="description", align="center">
-    <h4>Description</h4>
-    <h7>This web application allows users to upload their text files, experiment with several commonly used sentiment anlaysis tools, get sentiment scores and compare their performances.</h7>
+    <h3>Description</h3>
+    <h5>This web application allows users to upload their text files, </h5>
+    <h5> experiment with several commonly used sentiment anlaysis tools, get sentiment scores and compare their performances.</h5>
   </div>
   <div align="center">
     <table width="700px">
@@ -18,7 +19,7 @@
             {{ form.as_p }}
           </th>
           <th>
-            <h5>choose the tools</h5>
+            <h3>choose the tools</h3>
             <div class="tools-checkbox"></div>
               NLTK : <input type='checkbox' name='nltk' value='nltk' checked/>       <br>
               Spacy : <input type='checkbox' name='spacy' value='spacy' checked/>       <br>
@@ -29,6 +30,7 @@
           </th>
           </tr>
           </table>
+    <br>
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
   {% if messages %}
@@ -40,5 +42,8 @@
     {% endfor %}
     </ul>
   {% endif %}
+  </div>
+  <div class="tool-explanation">
+    
   </div>
 {% endblock %}
