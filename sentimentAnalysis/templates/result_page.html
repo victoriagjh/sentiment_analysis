@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
+{% load index %}
+{{ List|index:x }}
 
 {% block content%}
   <div class ="page-header" align= "center">
@@ -22,18 +24,22 @@
     <h3 align= "center">Show the Results</h3>
     <table width="700px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
     <tr>
-    {% for tool in form.tool%}
-        <th>this is the result of {{tool}}</th>
-    {% endfor %}
-    </tr>
-    <tr>
+      <th align="center" style="text-align:center;">File ID</th>
       {% for tool in form.tool%}
-          <td align= "center">{{tool}}</td>
+        <th align="center" style="text-align:center;">{{tool}}</th>
       {% endfor %}
-      </tr>
+    </tr>
+      {% for id in form.ids%}
+        <tr>
+          <td align= "center">{{id}}</td>
+          <td align= "center">{{form.vaderScores|index:forloop.counter0}} / {{form.vaderPolarity|index:forloop.counter0}}</td>
+          <td align= "center">{{form.textblobScores|index:forloop.counter0}} / {{form.textblobPolarity|index:forloop.counter0}}</td>
+        </tr>
+      {%endfor%}
       <tr>
+          <td align="center" style="border-collapse:collapse;">Summary</td>
           {% for tool in form.tool%}
-          <td align= "center"><button type="submit" name="spacy_button" value="spacy_button" class="btn btn-primary">download</button></td>
+            <td align= "center"><button type="submit" name="spacy_button" value="spacy_button" class="btn btn-primary">download</button></td>
           {% endfor %}
       </tr>
     </table>
