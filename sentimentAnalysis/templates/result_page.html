@@ -5,36 +5,45 @@
   <div class ="page-header" align= "center">
     <h1>Result</h1>
   </div>
-  <form method="post" action="http://localhost:8000/result/">
-    {% csrf_token %}
-    <a id="id_uploaded_file" href="{text/test.txt}" download>{{form.name}}</a>
-    <br>
-    {% for content in form.content%}
-      {{content}}
-    {% endfor %}
-    <br>
-    <br>
+  <div class="file" align="center">
+    <form method="post" action="http://localhost:8000/result/">
+      {% csrf_token %}
+      <h3>file name : <a id="id_uploaded_file" href="{text/test.txt}" download>{{form.name}}</a></h3>
+      <br>
+      <div class="file-content">
+        <h5>
+          {% for content in form.content%}
+            {{content}}
+          {% endfor %}
+        </h5>
+      </div>
+      <br>
+  </div>
     <h3 align= "center">Show the Results</h3>
     <table width="700px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
     <tr>
-    {% for tool in form.tool%}
-        <th>this is the result of {{tool}}</th>
-    {% endfor %}
-    </tr>
-    <tr>
+      <th>File ID</th>
       {% for tool in form.tool%}
-          <td align= "center">{{tool}}</td>
+        <th>{{tool}}</th>
       {% endfor %}
-      </tr>
+    </tr>
+    {% for i in form.ids%}
+        <tr>
+          <td></td>
+        </tr>
+      {%endfor%}
       <tr>
+          <td align="center" style="border-collapse:collapse;">Summary</td>
           {% for tool in form.tool%}
-          <td align= "center"><button type="submit" name="spacy_button" value="spacy_button" class="btn btn-primary">download</button></td>
+            <td align= "center"><button type="submit" name="spacy_button" value="spacy_button" class="btn btn-primary">download</button></td>
           {% endfor %}
       </tr>
     </table>
+    <br>
+    <div className="content-Analysis" align="center">
     <h5>Vocabulary Size of Text : {{form.wordcounter}}</h5>
     <h5>Top Frequent Words 5 : {{form.topFrequentWords}}</h5>
-    {% load static %}
     <img src="{% static "img/test.png" %}" alt="My image">
+    </div>
     </form>
 {% endblock %}

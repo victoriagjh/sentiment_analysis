@@ -1,3 +1,8 @@
+from sys import platform as sys_pf
+if sys_pf == 'darwin':
+    import matplotlib
+    matplotlib.use("TkAgg")
+
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import UploadFileForm
@@ -12,40 +17,54 @@ from nltk.corpus import stopwords
 from nltk import FreqDist
 from wordcloud import WordCloud
 
+import vaderSentiment
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from textblob import TextBlob
+import pandas as pd
+
 # Create your views here.
 def sentimentAnalysis(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             tools=[]
-            if type(request.POST.get('nltk')) !=type(None):
-                tools.append(request.POST.get('nltk'))
-            if type(request.POST.get('spacy')) != type(None):
-                tools.append(request.POST.get('spacy'))
-            if type(request.POST.get('scikit')) != type(None):
-                tools.append(request.POST.get('scikit'))
-            if type(request.POST.get('r')) != type(None):
-                tools.append(request.POST.get('r'))
-            if type(request.POST.get('bagOfWords')) != type(None):
-                tools.append(request.POST.get('bagOfWords'))
+            if type(request.POST.get('vader')) !=type(None):
+                tools.append("Vader Sentiment")
+            if type(request.POST.get('textblob')) != type(None):
+                tools.append("TextBlob")
             if tools:
+                #preprocess the file
                 form.save()
                 form.name = request.FILES['file'].name
                 text = handle_uploaded_file(request.FILES['file'])
-                content = getContent(text)
-                form.text = text
-                form.content = content #list형태 
+
+                ids,contents,annotations = preprocessFile(text)
+                form.ids=ids
+                form.annotations=convertSentimentResult("userFile",annotations)
+                form.text = text #id, text, annotation type(list)
+                form.content = contents #text type(list)
                 form.tool = tools
 
-                contents=""
-                for i in content:
-                    contents+=i
+                #all content type(str)
+                contentString=""
+                for i in contents:
+                    contentString+=i
 
-                cleansingText = cleansing(contents)
+                #surface metrics
+                cleansingText = cleansing(contentString)
                 form.word_frequent = word_frequent(cleansingText)
                 form.topFrequentWords=top_freqeunt(cleansingText)
                 form.wordcounter = wordcounter(cleansingText)
                 save_wordcloud(form.word_frequent)
+
+                #
+
+                #sentimentAnalysis
+                for i in tools:
+                    if i == "Vader Sentiment":
+                        form.vaderScores=vaderSentimentFucntion(form.content)
+                        form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
+                        form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
 
                 context = {
                     'form':form,
@@ -59,6 +78,7 @@ def sentimentAnalysis(request):
         'form':form,
     }
     return render(request, 'main_page.html', context)
+
 
 def result_page(request):
     if request.method == 'POST':
@@ -84,14 +104,20 @@ def handle_uploaded_file(f):
     file.close()
     return textList
 
-def getContent(text):
+def preprocessFile(text):
     content=[]
+    id=[]
+    annotation=[]
     s=0
     for i in text:
         if s%3==1 and s!=1:
             content.append(i)
+        elif s%3==0 and s!=0:
+            id.append(i)
+        elif s%3==2 and s!=2:
+            annotation.append(i)
         s+=1
-    return content
+    return id,content,annotation
 
 def cleansing(text):
     lower_content = (text.lower())
@@ -125,3 +151,59 @@ def save_wordcloud(text):
     plt.imshow(wc.generate_from_frequencies(text))
     plt.axis("off")
     plt.savefig("sentimentAnalysis/static/img/test.png", format = "png")
+
+def vaderSentimentFucntion(sentences):
+    analyzer = SentimentIntensityAnalyzer()
+    result = []
+    for sentence in sentences:
+        vs = analyzer.polarity_scores(sentence)
+        result.append(vs['compound']) #only Compound value
+    return result
+
+#convert the result sentiment analysis for compare each of things
+def convertSentimentResult(toolName,sentimentResult):
+    converted=[]
+    if toolName=="Vader" or toolName=="TextBlob":
+        for i in sentimentResult:
+            if i >= 0.05:
+                converted.append("positive")
+            elif i<0.05 and i>-0.05:
+                converted.append("neutral")
+            elif i<=-0.05:
+                converted.append("negative")
+        return converted
+    elif toolName=="userFile":
+        for i in sentimentResult:
+            if i == "4":
+                converted.append("positive")
+            elif i == "2":
+                converted.append("neutral")
+            elif i == "0":
+                converted.append("negative")
+        return converted
+    return converted
+
+#compare the polarity of two lists
+def compareFileWithVader(annotations, toolResults):
+    category=[]
+    for i in range(0,len(annotations)):
+        if annotations[i]==toolResults[i]:
+            category.append(True)
+        else:
+            category.append(False)
+    return category
+
+def textblobSentimentFunction(sentences):
+    for sentence in sentences:
+        testimonial = TextBlob(sentence)
+        result = []
+        result.append(testimonial.sentiment.polarity)
+    return (result)
+
+def confusionmatrix (annotation_result, tool_result):
+    data = {'annotation_result': annotation_result, 'tool_result':tool_result}
+    df = pd.DataFrame(data, columns=['annotation_result', 'tool_result'])
+    df['annotation_result'] = df['annotation_result'].map({'positive' : 0, 'negative' : 1 })
+    df['tool_result'] = df['tool_result'].map({'positive' : 0, 'negative' : 1 })
+    confusion_matrix = pd.crosstab(df['annotation_result'], df['tool_result'],  rownames=['annotation'], colnames=['Predicted'])
+    return(confusion_matrix)
