@@ -21,6 +21,8 @@ import vaderSentiment
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from textblob import TextBlob
 
+import pandas as pd
+
 # Create your views here.
 def sentimentAnalysis(request):
     if request.method == 'POST':
@@ -199,3 +201,11 @@ def textblobSentimentFunction(sentences):
         testimonial = TextBlob(sentence)
         result.append(testimonial.sentiment.polarity)
     return result
+
+def confusionmatrix (annotation_result, tool_result):
+    data = {'annotation_result': annotation_result, 'tool_result':tool_result}
+    df = pd.DataFrame(data, columns=['annotation_result', 'tool_result'])
+    df['annotation_result'] = df['annotation_result'].map({'positive' : 0, 'negative' : 1 })
+    df['tool_result'] = df['tool_result'].map({'positive' : 0, 'negative' : 1 })
+    confusion_matrix = pd.crosstab(df['annotation_result'], df['tool_result'],  rownames=['annotation'], colnames=['Predicted'])
+    return(confusion_matrix)
