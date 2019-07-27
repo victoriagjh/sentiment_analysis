@@ -44,6 +44,57 @@
       </tr>
     </table>
     <br>
+    <h5>Confusion Matrix</h5>
+    <table style = "border-collapse:collapse; text-align: center;" >
+      <tr>
+        <th> </th>
+        <th>Predicted: Positve</th>
+        <th>Predicted: Negative</th>
+      </tr>
+      <tr>
+      <td>Actual: Positve</td>
+      {% for i in form.vaderConfusionMatrix%}
+      <td>{{form.vaderConfusionMatrix|index:0|index:forloop.counter0}}</td>
+      {% endfor %}
+      </tr>
+      <tr>
+          <td>Actual: Negative</td>
+          {% for i in form.vaderConfusionMatrix%}
+          <td>{{form.vaderConfusionMatrix|index:1|index:forloop.counter0}}</td>
+          {% endfor %}
+      </tr>
+    </table>
+    <h5>
+      Precise: {{form.vaderPrecise}}
+      Recall: {{form.vaderRecall}}
+    </h5>
+
+    <table style = "border-collapse:collapse; text-align: center;" >
+        <tr>
+          <th> </th>
+          <th>Predicted: Positve</th>
+          <th>Predicted: Negative</th>
+        </tr>
+        <tr>
+        <td>Actual: Positve</td>
+        {% for i in form.ConfusionMatrix%}
+        <td>{{form.textblobConfusionMatrix|index:0|index:forloop.counter0}}</td>
+        {% endfor %}
+        </tr>
+        <tr>
+            <td>Actual: Negative</td>
+            {% for i in form.textblobConfusionMatrix%}
+            <td>{{form.textblobConfusionMatrix|index:1|index:forloop.counter0}}</td>
+            {% endfor %}
+        </tr>
+      </table>
+      <h5>
+          Precise: {{form.textblobPrecise}}
+          Recall: {{form.textblobRecall}}
+        </h5>
+      
+
+
     <div className="content-Analysis" align="center">
     <h5>Vocabulary Size of Text : {{form.wordcounter}}</h5>
     <h5>Top Frequent Words 5 : {{form.topFrequentWords}}</h5>

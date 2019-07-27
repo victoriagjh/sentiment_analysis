@@ -20,8 +20,9 @@ from wordcloud import WordCloud
 import vaderSentiment
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from textblob import TextBlob
-
+from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import pandas as pd
+
 
 # Create your views here.
 def sentimentAnalysis(request):
@@ -44,7 +45,7 @@ def sentimentAnalysis(request):
                 form.annotations=convertSentimentResult("userFile",annotations)
                 form.text = text #id, text, annotation type(list)
                 form.content = contents #text type(list)
-                form.tool = tools
+                form.tool = tools 
 
                 #all content type(str)
                 contentString=""
@@ -64,10 +65,19 @@ def sentimentAnalysis(request):
                         form.vaderScores=vaderSentimentFucntion(form.content)
                         form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
                         form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
+                        form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
+                        form.vaderPrecise = precise(form.annotations, form.vaderPolarity)
+                        form.vaderRecall = recall(form.annotations, form.vaderPolarity)
+
                     elif i == "TextBlob":
                         form.textblobScores=textblobSentimentFunction(form.content)
                         form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
                         form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
+                        form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
+                        form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
+                        form.textblobRecall = recall(form.annotations, form.textblobPolarity)
+
+                
                 context = {
                     'form':form,
                     }
@@ -202,10 +212,11 @@ def textblobSentimentFunction(sentences):
         result.append(testimonial.sentiment.polarity)
     return result
 
-def confusionmatrix (annotation_result, tool_result):
-    data = {'annotation_result': annotation_result, 'tool_result':tool_result}
-    df = pd.DataFrame(data, columns=['annotation_result', 'tool_result'])
-    df['annotation_result'] = df['annotation_result'].map({'positive' : 0, 'negative' : 1 })
-    df['tool_result'] = df['tool_result'].map({'positive' : 0, 'negative' : 1 })
-    confusion_matrix = pd.crosstab(df['annotation_result'], df['tool_result'],  rownames=['annotation'], colnames=['Predicted'])
-    return(confusion_matrix)
+def confusionMatrix (annotation_result, tool_result):
+ return confusion_matrix(annotation_result, tool_result, labels=["positive", "negative"])
+
+def precise(annotation_result, tool_result):
+    return precision_score(annotation_result, tool_result, average='macro')
+
+def recall(annotation_result, tool_result):
+    return recall_score(annotation_result, tool_result, average='macro')
