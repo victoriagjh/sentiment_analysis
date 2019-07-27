@@ -47,16 +47,14 @@ def sentimentAnalysis(request):
                 form.tool = tools
 
                 #all content type(str)
-                contentString=""
-                for i in contents:
-                    contentString+=i
+                contentString = convertToString(contents)
 
                 #surface metrics
                 cleansingText = cleansing(contentString)
                 form.word_frequent = word_frequent(cleansingText)
                 form.topFrequentWords=top_freqeunt(cleansingText)
                 form.wordcounter = wordcounter(cleansingText)
-                save_wordcloud(form.word_frequent)
+                save_wordcloud(form.word_frequent,"basic")
 
                 #sentimentAnalysis
                 for i in tools:
@@ -72,13 +70,57 @@ def sentimentAnalysis(request):
                         form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
                         form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
 
-
                 context = {
                     'form':form,
                     }
                 if type(request.POST.get('basic')) !=type(None):
                     return render(request, "basic_page.html",context)
                 elif type(request.POST.get('expert'))!=type(None):
+
+                    ids,contents,annotations = preprocessFile(text)
+                    form.ids=ids
+                    form.annotations=convertSentimentResult("userFile",annotations)
+                    form.text = text #id, text, annotation type(list)
+                    form.content = contents #text type(list)
+                    form.tool = tools
+
+                    positiveSet,negativeSet=separatePN(form.annotations,form.content)
+                    positiveList = list(positiveSet)
+                    negativeList = list(negativeSet)
+                    positiveString = convertToString(positiveList)
+                    negativeString = convertToString(negativeList)
+
+                    #surface metrics
+                    positiveCleansingText = cleansing(positiveString)
+                    form.positiveWord_frequent = word_frequent(positiveCleansingText)
+                    form.positiveTopFrequentWords=top_freqeunt(positiveCleansingText)
+                    form.PositiveWordcounter = wordcounter(positiveCleansingText)
+                    save_wordcloud(form.positiveWord_frequent,"positive")
+
+                    negativeCleansingText = cleansing(negativeString)
+                    form.negativeWord_frequent = word_frequent(negativeCleansingText)
+                    form.negativeTopFrequentWords=top_freqeunt(negativeCleansingText)
+                    form.negativeWordcounter = wordcounter(negativeCleansingText)
+                    save_wordcloud(form.negativeWord_frequent,"negative")
+
+                    #sentimentAnalysis
+                    for i in tools:
+                        if i == "Vader Sentiment":
+                            form.vaderScores=vaderSentimentFucntion(form.content)
+                            form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
+                            form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
+                            form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
+
+                        elif i == "TextBlob":
+                            form.textblobScores=textblobSentimentFunction(form.content)
+                            form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
+                            form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
+                            form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
+
+                    context = {
+                        'form':form,
+                        }
+
                     return render(request, "expert_page.html",context)
             if not tools:
                 messages.warning(request, 'You should check the tool at least 1!', extra_tags='alert')
@@ -129,6 +171,23 @@ def preprocessFile(text):
         s+=1
     return id,content,annotation
 
+def separatePN(annotations,text):
+    positiveSet = set()
+    negativeSet = set()
+    for i in range(len(annotations)):
+        if annotations[i]=="positive":
+            positiveSet.add(text[i])
+        elif annotations[i]=="negative":
+            negativeSet.add(text[i])
+    return positiveSet,negativeSet
+
+def convertToString(list):
+    contentString=""
+    for i in list:
+        contentString+=i
+        contentString+=" "
+    return contentString
+
 def cleansing(text):
     lower_content = (text.lower())
 
@@ -156,11 +215,11 @@ def top_freqeunt(text):
     fd_content = FreqDist(text)
     return fd_content.most_common(5)
 
-def save_wordcloud(text):
+def save_wordcloud(text,fileName):
     wc = WordCloud(width=1000, height=600, background_color="white", random_state=0)
     plt.imshow(wc.generate_from_frequencies(text))
     plt.axis("off")
-    plt.savefig("sentimentAnalysis/static/img/test.png", format = "png")
+    plt.savefig("sentimentAnalysis/static/img/"+fileName+".png", format = "png")
 
 def vaderSentimentFucntion(sentences):
     analyzer = SentimentIntensityAnalyzer()

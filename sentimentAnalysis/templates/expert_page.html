@@ -49,9 +49,16 @@
     {{form.vaderConfusionMatrix}}
     {{form.textblobConfusionMatrix}}
     <div className="content-Analysis" align="center">
-    <h5>Vocabulary Size of Text : {{form.wordcounter}}</h5>
-    <h5>Top Frequent Words 5 : {{form.topFrequentWords}}</h5>
-    <img src="{% static "img/test.png" %}" alt="My image">
+    <h5>{{form.positiveString}}</h5>
+    <h5>Positive Vocabulary Size of Text : {{form.positiveWordcounter}}</h5>
+    <h5>Positive Top Frequent Words 5 : {{form.positiveTopFrequentWords}}</h5>
+    <img src="{% static "img/positive.png" %}" alt="My image">
+
+    <h5>Negative Vocabulary Size of Text : {{form.negativeWordcounter}}</h5>
+    <h5>Negative Top Frequent Words 5 : {{form.negativeTopFrequentWords}}</h5>
+    <img src="{% static "img/negative.png" %}" alt="My image">
+
+
     </div>
     </form>
 {% endblock %}

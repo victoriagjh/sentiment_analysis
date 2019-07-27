@@ -34,8 +34,8 @@
       {% for id in form.ids%}
         <tr>
           <td align= "center">{{id}}</td>
-          <td align= "center">{{form.vaderScores|index:forloop.counter0}} / {{form.vaderPolarity|index:forloop.counter0}}</td>
-          <td align= "center">{{form.textblobScores|index:forloop.counter0}} / {{form.textblobPolarity|index:forloop.counter0}}</td>
+          <td align= "center">{{form.vaderPolarity|index:forloop.counter0}}</td>
+          <td align= "center">{{form.textblobPolarity|index:forloop.counter0}}</td>
         </tr>
       {%endfor%}
       <tr>
@@ -51,7 +51,7 @@
     <div className="content-Analysis" align="center">
     <h5>Vocabulary Size of Text : {{form.wordcounter}}</h5>
     <h5>Top Frequent Words 5 : {{form.topFrequentWords}}</h5>
-    <img src="{% static "img/test.png" %}" alt="My image">
+    <img src="{% static "img/basic.png" %}" alt="My image">
     </div>
     </form>
 {% endblock %}
