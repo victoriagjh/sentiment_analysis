@@ -4,3 +4,5 @@ register = template.Library()
 @register.filter
 def index(List, i):
     return List[int(i)]
+def index(List, i,j):
+    return List[int(i)][int(j)]

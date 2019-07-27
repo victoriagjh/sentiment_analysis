@@ -20,18 +20,25 @@
           </th>
           <th>
             <h5>choose the tools</h5>
-            <div class="tools-checkbox"></div>
-            <input type="checkbox" checked="checked" id="vader" name="vader" style="width:20px;height:20px;"/>
-            <label for="vader"><span style="font-size: 15pt">Vader Sentiment</span></label> <br>
+            <div class="tools-checkbox">
+              <input type="checkbox" checked="checked" id="vader" name="vader" style="width:20px;height:20px;"/>
+              <label for="vader"><span style="font-size: 15pt">Vader Sentiment</span></label> <br>
 
-            <input type="checkbox" checked="checked" id="textblob" name="textblob" style="width:20px;height:20px;"/>
-            <label for="textblob"><span style="font-size: 15pt">TextBlob</span></label> <br>
-
+              <input type="checkbox" checked="checked" id="textblob" name="textblob" style="width:20px;height:20px;"/>
+              <label for="textblob"><span style="font-size: 15pt">TextBlob</span></label> <br>
+            </div>
             </div>
           </th>
           </tr>
           </table>
     <br>
+    <div class="mode-checkbox">
+    <input type="checkbox" id="basic" name="basic" style="width:20px;height:20px;"/>
+    <label for="basic"><span style="font-size: 15pt">Basic Mode</span></label>
+
+    <input type="checkbox" id="expert" name="expert" style="width:20px;height:20px;"/>
+    <label for="expert"><span style="font-size: 15pt">Expert Mode</span></label> <br>
+    </div>
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
   {% if messages %}

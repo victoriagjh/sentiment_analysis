@@ -64,14 +64,22 @@ def sentimentAnalysis(request):
                         form.vaderScores=vaderSentimentFucntion(form.content)
                         form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
                         form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
+                        form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
+
                     elif i == "TextBlob":
                         form.textblobScores=textblobSentimentFunction(form.content)
                         form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
                         form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
+                        form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
+
+
                 context = {
                     'form':form,
                     }
-                return render(request, "result_page.html",context)
+                if type(request.POST.get('basic')) !=type(None):
+                    return render(request, "basic_page.html",context)
+                elif type(request.POST.get('expert'))!=type(None):
+                    return render(request, "expert_page.html",context)
             if not tools:
                 messages.warning(request, 'You should check the tool at least 1!', extra_tags='alert')
     else:
@@ -202,10 +210,15 @@ def textblobSentimentFunction(sentences):
         result.append(testimonial.sentiment.polarity)
     return result
 
-def confusionmatrix (annotation_result, tool_result):
+def confusionMatrix (annotation_result, tool_result):
     data = {'annotation_result': annotation_result, 'tool_result':tool_result}
     df = pd.DataFrame(data, columns=['annotation_result', 'tool_result'])
     df['annotation_result'] = df['annotation_result'].map({'positive' : 0, 'negative' : 1 })
     df['tool_result'] = df['tool_result'].map({'positive' : 0, 'negative' : 1 })
     confusion_matrix = pd.crosstab(df['annotation_result'], df['tool_result'],  rownames=['annotation'], colnames=['Predicted'])
-    return(confusion_matrix)
+    return confusion_matrix
+
+def confusionMatrix_html(confusion_matrix):
+    df = confusionMatrix
+    desc = df.describe(include = 'all')
+    return render_template("result_page.html", data_frame=df.to_html(), stat=desc.to_html())

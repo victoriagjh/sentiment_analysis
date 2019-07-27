@@ -2,10 +2,12 @@
 {% load static %}
 {% load index %}
 {{ List|index:x }}
+{{ List|index:x|index:y }}
+
 
 {% block content%}
   <div class ="page-header" align= "center">
-    <h1>Result</h1>
+    <h1>Basic Page Result</h1>
   </div>
   <div class="file" align="center">
     <form method="post" action="http://localhost:8000/result/">
@@ -37,13 +39,15 @@
         </tr>
       {%endfor%}
       <tr>
-          <td align="center" style="border-collapse:collapse;">Summary</td>
+          <td align="center" style="border-collapse:collapse;">Download</td>
           {% for tool in form.tool%}
             <td align= "center"><button type="submit" name="spacy_button" value="spacy_button" class="btn btn-primary">download</button></td>
           {% endfor %}
       </tr>
     </table>
     <br>
+    {{form.vaderConfusionMatrix}}
+    {{form.textblobConfusionMatrix}}
     <div className="content-Analysis" align="center">
     <h5>Vocabulary Size of Text : {{form.wordcounter}}</h5>
     <h5>Top Frequent Words 5 : {{form.topFrequentWords}}</h5>
