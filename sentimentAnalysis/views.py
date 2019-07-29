@@ -62,13 +62,11 @@ def sentimentAnalysis(request):
                         form.vaderScores=vaderSentimentFucntion(form.content)
                         form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
                         form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
-                        form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
 
                     elif i == "TextBlob":
                         form.textblobScores=textblobSentimentFunction(form.content)
                         form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
                         form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
-                        form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
 
                 context = {
                     'form':form,
@@ -109,13 +107,11 @@ def sentimentAnalysis(request):
                             form.vaderScores=vaderSentimentFucntion(form.content)
                             form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
                             form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
-                            form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
 
                         elif i == "TextBlob":
                             form.textblobScores=textblobSentimentFunction(form.content)
                             form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
                             form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
-                            form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
 
                     context = {
                         'form':form,
@@ -268,16 +264,3 @@ def textblobSentimentFunction(sentences):
         testimonial = TextBlob(sentence)
         result.append(testimonial.sentiment.polarity)
     return result
-
-def confusionMatrix (annotation_result, tool_result):
-    data = {'annotation_result': annotation_result, 'tool_result':tool_result}
-    df = pd.DataFrame(data, columns=['annotation_result', 'tool_result'])
-    df['annotation_result'] = df['annotation_result'].map({'positive' : 0, 'negative' : 1 })
-    df['tool_result'] = df['tool_result'].map({'positive' : 0, 'negative' : 1 })
-    confusion_matrix = pd.crosstab(df['annotation_result'], df['tool_result'],  rownames=['annotation'], colnames=['Predicted'])
-    return confusion_matrix
-
-def confusionMatrix_html(confusion_matrix):
-    df = confusionMatrix
-    desc = df.describe(include = 'all')
-    return render_template("result_page.html", data_frame=df.to_html(), stat=desc.to_html())
