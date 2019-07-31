@@ -22,6 +22,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from textblob import TextBlob
 
 import pandas as pd
+from sklearn.metrics import confusion_matrix, precision_score, recall_score
 
 # Create your views here.
 def sentimentAnalysis(request):
@@ -62,11 +63,16 @@ def sentimentAnalysis(request):
                         form.vaderScores=vaderSentimentFucntion(form.content)
                         form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
                         form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
-
+                        form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
+                        form.vaderPrecise = precise(form.annotations, form.vaderPolarity)
+                        form.vaderRecall = recall(form.annotations, form.vaderPolarity)
                     elif i == "TextBlob":
                         form.textblobScores=textblobSentimentFunction(form.content)
                         form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
                         form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
+                        form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
+                        form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
+                        form.textblobRecall = recall(form.annotations, form.textblobPolarity)
 
                 context = {
                     'form':form,
@@ -107,11 +113,17 @@ def sentimentAnalysis(request):
                             form.vaderScores=vaderSentimentFucntion(form.content)
                             form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
                             form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
+                            form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
+                            form.vaderPrecise = precise(form.annotations, form.vaderPolarity)
+                            form.vaderRecall = recall(form.annotations, form.vaderPolarity)
 
                         elif i == "TextBlob":
                             form.textblobScores=textblobSentimentFunction(form.content)
                             form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
                             form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
+                            form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
+                            form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
+                            form.textblobRecall = recall(form.annotations, form.textblobPolarity)
 
                     context = {
                         'form':form,
@@ -264,3 +276,12 @@ def textblobSentimentFunction(sentences):
         testimonial = TextBlob(sentence)
         result.append(testimonial.sentiment.polarity)
     return result
+
+def confusionMatrix (annotation_result, tool_result):
+ return confusion_matrix(annotation_result, tool_result, labels=["positive", "negative"])
+
+def precise(annotation_result, tool_result):
+    return precision_score(annotation_result, tool_result, average='macro')
+
+def recall(annotation_result, tool_result):
+    return recall_score(annotation_result, tool_result, average='macro')
