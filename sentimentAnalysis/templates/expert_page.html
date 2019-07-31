@@ -8,9 +8,15 @@
 {% block content%}
   <div class ="page-header" align= "center">
     <h1>Expert Page Result</h1>
+    <h3>Sentiment Analysis</h3>
   </div>
+  <form class ="naivgate" action="http://localhost:8000/expert/" method="post">
+    {% csrf_token %}
+      <button type="submit" id="sentiment" name="sentiment">Sentiment Analysis</button>
+      <button type="submit" id="metric" name="metric">Surface Metric</button>
+  </form>
   <div class="file" align="center">
-    <form method="post" action="http://localhost:8000/result/">
+    <form method="post" action="http://localhost:8000/expert/">
       {% csrf_token %}
       <h3>file name : <a id="id_uploaded_file" href="{text/test.txt}" download>{{form.name}}</a></h3>
       <br>

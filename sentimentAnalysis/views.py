@@ -25,6 +25,7 @@ import pandas as pd
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 
 # Create your views here.
+session ={}
 def sentimentAnalysis(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -128,7 +129,8 @@ def sentimentAnalysis(request):
                     context = {
                         'form':form,
                         }
-
+                    global session
+                    session=context
                     return render(request, "expert_page.html",context)
             if not tools:
                 messages.warning(request, 'You should check the tool at least 1!', extra_tags='alert')
@@ -140,14 +142,12 @@ def sentimentAnalysis(request):
     return render(request, 'main_page.html', context)
 
 
-def result_page(request):
+def expert_page(request):
     if request.method == 'POST':
-        if 'spacy_button' in request.POST:
-            context = {
-            'spacy':"spacy",
-            }
-            return render(request, 'last.html', context)
-    return render(request,'main_page.html',context)
+        global session
+        if 'metric' in request.POST:
+            return render(request,'expert_metrics.html',session)
+        return render(request,'expert_page.html',session)
 
 def handle_uploaded_file(f):
     fileName="text/"+f.name
