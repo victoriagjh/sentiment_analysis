@@ -39,24 +39,25 @@ def sentimentAnalysis(request):
                 #preprocess the file
                 form.save()
                 form.name = request.FILES['file'].name
-                text = handle_uploaded_file(request.FILES['file'])
+                ids, contents, annotations, hashtags = preprocessFile(request.FILES['file'])
 
-                ids,contents,annotations = preprocessFile(text)
                 form.ids=ids
-                form.annotations=convertSentimentResult("userFile",annotations)
-                form.text = text #id, text, annotation type(list)
+                form.annotations=annotations
                 form.content = contents #text type(list)
+                form.hashtag = hashtags #text type(list)
                 form.tool = tools
 
                 #all content type(str)
                 contentString = convertToString(contents)
 
                 #surface metrics
-                cleansingText = cleansing(contentString)
+                cleansingText = cleansing(contents)
                 form.word_frequent = word_frequent(cleansingText)
                 form.topFrequentWords=top_freqeunt(cleansingText)
                 form.wordcounter = wordcounter(cleansingText)
                 save_wordcloud(form.word_frequent,"basic")
+
+                form.hashtag_frequent = top_freqeunt(hashtags)
 
                 #sentimentAnalysis
                 for i in tools:
@@ -79,30 +80,27 @@ def sentimentAnalysis(request):
                     'form':form,
                     }
                 if type(request.POST.get('basic')) !=type(None):
-                    return render(request, "basic_page.html",context)
+                    global session
+                    session = context
+                    return render(request, "basic_page.html",session)
                 elif type(request.POST.get('expert'))!=type(None):
-
-                    ids,contents,annotations = preprocessFile(text)
-                    form.ids=ids
-                    form.annotations=convertSentimentResult("userFile",annotations)
-                    form.text = text #id, text, annotation type(list)
-                    form.content = contents #text type(list)
-                    form.tool = tools
 
                     positiveSet,negativeSet=separatePN(form.annotations,form.content)
                     positiveList = list(positiveSet)
                     negativeList = list(negativeSet)
-                    positiveString = convertToString(positiveList)
-                    negativeString = convertToString(negativeList)
+                    positiveHashtag= extractHashtag(positiveList)
+                    negativeHashtag= extractHashtag(negativeList)
+                    form.positiveTopFrequentHashtag=top_freqeunt(positiveHashtag)
+                    form.negativeTopFrequentHashtag=top_freqeunt(negativeHashtag)
 
                     #surface metrics
-                    positiveCleansingText = cleansing(positiveString)
+                    positiveCleansingText = cleansing(positiveList)
                     form.positiveWord_frequent = word_frequent(positiveCleansingText)
                     form.positiveTopFrequentWords=top_freqeunt(positiveCleansingText)
                     form.positiveWordcounter = wordcounter(positiveCleansingText)
                     save_wordcloud(form.positiveWord_frequent,"positive")
 
-                    negativeCleansingText = cleansing(negativeString)
+                    negativeCleansingText = cleansing(negativeList)
                     form.negativeWord_frequent = word_frequent(negativeCleansingText)
                     form.negativeTopFrequentWords=top_freqeunt(negativeCleansingText)
                     form.negativeWordcounter = wordcounter(negativeCleansingText)
@@ -129,9 +127,8 @@ def sentimentAnalysis(request):
                     context = {
                         'form':form,
                         }
-                    global session
                     session=context
-                    return render(request, "expert_page.html",context)
+                    return render(request, "expert_page.html",session)
             if not tools:
                 messages.warning(request, 'You should check the tool at least 1!', extra_tags='alert')
     else:
@@ -156,45 +153,39 @@ def basic_page(request):
             return render(request,'basic_metrics.html',session)
         return render(request,'basic_page.html',session)
 
-def handle_uploaded_file(f):
+def preprocessFile(f):
     fileName="text/"+f.name
-    file = open(fileName, "r")
+    file = open(fileName, "r", encoding='UTF-8')
     text=file.readlines()
-    textList=[]
-    for i in text:
-        i=i.replace('\n','\t')
-        i=i.replace('   ','\t')
-        i=i.split('\t')
-        for j in i:
-            if j!='':
-                textList.append(j)
-    file.close()
-    return textList
 
-def preprocessFile(text):
-    content=[]
-    id=[]
-    annotation=[]
-    s=0
-    for i in text:
-        if s%3==1 and s!=1:
-            content.append(i)
-        elif s%3==0 and s!=0:
-            id.append(i)
-        elif s%3==2 and s!=2:
-            annotation.append(i)
-        s+=1
-    return id,content,annotation
+    id = []
+    content = []
+    hashtag = []
+    annotation = []
 
-def separatePN(annotations,text):
-    positiveSet = set()
-    negativeSet = set()
-    for i in range(len(annotations)):
-        if annotations[i]=="positive":
-            positiveSet.add(text[i])
-        elif annotations[i]=="negative":
-            negativeSet.add(text[i])
-    return positiveSet,negativeSet
+    pattern = '#([0-9a-zA-Z]*)'
+    hashtag_word = re.compile(pattern)
+
+    for line in text:
+        sentence = re.split(r'\t+', line)
+        text = ""
+        id.append(sentence[0])
+        content.append(sentence[1])
+        annotation.append(sentence[2].strip('\n'))
+
+        for tag in hashtag_word.findall(line):
+            hashtag.append(tag)
+
+    return id,content,annotation, hashtag
+
+def extractHashtag(list):
+    hashtag=[]
+    pattern = '#([0-9a-zA-Z]*)'
+    hashtag_word = re.compile(pattern)
+    for i in list:
+        for j in hashtag_word.findall(i):
+            hashtag.append(j)
+    return hashtag
 
 def convertToString(list):
     contentString=""
@@ -203,20 +194,36 @@ def convertToString(list):
         contentString+=" "
     return contentString
 
-def cleansing(text):
-    lower_content = (text.lower())
+def separatePN(annotations,text):
+    positiveSet = set()
+    negativeSet = set()
+    for i in range(len(annotations)):
+        if annotations[i]=="Positive":
+            positiveSet.add(text[i])
+        elif annotations[i]=="Negative":
+            negativeSet.add(text[i])
+    return positiveSet,negativeSet
 
-    shortword = re.compile(r'\W*\b\w{1,2}\b')
-    shortword_content = shortword.sub('', lower_content)
-    text = re.sub('[-=.#/?:$}!,]', '', shortword_content)
-
-    stop_words = set(stopwords.words('english'))
-    content_tokens = word_tokenize(text)
+def cleansing(content):
     result = []
+    url_pattern ='https?://\S+|#([0-9a-zA-Z]*)'
 
-    for w in content_tokens:
-        if w not in stop_words:
-            result.append(w)
+    for text in content:
+        #대문자 소문자 변환
+        lower_content = (text.lower())
+
+        #불용어 제거
+        shortword = re.compile(r'\W*\b\w{1,2}\b')
+        shortword_content = shortword.sub('', lower_content)
+        text = re.sub('[-=.#/?:$}!,@]', '', shortword_content)
+
+        stop_words = set(stopwords.words('english'))
+        content_tokens = word_tokenize(text)
+        real_content = re.sub(pattern=url_pattern, repl='', string = text)
+
+        for w in content_tokens:
+            if w not in stop_words:
+                    result.append(w)
     return result
 
 def wordcounter(text):
@@ -226,8 +233,8 @@ def word_frequent(text):
     fd_content = FreqDist(text)
     return fd_content
 
-def top_freqeunt(text):
-    fd_content = FreqDist(text)
+def top_freqeunt(list):
+    fd_content = FreqDist(list)
     return fd_content.most_common(5)
 
 def save_wordcloud(text,fileName):
@@ -250,20 +257,20 @@ def convertSentimentResult(toolName,sentimentResult):
     if toolName=="Vader" or toolName=="TextBlob":
         for i in sentimentResult:
             if i >= 0.05:
-                converted.append("positive")
+                converted.append("Positive")
             elif i<0.05 and i>-0.05:
-                converted.append("neutral")
+                converted.append("Neutral")
             elif i<=-0.05:
-                converted.append("negative")
+                converted.append("Negative")
         return converted
     elif toolName=="userFile":
         for i in sentimentResult:
             if i == "4":
-                converted.append("positive")
+                converted.append("Positive")
             elif i == "2":
-                converted.append("neutral")
+                converted.append("Neutral")
             elif i == "0":
-                converted.append("negative")
+                converted.append("Negative")
         return converted
     return converted
 
@@ -285,7 +292,7 @@ def textblobSentimentFunction(sentences):
     return result
 
 def confusionMatrix (annotation_result, tool_result):
- return confusion_matrix(annotation_result, tool_result, labels=["positive", "negative"])
+ return confusion_matrix(annotation_result, tool_result, labels=["Positive", "Negative"])
 
 def precise(annotation_result, tool_result):
     return precision_score(annotation_result, tool_result, average='macro')

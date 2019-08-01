@@ -35,11 +35,10 @@
 <div className="content-Analysis" align="center">
 <h5>{{form.positiveString}}</h5>
 <h3>Positive Vocabulary Size of Text : {{form.positiveWordcounter}}</h3>
-<table width= "1000px">
-  <td>
+<table width= "1700px">
     <td>
       <h3 align="center">Positive Top Frequent Words 5</h3>
-      <table width="500px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
+      <table width="450px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
     <tr>
       <th align="center" style="text-align:center;"> Ranking </th>
       <th align="center" style="text-align:center;"> Word</th>
@@ -51,15 +50,28 @@
         </tr>
       {%endfor%}
     </table> </td>
+    <td>
+      <h3 align="center">Top Frequent Hashtags 5</h3>
+      <table width="450px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
+    <tr>
+      <th align="center" style="text-align:center;"> Ranking </th>
+      <th align="center" style="text-align:center;"> Hashtag</th>
+    </tr>
+      {% for hashtag in form.positiveTopFrequentHashtag%}
+        <tr>
+          <td align= "center">{{forloop.counter}}</td>
+          <td align= "center">{{hashtag|index:0}}</td>
+        </tr>
+      {%endfor%}
+    </table> </td>
   <td> <img src="{% static "img/positive.png" %}" alt="My image"> </td>
 </table>
 
 <h3>Negative Vocabulary Size of Text : {{form.negativeWordcounter}}</h3>
-<table width= "1000px">
-  <td>
+<table width= "1700px">
     <td>
       <h3 align="center">Negative Top Frequent Words 5</h3>
-      <table width="500px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
+      <table width="450px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
     <tr>
       <th align="center" style="text-align:center;"> Ranking </th>
       <th align="center" style="text-align:center;"> Word</th>
@@ -68,6 +80,20 @@
         <tr>
           <td align= "center">{{forloop.counter}}</td>
           <td align= "center">{{word|index:0}}</td>
+        </tr>
+      {%endfor%}
+    </table> </td>
+    <td>
+      <h3 align="center">Top Frequent Hashtags 5</h3>
+      <table width="450px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
+    <tr>
+      <th align="center" style="text-align:center;"> Ranking </th>
+      <th align="center" style="text-align:center;"> Hashtag</th>
+    </tr>
+      {% for hashtag in form.negativeTopFrequentHashtag%}
+        <tr>
+          <td align= "center">{{forloop.counter}}</td>
+          <td align= "center">{{hashtag|index:0}}</td>
         </tr>
       {%endfor%}
     </table> </td>
