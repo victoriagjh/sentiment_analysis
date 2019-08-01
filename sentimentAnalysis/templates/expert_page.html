@@ -12,23 +12,13 @@
   </div>
   <form class ="naivgate" action="http://localhost:8000/expert/" method="post">
     {% csrf_token %}
-      <button type="submit" id="sentiment" name="sentiment">Sentiment Analysis</button>
-      <button type="submit" id="metric" name="metric">Surface Metric</button>
+    <table align="center" width="50%">
+      <tr>
+        <td align="center"><button type="submit" id="sentiment" name="sentiment">Sentiment Analysis</button> </td>
+        <td align="center"><button type="submit" id="metric" name="metric">Surface Metric</button> </td>
+      </tr>
+    </table>
   </form>
-  <div class="file" align="center">
-    <form method="post" action="http://localhost:8000/expert/">
-      {% csrf_token %}
-      <h3>file name : <a id="id_uploaded_file" href="{text/test.txt}" download>{{form.name}}</a></h3>
-      <br>
-      <div class="file-content">
-        <h5>
-          {% for content in form.content%}
-            {{content}}
-          {% endfor %}
-        </h5>
-      </div>
-      <br>
-  </div>
     <h3 align= "center">Show the Results</h3>
     <table width="700px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
     <tr>
@@ -52,17 +42,8 @@
       </tr>
     </table>
     <br>
-    <div className="content-Analysis" align="center">
-    <h5>{{form.positiveString}}</h5>
-    <h5>Positive Vocabulary Size of Text : {{form.positiveWordcounter}}</h5>
-    <h5>Positive Top Frequent Words 5 : {{form.positiveTopFrequentWords}}</h5>
-    <img src="{% static "img/positive.png" %}" alt="My image">
-
-    <h5>Negative Vocabulary Size of Text : {{form.negativeWordcounter}}</h5>
-    <h5>Negative Top Frequent Words 5 : {{form.negativeTopFrequentWords}}</h5>
-    <img src="{% static "img/negative.png" %}" alt="My image">
-    <h5>Confusion Matrix</h5>
-   <table style = "border-collapse:collapse; text-align: center;" >
+    <h3 align="center">Confusion Matrix</h3>
+   <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="25%" align="center">
      <tr>
        <th> </th>
        <th>Predicted: Positve</th>
@@ -81,12 +62,11 @@
          {% endfor %}
      </tr>
    </table>
-   <h5>
-     Precise: {{form.vaderPrecise}}
-     Recall: {{form.vaderRecall}}
+   <h5 align="center">
+     Precise: {{form.vaderPrecise}} &nbsp; &nbsp; Recall: {{form.vaderRecall}}
    </h5>
 
-   <table style = "border-collapse:collapse; text-align: center;" >
+   <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="25%" align="center">
        <tr>
          <th> </th>
          <th>Predicted: Positve</th>
@@ -94,7 +74,7 @@
        </tr>
        <tr>
        <td>Actual: Positve</td>
-       {% for i in form.ConfusionMatrix%}
+       {% for i in form.textblobConfusionMatrix%}
        <td>{{form.textblobConfusionMatrix|index:0|index:forloop.counter0}}</td>
        {% endfor %}
        </tr>
@@ -105,9 +85,8 @@
            {% endfor %}
        </tr>
      </table>
-     <h5>
-         Precise: {{form.textblobPrecise}}
-         Recall: {{form.textblobRecall}}
+     <h5 align="center">
+         Precise: {{form.textblobPrecise}} &nbsp; &nbsp; Recall: {{form.textblobRecall}}
        </h5>
 
     </div>

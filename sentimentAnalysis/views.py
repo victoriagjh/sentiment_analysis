@@ -99,7 +99,7 @@ def sentimentAnalysis(request):
                     positiveCleansingText = cleansing(positiveString)
                     form.positiveWord_frequent = word_frequent(positiveCleansingText)
                     form.positiveTopFrequentWords=top_freqeunt(positiveCleansingText)
-                    form.PositiveWordcounter = wordcounter(positiveCleansingText)
+                    form.positiveWordcounter = wordcounter(positiveCleansingText)
                     save_wordcloud(form.positiveWord_frequent,"positive")
 
                     negativeCleansingText = cleansing(negativeString)
@@ -148,6 +148,13 @@ def expert_page(request):
         if 'metric' in request.POST:
             return render(request,'expert_metrics.html',session)
         return render(request,'expert_page.html',session)
+
+def basic_page(request):
+    if request.method == 'POST':
+        global session
+        if 'metric' in request.POST:
+            return render(request,'basic_metrics.html',session)
+        return render(request,'basic_page.html',session)
 
 def handle_uploaded_file(f):
     fileName="text/"+f.name
