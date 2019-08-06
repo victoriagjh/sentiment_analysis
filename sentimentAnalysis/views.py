@@ -3,8 +3,10 @@ if sys_pf == 'darwin':
     import matplotlib
     matplotlib.use("TkAgg")
 
+import os
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.conf import settings
+from django.http import HttpResponseRedirect,HttpResponse,Http404
 from .forms import UploadFileForm
 from django.contrib import messages
 
@@ -23,6 +25,8 @@ from textblob import TextBlob
 
 import pandas as pd
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
+
+from django.core.files import File
 
 # Create your views here.
 session ={}
@@ -143,6 +147,12 @@ def expert_page(request):
             return render(request,'expert_metrics.html',session)
         if 'download' in request.POST:
             makeFile("expert")
+            path_to_file = os.path.realpath("result.txt")
+            file = open(path_to_file, 'r')
+            rfile = File(file)
+            response = HttpResponse(rfile, content_type='application/txt')
+            response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
+            return response
         return render(request,'expert_page.html',session)
 
 def basic_page(request):
@@ -152,6 +162,12 @@ def basic_page(request):
             return render(request,'basic_metrics.html',session)
         if 'download' in request.POST:
             makeFile("basic")
+            path_to_file = os.path.realpath("result.txt")
+            file = open(path_to_file, 'r')
+            rfile = File(file)
+            response = HttpResponse(rfile, content_type='application/txt')
+            response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
+            return response
         return render(request,'basic_page.html',session)
 
 def makeFile(pageType):
@@ -245,8 +261,6 @@ def makeFile(pageType):
             file.write("\t")
         file.write("\n")
     file.close()
-
-
 
 def preprocessFile(f):
     fileName="text/"+f.name

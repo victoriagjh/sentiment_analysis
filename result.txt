@@ -3220,9 +3220,3 @@ TextBlob Precise : 0.3994420630449332
 TextBlob Recall : 0.39803844360684204
 Top Frequent Words 5 : ('hpv', 2882)	('vaccine', 1687)	('gardasil', 541)	('vaccination', 383)	('vaccines', 358)	
 Top Frequent Hashtags 5 : ('HPV', 544)	('vaccine', 116)	('Gardasil', 110)	('HearUs', 63)	('Vaccine', 56)	
-Positive Word Counter : 10263
-Positive Top Frequent Words 5 : ('hpv', 955)	('vaccine', 576)	('cancer', 199)	('getting', 159)	('teens', 152)	
-Positive Top Frequent Hashtags 5 : ('HPV', 213)	('vaccine', 39)	('cancer', 37)	('vaccineswork', 28)	('NIAM15', 20)	
-negative Word Counter : 11240
-negative Top Frequent Words 5 : ('hpv', 800)	('vaccine', 519)	('gardasil', 307)	('vaccines', 135)	('girls', 126)	
-negative Top Frequent Hashtags 5 : ('HPV', 113)	('Gardasil', 61)	('HearUs', 44)	('vaccine', 30)	('CDCwhistleblower', 25)	
