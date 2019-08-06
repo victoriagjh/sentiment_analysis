@@ -69,6 +69,7 @@ def sentimentAnalysis(request):
                         form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
                         form.vaderPrecise = precise(form.annotations, form.vaderPolarity)
                         form.vaderRecall = recall(form.annotations, form.vaderPolarity)
+                        form.vaderF1Score = F1Score(form.vaderPrecise,form.vaderRecall)
                     elif i == "TextBlob":
                         form.textblobScores=textblobSentimentFunction(form.content)
                         form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
@@ -76,7 +77,7 @@ def sentimentAnalysis(request):
                         form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
                         form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
                         form.textblobRecall = recall(form.annotations, form.textblobPolarity)
-
+                        form.textblobF1Score = F1Score(form.textblobPrecise,form.textblobRecall)
                 context = {
                     'form':form,
                     }
@@ -106,24 +107,6 @@ def sentimentAnalysis(request):
                     form.negativeTopFrequentWords=top_freqeunt(negativeCleansingText)
                     form.negativeWordcounter = wordcounter(negativeCleansingText)
                     save_wordcloud(form.negativeWord_frequent,"negative")
-
-                    #sentimentAnalysis
-                    for i in tools:
-                        if i == "Vader Sentiment":
-                            form.vaderScores=vaderSentimentFucntion(form.content)
-                            form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
-                            form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
-                            form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
-                            form.vaderPrecise = precise(form.annotations, form.vaderPolarity)
-                            form.vaderRecall = recall(form.annotations, form.vaderPolarity)
-
-                        elif i == "TextBlob":
-                            form.textblobScores=textblobSentimentFunction(form.content)
-                            form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
-                            form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
-                            form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
-                            form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
-                            form.textblobRecall = recall(form.annotations, form.textblobPolarity)
 
                     context = {
                         'form':form,
@@ -206,6 +189,9 @@ def makeFile(pageType):
     file.write("Vader Recall : ")
     file.write(str(session['form'].vaderRecall))
     file.write("\n")
+    file.write("Vader F1 Score : ")
+    file.write(str(session['form'].vaderF1Score))
+    file.write("\n")
 
     file.write("TextBlob Confusion Matrix\n")
     file.write(str(session['form'].textblobConfusionMatrix[0][0]))
@@ -221,6 +207,9 @@ def makeFile(pageType):
     file.write("\n")
     file.write("TextBlob Recall : ")
     file.write(str(session['form'].textblobRecall))
+    file.write("\n")
+    file.write("TextBlob F1 Score : ")
+    file.write(str(session['form'].textblobF1Score))
     file.write("\n")
 
     file.write("Top Frequent Words 5 : ")
@@ -408,3 +397,7 @@ def precise(annotation_result, tool_result):
 
 def recall(annotation_result, tool_result):
     return recall_score(annotation_result, tool_result, average='macro')
+
+def F1Score(precision, recall):
+    F1Score = 2*precision*recall/(precision+recall)
+    return F1Score
