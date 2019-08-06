@@ -23,14 +23,6 @@
     {% csrf_token %}
     <h3>file name : <a id="id_uploaded_file" href="{text/test.txt}" download>{{form.name}}</a></h3>
     <br>
-    <div class="file-content">
-      <h5>
-        {% for content in form.content%}
-          {{content}}
-        {% endfor %}
-      </h5>
-    </div>
-    <br>
 </div>
 <h3 align="center">Vocabulary Size of Text : {{form.wordcounter}}</h3>
 <div className="content-Analysis" align="center">

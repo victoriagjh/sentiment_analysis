@@ -47,9 +47,6 @@ def sentimentAnalysis(request):
                 form.hashtag = hashtags #text type(list)
                 form.tool = tools
 
-                #all content type(str)
-                contentString = convertToString(contents)
-
                 #surface metrics
                 cleansingText = cleansing(contents)
                 form.word_frequent = word_frequent(cleansingText)

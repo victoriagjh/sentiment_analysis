@@ -19,74 +19,90 @@
       </tr>
     </table>
   </form>
-    <h3 align= "center">Show the Results</h3>
-    <table width="700px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
-    <tr>
-      <th align="center" style="text-align:center;">File ID</th>
-      {% for tool in form.tool%}
-        <th align="center" style="text-align:center;">{{tool}}</th>
-      {% endfor %}
-    </tr>
-      {% for id in form.ids%}
-        <tr>
-          <td align= "center">{{id}}</td>
-          <td align= "center">{{form.vaderPolarity|index:forloop.counter0}}</td>
-          <td align= "center">{{form.textblobPolarity|index:forloop.counter0}}</td>
-        </tr>
-      {%endfor%}
+    <h3 align="center">Confusion Matrix</h3>
+    <table width= "800px" align="center" border="1">
       <tr>
-          <td align="center" style="border-collapse:collapse;">Download</td>
-          {% for tool in form.tool%}
-            <td align= "center"><button type="submit" name="spacy_button" value="spacy_button" class="btn btn-primary">download</button></td>
-          {% endfor %}
+        <td>
+          <h3 align="center">Vader</h3>
+        </td>
+        <td>
+          <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="400px" align="center">
+            <tr>
+              <th> </th>
+              <th>Predicted: Positve</th>
+              <th>Predicted: Negative</th>
+            </tr>
+            <tr>
+            <td>Actual: Positve</td>
+            {% for i in form.vaderConfusionMatrix%}
+            <td>{{form.vaderConfusionMatrix|index:0|index:forloop.counter0}}</td>
+            {% endfor %}
+            </tr>
+            <tr>
+                <td>Actual: Negative</td>
+                {% for i in form.vaderConfusionMatrix%}
+                <td>{{form.vaderConfusionMatrix|index:1|index:forloop.counter0}}</td>
+                {% endfor %}
+            </tr>
+          </table>
+        </td>
+      <td>
+        <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="25%" align="center">
+          <tr>
+            <h5 align="center"> Precise: {{form.vaderPrecise}} </h5>
+          </tr>
+          <tr>
+            <h5 align="center"> Recall: {{form.vaderRecall}} </h5>
+          </tr>
+          <tr>
+            <h5 align="center"> F1-score:  </h5>
+          </tr>
+        </table>
+      </td>
+      </tr>
+      <tr>
+        <td>
+          <h3 align="center">TextBlob</h3>
+        </td>
+        <td>
+          <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="400px" align="center">
+            <tr>
+              <th> </th>
+              <th>Predicted: Positve</th>
+              <th>Predicted: Negative</th>
+            </tr>
+            <tr>
+            <td>Actual: Positve</td>
+            {% for i in form.textblobConfusionMatrix%}
+            <td>{{form.textblobConfusionMatrix|index:0|index:forloop.counter0}}</td>
+            {% endfor %}
+            </tr>
+            <tr>
+                <td>Actual: Negative</td>
+                {% for i in form.textblobConfusionMatrix%}
+                <td>{{form.textblobConfusionMatrix|index:1|index:forloop.counter0}}</td>
+                {% endfor %}
+            </tr>
+          </table>
+        </td>
+      <td>
+        <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="25%" align="center">
+          <tr>
+            <h5 align="center"> Precise: {{form.textblobPrecise}} </h5>
+          </tr>
+          <tr>
+            <h5 align="center"> Recall: {{form.textblobRecall}} </h5>
+          </tr>
+          <tr>
+            <h5 align="center"> F1-score:  </h5>
+          </tr>
+        </table>
+      </td>
       </tr>
     </table>
-    <br>
-    <h3 align="center">Confusion Matrix</h3>
-   <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="25%" align="center" >
-     <tr>
-       <th> </th>
-       <th>Predicted: Positve</th>
-       <th>Predicted: Negative</th>
-     </tr>
-     <tr>
-     <td>Actual: Positve</td>
-     {% for i in form.vaderConfusionMatrix%}
-     <td>{{form.vaderConfusionMatrix|index:0|index:forloop.counter0}}</td>
-     {% endfor %}
-     </tr>
-     <tr>
-         <td>Actual: Negative</td>
-         {% for i in form.vaderConfusionMatrix%}
-         <td>{{form.vaderConfusionMatrix|index:1|index:forloop.counter0}}</td>
-         {% endfor %}
-     </tr>
-   </table>
-   <h5 align="center">
-     Precise: {{form.vaderPrecise}} &nbsp; &nbsp; Recall: {{form.vaderRecall}}
-   </h5>
-
-   <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="25%" align="center" >
-       <tr>
-         <th> </th>
-         <th>Predicted: Positve</th>
-         <th>Predicted: Negative</th>
-       </tr>
-       <tr>
-       <td>Actual: Positve</td>
-       {% for i in form.textblobConfusionMatrix%}
-       <td>{{form.textblobConfusionMatrix|index:0|index:forloop.counter0}}</td>
-       {% endfor %}
-       </tr>
-       <tr>
-           <td>Actual: Negative</td>
-           {% for i in form.textblobConfusionMatrix%}
-           <td>{{form.textblobConfusionMatrix|index:1|index:forloop.counter0}}</td>
-           {% endfor %}
-       </tr>
-     </table>
-     <h5 align="center">
-         Precise: {{form.textblobPrecise}} &nbsp; &nbsp; Recall: {{form.textblobRecall}}
-       </h5>
+    <br/>
+    <div align="center">
+      <button type="submit" name="spacy_button" value="spacy_button" class="btn btn-primary">Download Results </button>
+    </div>
     </form>
 {% endblock %}
