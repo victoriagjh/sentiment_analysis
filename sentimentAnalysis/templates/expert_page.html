@@ -102,9 +102,12 @@
       </tr>
     </table>
     <br/>
-    <div align="center">
-      <button type="submit" name="spacy_button" value="spacy_button" class="btn btn-primary">Download Results </button>
-    </div>
+    <form action="http://localhost:8000/expert/" method="post">
+      {% csrf_token %}
+      <div align="center">
+        <button type="submit" name="download" value="download" class="btn btn-primary">Download Results </button>
+      </div>
+    </form>
     </div>
     </form>
 {% endblock %}

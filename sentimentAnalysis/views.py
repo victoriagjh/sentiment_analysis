@@ -141,6 +141,8 @@ def expert_page(request):
         global session
         if 'metric' in request.POST:
             return render(request,'expert_metrics.html',session)
+        if 'download' in request.POST:
+            makeFile("expert")
         return render(request,'expert_page.html',session)
 
 def basic_page(request):
@@ -148,7 +150,103 @@ def basic_page(request):
         global session
         if 'metric' in request.POST:
             return render(request,'basic_metrics.html',session)
+        if 'download' in request.POST:
+            makeFile("basic")
         return render(request,'basic_page.html',session)
+
+def makeFile(pageType):
+    file = open("result.txt", 'w')
+    file.write("id\tcontent\tannotation\tvaderScore\tvaderPolarity\ttextblobScores\ttextblobPolarity\n")
+    for i in range(0,len(session['form'].ids)):
+        file.write(session['form'].ids[i])
+        file.write("\t")
+        file.write(session['form'].content[i])
+        file.write("\t")
+        file.write(session['form'].annotations[i])
+        file.write("\t")
+        file.write(str(session['form'].vaderScores[i]))
+        file.write("\t")
+        file.write(session['form'].vaderPolarity[i])
+        file.write("\t")
+        file.write(str(session['form'].textblobScores[i]))
+        file.write("\t")
+        file.write(session['form'].textblobPolarity[i])
+        file.write("\n")
+    file.write("Word Counter : ")
+    file.write(str(session['form'].wordcounter))
+    file.write("\n")
+    file.write("Vader Confusion Matrix : ")
+    file.write(str(session['form'].vaderConfusionMatrix[0][0]))
+    file.write("\t")
+    file.write(str(session['form'].vaderConfusionMatrix[0][1]))
+    file.write("\t")
+    file.write(str(session['form'].vaderConfusionMatrix[1][0]))
+    file.write("\t")
+    file.write(str(session['form'].vaderConfusionMatrix[1][1]))
+    file.write("\n")
+    file.write("Vader Precise : ")
+    file.write(str(session['form'].vaderPrecise))
+    file.write("\n")
+    file.write("Vader Recall : ")
+    file.write(str(session['form'].vaderRecall))
+    file.write("\n")
+
+    file.write("TextBlob Confusion Matrix\n")
+    file.write(str(session['form'].textblobConfusionMatrix[0][0]))
+    file.write("\t")
+    file.write(str(session['form'].textblobConfusionMatrix[0][1]))
+    file.write("\t")
+    file.write(str(session['form'].textblobConfusionMatrix[1][0]))
+    file.write("\t")
+    file.write(str(session['form'].textblobConfusionMatrix[1][1]))
+    file.write("\n")
+    file.write("TextBlob Precise : ")
+    file.write(str(session['form'].textblobPrecise))
+    file.write("\n")
+    file.write("TextBlob Recall : ")
+    file.write(str(session['form'].textblobRecall))
+    file.write("\n")
+
+    file.write("Top Frequent Words 5 : ")
+    for i in range(0,5):
+        file.write(str(session['form'].topFrequentWords[i]))
+        file.write("\t")
+    file.write("\n")
+    file.write("Top Frequent Hashtags 5 : ")
+    for i in range(0,5):
+        file.write(str(session['form'].hashtag_frequent[i]))
+        file.write("\t")
+    file.write("\n")
+    if pageType=="expert":
+        file.write("Positive Word Counter : ")
+        file.write(str(session['form'].positiveWordcounter))
+        file.write("\n")
+        file.write("Positive Top Frequent Words 5 : ")
+        for i in range(0,5):
+            file.write(str(session['form'].positiveTopFrequentWords[i]))
+            file.write("\t")
+        file.write("\n")
+        file.write("Positive Top Frequent Hashtags 5 : ")
+        for i in range(0,5):
+            file.write(str(session['form'].positiveTopFrequentHashtag[i]))
+            file.write("\t")
+        file.write("\n")
+        file.write("Negative Word Counter : ")
+        file.write(str(session['form'].negativeWordcounter))
+        file.write("\n")
+        file.write("Negative Top Frequent Words 5 : ")
+        for i in range(0,5):
+            file.write(str(session['form'].negativeTopFrequentWords[i]))
+            file.write("\t")
+        file.write("\n")
+        file.write("Negative Top Frequent Hashtags 5 : ")
+        for i in range(0,5):
+            file.write(str(session['form'].negativeTopFrequentHashtag[i]))
+            file.write("\t")
+        file.write("\n")
+    file.close()
+
+
 
 def preprocessFile(f):
     fileName="text/"+f.name
