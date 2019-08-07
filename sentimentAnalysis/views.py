@@ -27,6 +27,7 @@ import pandas as pd
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 
 from django.core.files import File
+from pycorenlp import StanfordCoreNLP
 
 # Create your views here.
 session ={}
@@ -39,6 +40,8 @@ def sentimentAnalysis(request):
                 tools.append("Vader Sentiment")
             if type(request.POST.get('textblob')) != type(None):
                 tools.append("TextBlob")
+            if type(request.POST.get('stanford')) != type(None):
+                tools.append("Stanford NLP")
             if tools:
                 #preprocess the file
                 form.save()
@@ -65,7 +68,7 @@ def sentimentAnalysis(request):
                     if i == "Vader Sentiment":
                         form.vaderScores=vaderSentimentFucntion(form.content)
                         form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
-                        form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
+                        #form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
                         form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
                         form.vaderPrecise = precise(form.annotations, form.vaderPolarity)
                         form.vaderRecall = recall(form.annotations, form.vaderPolarity)
@@ -73,11 +76,13 @@ def sentimentAnalysis(request):
                     elif i == "TextBlob":
                         form.textblobScores=textblobSentimentFunction(form.content)
                         form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
-                        form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
+                        #form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
                         form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
                         form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
                         form.textblobRecall = recall(form.annotations, form.textblobPolarity)
                         form.textblobF1Score = F1Score(form.textblobPrecise,form.textblobRecall)
+                    elif i == "Stanford NLP":
+                        form.stanfordNLPPolarity = stanfordNLPSentimentFunction(form.content)
                 context = {
                     'form':form,
                     }
@@ -155,7 +160,7 @@ def basic_page(request):
 
 def makeFile(pageType):
     file = open("result.txt", 'w')
-    file.write("id\tcontent\tannotation\tvaderScore\tvaderPolarity\ttextblobScores\ttextblobPolarity\n")
+    file.write("id\tcontent\tannotation\tvaderScore\tvaderPolarity\ttextblobScores\ttextblobPolarity\tstanfordNLPPolarity\n")
     for i in range(0,len(session['form'].ids)):
         file.write(session['form'].ids[i])
         file.write("\t")
@@ -170,7 +175,10 @@ def makeFile(pageType):
         file.write(str(session['form'].textblobScores[i]))
         file.write("\t")
         file.write(session['form'].textblobPolarity[i])
+        file.write("\t")
+        file.write(session['form'].stanfordNLPPolarity[i])
         file.write("\n")
+
     file.write("Word Counter : ")
     file.write(str(session['form'].wordcounter))
     file.write("\n")
@@ -348,6 +356,32 @@ def vaderSentimentFucntion(sentences):
         vs = analyzer.polarity_scores(sentence)
         result.append(vs['compound']) #only Compound value
     return result
+
+def stanfordNLPSentimentFunction(sentences):
+    nlp = StanfordCoreNLP('http://localhost:9000')
+    result=[]
+    for i in range(0,len(sentences)):
+        cnt=[0,0,0,0,0]
+        res = nlp.annotate(sentences[i],properties={
+                       'annotators': 'sentiment',
+                       'outputFormat': 'json',
+                       'timeout': 1000,
+                   })
+        for s in res["sentences"]:
+            cnt[int(s["sentimentValue"])]+=1
+        index=cnt.index(max(cnt))
+        result.append(getPolarity(index))
+    return result
+
+#switch use dictionary
+def getPolarity(x):
+    return {
+        0: "Very Negative",
+        1: "Negative",
+        2: "Neutral",
+        3: "Positive",
+        4: "Very Positive",
+    }[x]
 
 #convert the result sentiment analysis for compare each of things
 def convertSentimentResult(toolName,sentimentResult):
