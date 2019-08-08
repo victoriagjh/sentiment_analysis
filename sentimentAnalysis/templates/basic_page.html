@@ -101,6 +101,34 @@
       </tr>
       <tr>
         <td>
+          <h3 align="center">stanford NLP</h3>
+        </td>
+        <td>
+          <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="400px" align="center">
+            <tr>
+              <th> </th>
+              <th>Predicted: Positve</th>
+              <th>Predicted: Negative</th>
+            </tr>
+            <tr>
+            <td>Actual: Positve</td>
+            {% for i in form.stanfordNLPConfusionMatrix%}
+            <td>{{form.stanfordNLPConfusionMatrix|index:0|index:forloop.counter0}}</td>
+            {% endfor %}
+            </tr>
+            <tr>
+                <td>Actual: Negative</td>
+                {% for i in form.stanfordNLPConfusionMatrix%}
+                <td>{{form.stanfordNLPConfusionMatrix|index:1|index:forloop.counter0}}</td>
+                {% endfor %}
+            </tr>
+          </table>
+        </td>
+      <td>
+      </td>
+      </tr>
+      <tr>
+        <td>
           <h3 align="center">sentiWordnet</h3>
         </td>
         <td>
