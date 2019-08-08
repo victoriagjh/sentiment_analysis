@@ -365,7 +365,7 @@ def stanfordNLPSentimentFunction(sentences):
         res = nlp.annotate(sentences[i],properties={
                        'annotators': 'sentiment',
                        'outputFormat': 'json',
-                       'timeout': 1000,
+                       'timeout': 50000,
                    })
         for s in res["sentences"]:
             cnt[int(s["sentimentValue"])]+=1
@@ -376,11 +376,11 @@ def stanfordNLPSentimentFunction(sentences):
 #switch use dictionary
 def getPolarity(x):
     return {
-        0: "Very Negative",
+        0: "Negative",
         1: "Negative",
         2: "Neutral",
         3: "Positive",
-        4: "Very Positive",
+        4: "Positive",
     }[x]
 
 #convert the result sentiment analysis for compare each of things
