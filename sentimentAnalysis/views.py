@@ -195,7 +195,7 @@ def makeFile(pageType):
         file.write("\t")
         file.write(session['form'].stanfordNLPPolarity[i])
         file.write("\t")
-        file.write(session['form'].sentiWordnetScore[i])
+        file.write(str(session['form'].sentiWordnetScore[i]))
         file.write("\t")
         file.write(session['form'].sentiWordnetPolarity[i])
         file.write("\n")
@@ -455,7 +455,7 @@ def convertSentimentResult(toolName,sentimentResult):
                 converted.append("Negative")
         return converted
     elif toolName == "sentiWordnet":
-        for i in sentimentResult:        
+        for i in sentimentResult:
             if i > 0:
                 converted.append("Positive")
             elif i < 0:
@@ -517,7 +517,7 @@ def sentiWordnetSentimentFunction(text):
     result = []
     sentiment = 0.0
     tokens_count = 0
- 
+
     for sentence in text:
         raw_sentences = sent_tokenize(sentence)
         #품사 태그
