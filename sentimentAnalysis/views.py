@@ -28,6 +28,12 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score
 
 from django.core.files import File
 
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet as wn
+from nltk.corpus import sentiwordnet as swn
+from nltk import sent_tokenize, word_tokenize, pos_tag
+
+
 # Create your views here.
 session ={}
 def sentimentAnalysis(request):
@@ -39,6 +45,8 @@ def sentimentAnalysis(request):
                 tools.append("Vader Sentiment")
             if type(request.POST.get('textblob')) != type(None):
                 tools.append("TextBlob")
+            if type(request.POST.get('sentiwordnet')) != type(None):
+                tools.append("sentiWordnet")
             if tools:
                 #preprocess the file
                 form.save()
@@ -69,6 +77,7 @@ def sentimentAnalysis(request):
                         form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
                         form.vaderPrecise = precise(form.annotations, form.vaderPolarity)
                         form.vaderRecall = recall(form.annotations, form.vaderPolarity)
+                        form.vaderF1Score = F1Score(form.vaderPrecise,form.vaderRecall)
                     elif i == "TextBlob":
                         form.textblobScores=textblobSentimentFunction(form.content)
                         form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
@@ -76,7 +85,15 @@ def sentimentAnalysis(request):
                         form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
                         form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
                         form.textblobRecall = recall(form.annotations, form.textblobPolarity)
-
+                        form.textblobF1Score = F1Score(form.textblobPrecise,form.textblobRecall)
+                    elif i == "sentiWordnet":
+                        form.sentiWordnetScore = sentiWordnetSentimentFunction(form.content)
+                        form.sentiWordnetPolarity=convertSentimentResult("sentiWordnet",form.textblobScores)
+                        form.sentiWordnetCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
+                        form.sentiWordnetConfusionMatrix = confusionMatrix(form.annotations, form.sentiWordnetPolarity)
+                        form.sentiWordnetPrecise = precise(form.annotations, form.sentiWordnetPolarity)
+                        form.sentiWordnetRecall = recall(form.annotations, form.sentiWordnetPolarity)
+                        form.sentiWordnetF1Score = F1Score(form.textblobPrecise,form.sentiWordnetRecall)
                 context = {
                     'form':form,
                     }
@@ -106,24 +123,6 @@ def sentimentAnalysis(request):
                     form.negativeTopFrequentWords=top_freqeunt(negativeCleansingText)
                     form.negativeWordcounter = wordcounter(negativeCleansingText)
                     save_wordcloud(form.negativeWord_frequent,"negative")
-
-                    #sentimentAnalysis
-                    for i in tools:
-                        if i == "Vader Sentiment":
-                            form.vaderScores=vaderSentimentFucntion(form.content)
-                            form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
-                            form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
-                            form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
-                            form.vaderPrecise = precise(form.annotations, form.vaderPolarity)
-                            form.vaderRecall = recall(form.annotations, form.vaderPolarity)
-
-                        elif i == "TextBlob":
-                            form.textblobScores=textblobSentimentFunction(form.content)
-                            form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
-                            form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
-                            form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
-                            form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
-                            form.textblobRecall = recall(form.annotations, form.textblobPolarity)
 
                     context = {
                         'form':form,
@@ -206,6 +205,9 @@ def makeFile(pageType):
     file.write("Vader Recall : ")
     file.write(str(session['form'].vaderRecall))
     file.write("\n")
+    file.write("Vader F1 Score : ")
+    file.write(str(session['form'].vaderF1Score))
+    file.write("\n")
 
     file.write("TextBlob Confusion Matrix\n")
     file.write(str(session['form'].textblobConfusionMatrix[0][0]))
@@ -221,6 +223,9 @@ def makeFile(pageType):
     file.write("\n")
     file.write("TextBlob Recall : ")
     file.write(str(session['form'].textblobRecall))
+    file.write("\n")
+    file.write("TextBlob F1 Score : ")
+    file.write(str(session['form'].textblobF1Score))
     file.write("\n")
 
     file.write("Top Frequent Words 5 : ")
@@ -381,6 +386,14 @@ def convertSentimentResult(toolName,sentimentResult):
             elif i == "0":
                 converted.append("Negative")
         return converted
+    elif toolName == "sentiWordnet":
+        for i in sentimentResult:        
+            if i > 0:
+                converted.append("Positive")
+            elif i < 0:
+                converted.append("Negative")
+            else:
+                converted.append("Neutral")
     return converted
 
 #compare the polarity of two lists
@@ -408,3 +421,60 @@ def precise(annotation_result, tool_result):
 
 def recall(annotation_result, tool_result):
     return recall_score(annotation_result, tool_result, average='macro')
+
+def F1Score(precision, recall):
+    F1Score = 2*precision*recall/(precision+recall)
+    return F1Score
+
+def penn_to_wn(tag):
+    """
+    Convert between the PennTreebank tags to simple Wordnet tags
+    """
+    if tag.startswith('J'):
+        return wn.ADJ
+    elif tag.startswith('N'):
+        return wn.NOUN
+    elif tag.startswith('R'):
+        return wn.ADV
+    elif tag.startswith('V'):
+        return wn.VERB
+    return None
+
+
+def sentiWordnetSentimentFunction(text):
+    """
+    Return a sentiment polarity: 0 = negative, 1 = positive
+    """
+
+    result = []
+    sentiment = 0.0
+    tokens_count = 0
+ 
+    for sentence in text:
+        raw_sentences = sent_tokenize(sentence)
+        #품사 태그
+        for raw_sentence in raw_sentences:
+            tagged_sentence = pos_tag(word_tokenize(raw_sentence))
+
+            for word, tag in tagged_sentence:
+                wn_tag = penn_to_wn(tag)
+                if wn_tag not in (wn.NOUN, wn.ADJ, wn.ADV, wn.VERB):
+                    continue
+
+                lemma = WordNetLemmatizer().lemmatize(word, pos=wn_tag)
+                if not lemma:
+                    continue
+
+                synsets = wn.synsets(lemma, pos=wn_tag)
+                if not synsets:
+                    continue
+
+                # Take the first sense, the most common
+                synset = synsets[0]
+                swn_synset = swn.senti_synset(synset.name())
+
+                sentiment += swn_synset.pos_score() - swn_synset.neg_score()
+                tokens_count += 1
+
+                result.append(sentiment)
+    return result

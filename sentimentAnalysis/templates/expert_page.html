@@ -56,14 +56,14 @@
             <h5 align="center"> Recall: {{form.vaderRecall}} </h5>
           </tr>
           <tr>
-            <h5 align="center"> F1-score:  </h5>
+            <h5 align="center"> F1-score: {{form.vaderF1Score}} </h5>
           </tr>
         </table>
       </td>
       </tr>
       <tr>
         <td>
-          <h3 align="center">TextBlob</h3>
+          <h3 align="center">sentiWordnet</h3>
         </td>
         <td>
           <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="400px" align="center">
@@ -74,14 +74,14 @@
             </tr>
             <tr>
             <td>Actual: Positve</td>
-            {% for i in form.textblobConfusionMatrix%}
-            <td>{{form.textblobConfusionMatrix|index:0|index:forloop.counter0}}</td>
+            {% for i in form.sentiWordnetConfusionMatrix%}
+            <td>{{form.sentiWordnetConfusionMatrix|index:0|index:forloop.counter0}}</td>
             {% endfor %}
             </tr>
             <tr>
                 <td>Actual: Negative</td>
-                {% for i in form.textblobConfusionMatrix%}
-                <td>{{form.textblobConfusionMatrix|index:1|index:forloop.counter0}}</td>
+                {% for i in form.sentiWordnetConfusionMatrix%}
+                <td>{{form.sentiWordnetConfusionMatrix|index:1|index:forloop.counter0}}</td>
                 {% endfor %}
             </tr>
           </table>
@@ -89,13 +89,13 @@
       <td>
         <table style = "border-collapse:collapse; text-align: center;" cellpadding="5" cellspacing="0" border="1" width="25%" align="center">
           <tr>
-            <h5 align="center"> Precise: {{form.textblobPrecise}} </h5>
+            <h5 align="center"> Precise: {{form.sentiWordnetPrecise}} </h5>
           </tr>
           <tr>
-            <h5 align="center"> Recall: {{form.textblobRecall}} </h5>
+            <h5 align="center"> Recall: {{form.sentiWordnetRecall}} </h5>
           </tr>
           <tr>
-            <h5 align="center"> F1-score:  </h5>
+            <h5 align="center"> F1-score: {{form.sentiWordnetF1Score}}  </h5>
           </tr>
         </table>
       </td>
