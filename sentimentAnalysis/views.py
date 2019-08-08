@@ -29,6 +29,12 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from django.core.files import File
 from pycorenlp import StanfordCoreNLP
 
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet as wn
+from nltk.corpus import sentiwordnet as swn
+from nltk import sent_tokenize, word_tokenize, pos_tag
+
+
 # Create your views here.
 session ={}
 def sentimentAnalysis(request):
@@ -40,6 +46,8 @@ def sentimentAnalysis(request):
                 tools.append("Vader Sentiment")
             if type(request.POST.get('textblob')) != type(None):
                 tools.append("TextBlob")
+            if type(request.POST.get('sentiwordnet')) != type(None):
+                tools.append("sentiWordnet")
             if type(request.POST.get('stanford')) != type(None):
                 tools.append("Stanford NLP")
             if tools:
@@ -81,8 +89,17 @@ def sentimentAnalysis(request):
                         form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
                         form.textblobRecall = recall(form.annotations, form.textblobPolarity)
                         form.textblobF1Score = F1Score(form.textblobPrecise,form.textblobRecall)
+                    elif i == "sentiWordnet":
+                        form.sentiWordnetScore = sentiWordnetSentimentFunction(form.content)
+                        form.sentiWordnetPolarity=convertSentimentResult("sentiWordnet",form.textblobScores)
+                        form.sentiWordnetConfusionMatrix = confusionMatrix(form.annotations, form.sentiWordnetPolarity)
+                        form.sentiWordnetPrecise = precise(form.annotations, form.sentiWordnetPolarity)
+                        form.sentiWordnetRecall = recall(form.annotations, form.sentiWordnetPolarity)
+                        form.sentiWordnetF1Score = F1Score(form.textblobPrecise,form.sentiWordnetRecall)
                     elif i == "Stanford NLP":
                         form.stanfordNLPPolarity = stanfordNLPSentimentFunction(form.content)
+                        form.stanfordNLPConfusionMatrix = confusionMatrix(form.annotations, form.stanfordNLPPolarity)
+
                 context = {
                     'form':form,
                     }
@@ -177,6 +194,10 @@ def makeFile(pageType):
         file.write(session['form'].textblobPolarity[i])
         file.write("\t")
         file.write(session['form'].stanfordNLPPolarity[i])
+        file.write("\t")
+        file.write(session['form'].sentiWordnetScore[i])
+        file.write("\t")
+        file.write(session['form'].sentiWordnetPolarity[i])
         file.write("\n")
 
     file.write("Word Counter : ")
@@ -218,6 +239,35 @@ def makeFile(pageType):
     file.write("\n")
     file.write("TextBlob F1 Score : ")
     file.write(str(session['form'].textblobF1Score))
+    file.write("\n")
+
+    file.write("SentiWordNet Dictionary Confusion Matrix\n")
+    file.write(str(session['form'].sentiWordnetConfusionMatrix[0][0]))
+    file.write("\t")
+    file.write(str(session['form'].sentiWordnetConfusionMatrix[0][1]))
+    file.write("\t")
+    file.write(str(session['form'].sentiWordnetConfusionMatrix[1][0]))
+    file.write("\t")
+    file.write(str(session['form'].sentiWordnetConfusionMatrix[1][1]))
+    file.write("\n")
+    file.write("SentiWordNet Dictionary Precise : ")
+    file.write(str(session['form'].sentiWordnetPrecise))
+    file.write("\n")
+    file.write("TextBlob Recall : ")
+    file.write(str(session['form'].sentiWordnetRecall))
+    file.write("\n")
+    file.write("TextBlob F1 Score : ")
+    file.write(str(session['form'].sentiWordnetF1Score))
+    file.write("\n")
+
+    file.write("Stanford NLP Confusion Matrix\n")
+    file.write(str(session['form'].stanfordNLPConfusionMatrix[0][0]))
+    file.write("\t")
+    file.write(str(session['form'].stanfordNLPConfusionMatrix[0][1]))
+    file.write("\t")
+    file.write(str(session['form'].stanfordNLPConfusionMatrix[1][0]))
+    file.write("\t")
+    file.write(str(session['form'].stanfordNLPConfusionMatrix[1][1]))
     file.write("\n")
 
     file.write("Top Frequent Words 5 : ")
@@ -404,6 +454,14 @@ def convertSentimentResult(toolName,sentimentResult):
             elif i == "0":
                 converted.append("Negative")
         return converted
+    elif toolName == "sentiWordnet":
+        for i in sentimentResult:        
+            if i > 0:
+                converted.append("Positive")
+            elif i < 0:
+                converted.append("Negative")
+            else:
+                converted.append("Neutral")
     return converted
 
 #compare the polarity of two lists
@@ -435,3 +493,56 @@ def recall(annotation_result, tool_result):
 def F1Score(precision, recall):
     F1Score = 2*precision*recall/(precision+recall)
     return F1Score
+
+def penn_to_wn(tag):
+    """
+    Convert between the PennTreebank tags to simple Wordnet tags
+    """
+    if tag.startswith('J'):
+        return wn.ADJ
+    elif tag.startswith('N'):
+        return wn.NOUN
+    elif tag.startswith('R'):
+        return wn.ADV
+    elif tag.startswith('V'):
+        return wn.VERB
+    return None
+
+
+def sentiWordnetSentimentFunction(text):
+    """
+    Return a sentiment polarity: 0 = negative, 1 = positive
+    """
+
+    result = []
+    sentiment = 0.0
+    tokens_count = 0
+ 
+    for sentence in text:
+        raw_sentences = sent_tokenize(sentence)
+        #품사 태그
+        for raw_sentence in raw_sentences:
+            tagged_sentence = pos_tag(word_tokenize(raw_sentence))
+
+            for word, tag in tagged_sentence:
+                wn_tag = penn_to_wn(tag)
+                if wn_tag not in (wn.NOUN, wn.ADJ, wn.ADV, wn.VERB):
+                    continue
+
+                lemma = WordNetLemmatizer().lemmatize(word, pos=wn_tag)
+                if not lemma:
+                    continue
+
+                synsets = wn.synsets(lemma, pos=wn_tag)
+                if not synsets:
+                    continue
+
+                # Take the first sense, the most common
+                synset = synsets[0]
+                swn_synset = swn.senti_synset(synset.name())
+
+                sentiment += swn_synset.pos_score() - swn_synset.neg_score()
+                tokens_count += 1
+
+                result.append(sentiment)
+    return result
