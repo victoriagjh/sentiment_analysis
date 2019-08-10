@@ -100,41 +100,33 @@ def sentimentAnalysis(request):
                         form.stanfordNLPPolarity = stanfordNLPSentimentFunction(form.content)
                         form.stanfordNLPConfusionMatrix = confusionMatrix(form.annotations, form.stanfordNLPPolarity)
 
+                positiveSet,negativeSet=separatePN(form.annotations,form.content)
+                positiveList = list(positiveSet)
+                negativeList = list(negativeSet)
+                positiveHashtag= extractHashtag(positiveList)
+                negativeHashtag= extractHashtag(negativeList)
+                form.positiveTopFrequentHashtag=top_freqeunt(positiveHashtag)
+                form.negativeTopFrequentHashtag=top_freqeunt(negativeHashtag)
+
+                #surface metrics
+                positiveCleansingText = cleansing(positiveList)
+                form.positiveWord_frequent = word_frequent(positiveCleansingText)
+                form.positiveTopFrequentWords=top_freqeunt(positiveCleansingText)
+                form.positiveWordcounter = wordcounter(positiveCleansingText)
+                save_wordcloud(form.positiveWord_frequent,"positive")
+
+                negativeCleansingText = cleansing(negativeList)
+                form.negativeWord_frequent = word_frequent(negativeCleansingText)
+                form.negativeTopFrequentWords=top_freqeunt(negativeCleansingText)
+                form.negativeWordcounter = wordcounter(negativeCleansingText)
+                save_wordcloud(form.negativeWord_frequent,"negative")
+
                 context = {
                     'form':form,
                     }
-                if type(request.POST.get('basic')) !=type(None):
-                    global session
-                    session = context
-                    return render(request, "basic_page.html",session)
-                elif type(request.POST.get('expert'))!=type(None):
-
-                    positiveSet,negativeSet=separatePN(form.annotations,form.content)
-                    positiveList = list(positiveSet)
-                    negativeList = list(negativeSet)
-                    positiveHashtag= extractHashtag(positiveList)
-                    negativeHashtag= extractHashtag(negativeList)
-                    form.positiveTopFrequentHashtag=top_freqeunt(positiveHashtag)
-                    form.negativeTopFrequentHashtag=top_freqeunt(negativeHashtag)
-
-                    #surface metrics
-                    positiveCleansingText = cleansing(positiveList)
-                    form.positiveWord_frequent = word_frequent(positiveCleansingText)
-                    form.positiveTopFrequentWords=top_freqeunt(positiveCleansingText)
-                    form.positiveWordcounter = wordcounter(positiveCleansingText)
-                    save_wordcloud(form.positiveWord_frequent,"positive")
-
-                    negativeCleansingText = cleansing(negativeList)
-                    form.negativeWord_frequent = word_frequent(negativeCleansingText)
-                    form.negativeTopFrequentWords=top_freqeunt(negativeCleansingText)
-                    form.negativeWordcounter = wordcounter(negativeCleansingText)
-                    save_wordcloud(form.negativeWord_frequent,"negative")
-
-                    context = {
-                        'form':form,
-                        }
-                    session=context
-                    return render(request, "expert_page.html",session)
+                global session
+                session=context
+                return render(request, "expert_page.html",session)
             if not tools:
                 messages.warning(request, 'You should check the tool at least 1!', extra_tags='alert')
     else:

@@ -2,6 +2,7 @@
     background-color: #1B3D6D;
     margin-top: 0;
     padding: 20px 20px 20px 40px;
+    width: 100%;
 }
 .page-header h3, .page-header h3 a, .page-header h3 a:visited, .page-header h3 a:active {
     color: #ffffff;
@@ -17,6 +18,33 @@
     font-weight: 750;
     font-family: 'Roboto', sans-serif;
     text-decoration: none;
+}
+.leftcolumn {
+  float: left;
+  width: 13%;
+  background-color: #f1f1f1;
+  padding-left: 20px;
+}
+.rightcolumn {
+  float: left;
+  width: 87%;
+}
+.card {
+  background-color: white;
+  padding: 20px;
+  margin-top: 20px;
+  align:center;
+}
+.cardGrey {
+  background-color: #D5D5D5;
+  padding: 20px;
+  margin-top: 20px;
+  align:center;
+}
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 .file-content {
@@ -56,8 +84,8 @@ button{
   color:#fff;
   border:none;
   position:relative;
-  height:60px;
-  font-size:1.6em;
+  height:70px;
+  font-size:12pt;
   padding:0 2em;
   cursor:pointer;
   transition:800ms ease all;
