@@ -80,8 +80,8 @@ h3 {
 }
 
 button{
-  background:#1B3D6D;
-  color:#fff;
+  background:#fff;
+  color:#1B3D6D;
   border:none;
   position:relative;
   height:70px;
@@ -92,8 +92,8 @@ button{
   outline:none;
 }
 button:hover{
-  background:#fff;
-  color:#1B3D6D;
+  background:#1B3D6D;
+  color:#fff;
 }
 button:before,button:after{
   content:'';
@@ -102,7 +102,7 @@ button:before,button:after{
   right:0;
   height:2px;
   width:0;
-  background: #1B3D6D;
+  background: #fff;
   transition:400ms ease all;
 }
 button:after{

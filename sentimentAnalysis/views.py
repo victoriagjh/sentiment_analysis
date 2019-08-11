@@ -152,21 +152,6 @@ def expert_page(request):
             return response
         return render(request,'expert_page.html',session)
 
-def basic_page(request):
-    if request.method == 'POST':
-        global session
-        if 'metric' in request.POST:
-            return render(request,'basic_metrics.html',session)
-        if 'download' in request.POST:
-            makeFile("basic")
-            path_to_file = os.path.realpath("result.txt")
-            file = open(path_to_file, 'r')
-            rfile = File(file)
-            response = HttpResponse(rfile, content_type='application/txt')
-            response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
-            return response
-        return render(request,'basic_page.html',session)
-
 def makeFile(pageType):
     file = open("result.txt", 'w')
     file.write("id\tcontent\tannotation\tvaderScore\tvaderPolarity\ttextblobScores\ttextblobPolarity\tstanfordNLPPolarity\n")
