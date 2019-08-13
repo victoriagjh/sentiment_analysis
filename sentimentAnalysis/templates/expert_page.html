@@ -27,6 +27,44 @@
       </div>
     </div>
     <div class="rightcolumn">
+      <div class="cardGrey">
+          <h3 align="center">Tweet Level Sentiment Analysis</h3>
+        </div>
+      <div class="card" align="center">
+          <table width="1300px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
+              <tr>
+                  <td rowspan = "2" align= "center">tweet id</td>
+                  <td colspan = "2" align= "center">vader</td>
+                  <td colspan = "2" align= "center">textblob</td>
+                  <td colspan = "1" align= "center">stanford NLP</td>
+                  <td colspan = "2" align= "center">sentiWordnet</td>
+                </tr>
+                <tr>
+                  <td align="center">score</td>
+                  <td align="center">polarity</td>	
+                  <td align="center">score</td>
+                  <td align="center">polarity</td>	
+                  <td align="center">polarity</td>			
+                  <td align="center">score</td>
+                  <td align="center">polarity</td>
+                </tr> 
+                {% for id in form.ids%}  
+                <tr>
+                 <td>{{id}}</td> 
+                 <td align= "center">{{form.vaderScores|index:forloop.counter0}}</td>
+                 <td align= "center">{{form.vaderPolarity|index:forloop.counter0}}</td>
+                 <td align= "center">{{form.textblobScores|index:forloop.counter0}}</td>
+                 <td align= "center">{{form.textblobPolarity|index:forloop.counter0}}</td>
+                 <td align= "center">{{form.textblobPolarity|index:forloop.counter0}}</td>
+                 <td align= "center">{{form.sentiWordnetScore|index:forloop.counter0}}</td>
+                 <td align= "center">{{form.sentiWordnetPolarity|index:forloop.counter0}}</td>
+                </tr>
+                  {%endfor%}
+              </table>
+      </div>  
+      
+      
+
       <div class="cardGrey" align="center">
         <h3 align="center">Confusion Matrix</h3>
       </div>

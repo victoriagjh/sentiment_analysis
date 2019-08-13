@@ -33,6 +33,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet as wn
 from nltk.corpus import sentiwordnet as swn
 from nltk import sent_tokenize, word_tokenize, pos_tag
+from sklearn.metrics import cohen_kappa_score
 
 
 # Create your views here.
@@ -59,6 +60,7 @@ def sentimentAnalysis(request):
                 form.ids=ids
                 form.annotations=annotations
                 form.content = contents #text type(list)
+                form.content_sentence = sentenceLevel(form.content)
                 form.hashtag = hashtags #text type(list)
                 form.tool = tools
 
@@ -74,30 +76,38 @@ def sentimentAnalysis(request):
                 #sentimentAnalysis
                 for i in tools:
                     if i == "Vader Sentiment":
-                        form.vaderScores=vaderSentimentFucntion(form.content)
-                        form.vaderPolarity=convertSentimentResult("Vader",form.vaderScores)
+                        form.vaderScores, form.vaderPolarity =vaderSentimentFucntion(form.content)
+                        form.vaderScores_sentence, form.vaderPolarity_sentence = vaderSentimentFucntion_sentence(form.content_sentence)
+                        form.vaderAverage = average(form.vaderScores_sentence)
+                        form.vaderMajority = majority(form.vaderPolarity_sentence)
                         #form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
                         form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
                         form.vaderPrecise = precise(form.annotations, form.vaderPolarity)
                         form.vaderRecall = recall(form.annotations, form.vaderPolarity)
                         form.vaderF1Score = F1Score(form.vaderPrecise,form.vaderRecall)
                     elif i == "TextBlob":
-                        form.textblobScores=textblobSentimentFunction(form.content)
-                        form.textblobPolarity=convertSentimentResult("TextBlob",form.textblobScores)
+                        form.textblobScores, form.textblobPolarity =textblobSentimentFunction(form.content)
+                        form.textblobScores_sentence, form.textblobPolarity_sentence = textblobSentimentFunction_sentence(form.content_sentence)
+                        form.textblobAverage = average(form.textblobScores_sentence)
+                        form.textblobMajority = majority(form.textblobPolarity_sentence)
                         #form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
                         form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
                         form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
                         form.textblobRecall = recall(form.annotations, form.textblobPolarity)
                         form.textblobF1Score = F1Score(form.textblobPrecise,form.textblobRecall)
                     elif i == "sentiWordnet":
-                        form.sentiWordnetScore = sentiWordnetSentimentFunction(form.content)
-                        form.sentiWordnetPolarity=convertSentimentResult("sentiWordnet",form.textblobScores)
+                        form.sentiWordnetScore, form.sentiWordnetPolarity = sentiWordnetSentimentFunction(form.content)
+                        form.sentiWordnetScore_sentence, form.sentiWordnetPolarity_sentence = sentiWordnetSentimentFunction_sentence(form.content_sentence)
+                        form.sentiWordnetAverage = average(form.sentiWordnetScore_sentence)
+                        form.sentiWordnetMajority = majority(form.sentiWordnetPolarity_sentence)                        
                         form.sentiWordnetConfusionMatrix = confusionMatrix(form.annotations, form.sentiWordnetPolarity)
                         form.sentiWordnetPrecise = precise(form.annotations, form.sentiWordnetPolarity)
                         form.sentiWordnetRecall = recall(form.annotations, form.sentiWordnetPolarity)
                         form.sentiWordnetF1Score = F1Score(form.textblobPrecise,form.sentiWordnetRecall)
                     elif i == "Stanford NLP":
-                        form.stanfordNLPPolarity = stanfordNLPSentimentFunction(form.content)
+                        form.stanfordNLPPolarity = stanfordNLPSentimentFunction(form.content)                        
+                        form.stanfordNLPPolarity_sentence = stanfordNLPSentimentFunction_sentence(form.content_sentence)
+                        form.stanfordNLPMajority = majority(form.stanfordNLPPolarity_sentence) 
                         form.stanfordNLPConfusionMatrix = confusionMatrix(form.annotations, form.stanfordNLPPolarity)
 
                 positiveSet,negativeSet=separatePN(form.annotations,form.content)
@@ -376,13 +386,47 @@ def save_wordcloud(text,fileName):
     plt.axis("off")
     plt.savefig("sentimentAnalysis/static/img/"+fileName+".png", format = "png")
 
+def sentenceLevel(text):
+    result = []
+    for tweet in text:
+        result.append(nltk.sent_tokenize(tweet))
+    return result
+
 def vaderSentimentFucntion(sentences):
     analyzer = SentimentIntensityAnalyzer()
-    result = []
+    scores = []
+    polarities = []
     for sentence in sentences:
         vs = analyzer.polarity_scores(sentence)
-        result.append(vs['compound']) #only Compound value
-    return result
+        scores.append(vs['compound']) #only Compound value
+        if vs['compound'] >= 0.05:
+            polarities.append("Positive")
+        elif vs['compound'] <0.05 and vs['compound'] >-0.05:
+            polarities.append("Neutral")
+        elif vs['compound']<=-0.05:
+            polarities.append("Negative")
+    return scores, polarities
+        
+
+def vaderSentimentFucntion_sentence(sentences):
+    scores = []
+    polarities = []
+    count = len(sentences)
+    for i in range(count):
+        score, polarity = vaderSentimentFucntion(sentences[i])
+        scores.append(score)
+        polarities.append(polarity)
+    return scores, polarities    
+
+#switch use dictionary
+def getPolarity(x):
+    return {
+        0: "Negative",
+        1: "Negative",
+        2: "Neutral",
+        3: "Positive",
+        4: "Positive",
+    }[x]    
 
 def stanfordNLPSentimentFunction(sentences):
     nlp = StanfordCoreNLP('http://localhost:9000')
@@ -400,15 +444,14 @@ def stanfordNLPSentimentFunction(sentences):
         result.append(getPolarity(index))
     return result
 
-#switch use dictionary
-def getPolarity(x):
-    return {
-        0: "Negative",
-        1: "Negative",
-        2: "Neutral",
-        3: "Positive",
-        4: "Positive",
-    }[x]
+def stanfordNLPSentimentFunction_sentence(sentences):
+    polarities = []
+    count = len(sentences)
+    for i in range(count):
+        polarity = stanfordNLPSentimentFunction(sentences[i])
+        polarities.append(polarity)
+    return polarities   
+
 
 #convert the result sentiment analysis for compare each of things
 def convertSentimentResult(toolName,sentimentResult):
@@ -452,24 +495,29 @@ def compareFileWithVader(annotations, toolResults):
     return category
 
 def textblobSentimentFunction(sentences):
-    result = []
+    scores = []
+    polarities = []
     for sentence in sentences:
         testimonial = TextBlob(sentence)
-        result.append(testimonial.sentiment.polarity)
-    return result
+        score = testimonial.sentiment.polarity
+        if score >= 0.05:
+            polarities.append("Positive")
+        elif score <0.05 and score >-0.05:
+            polarities.append("Neutral")
+        elif score<=-0.05:
+            polarities.append("Negative")
+        scores.append(score)
+    return scores, polarities
 
-def confusionMatrix (annotation_result, tool_result):
- return confusion_matrix(annotation_result, tool_result, labels=["Positive", "Negative"])
-
-def precise(annotation_result, tool_result):
-    return precision_score(annotation_result, tool_result, average='macro')
-
-def recall(annotation_result, tool_result):
-    return recall_score(annotation_result, tool_result, average='macro')
-
-def F1Score(precision, recall):
-    F1Score = 2*precision*recall/(precision+recall)
-    return F1Score
+def textblobSentimentFunction_sentence(sentences):
+    scores=[]
+    polarities = []
+    count = len(sentences)
+    for i in range(count):
+        score, polarity = textblobSentimentFunction(sentences[i])
+        scores.append(score)
+        polarities.append(polarity)
+    return scores, polarities
 
 def penn_to_wn(tag):
     """
@@ -485,13 +533,9 @@ def penn_to_wn(tag):
         return wn.VERB
     return None
 
-
 def sentiWordnetSentimentFunction(text):
-    """
-    Return a sentiment polarity: 0 = negative, 1 = positive
-    """
-
-    result = []
+    scores = []
+    polarities = []
     sentiment = 0.0
     tokens_count = 0
 
@@ -521,5 +565,68 @@ def sentiWordnetSentimentFunction(text):
                 sentiment += swn_synset.pos_score() - swn_synset.neg_score()
                 tokens_count += 1
 
-                result.append(sentiment)
+        scores.append(sentiment)
+        if sentiment > 0:
+            polarities.append("Positive")
+        elif sentiment < 0:
+            polarities.append("Negative")
+        else:
+            polarities.append("Neutral")
+    return scores, polarities
+
+def sentiWordnetSentimentFunction_sentence(sentences):
+    scores=[]
+    polarities = []
+    count = len(sentences)
+    for i in range(count):
+        score, polarity = sentiWordnetSentimentFunction(sentences[i])
+        scores.append(score)
+        polarities.append(polarity)
+    return scores, polarities    
+
+def confusionMatrix (annotation_result, tool_result):
+ return confusion_matrix(annotation_result, tool_result, labels=["Positive", "Negative"])
+
+def precise(annotation_result, tool_result):
+    return precision_score(annotation_result, tool_result, average='macro')
+
+def recall(annotation_result, tool_result):
+    return recall_score(annotation_result, tool_result, average='macro')
+
+def F1Score(precision, recall):
+    F1Score = 2*precision*recall/(precision+recall)
+    return F1Score
+
+def average(score):
+    result = []
+    count = len(score)
+    for i in range(count):
+        sum = 0
+        for j in score[i]:
+            sum += j
+        result.append(sum/count)
     return result
+
+def majority(polarities):
+    result = []
+    count = len(polarities)
+    for i in range(count):
+        pos = 0
+        neg = 0 
+        for polarity in polarities[i]:
+            if polarity == 'Positive':
+                pos += 1
+            elif polarity == 'Negative':
+                neg += 1
+            else:
+                continue
+        if pos == neg:
+            result.append("Neutral")
+        elif pos > neg:
+            result.append("Positive")
+        else:
+            result.append("Negative")
+    return result    
+
+def kappaScore(annotation_result, tool_result):
+    return cohen_kappa_score(annotation_result, tool_result)    
