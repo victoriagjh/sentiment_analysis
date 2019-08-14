@@ -99,15 +99,15 @@ def sentimentAnalysis(request):
                         form.sentiWordnetScore, form.sentiWordnetPolarity = sentiWordnetSentimentFunction(form.content)
                         form.sentiWordnetScore_sentence, form.sentiWordnetPolarity_sentence = sentiWordnetSentimentFunction_sentence(form.content_sentence)
                         form.sentiWordnetAverage = average(form.sentiWordnetScore_sentence)
-                        form.sentiWordnetMajority = majority(form.sentiWordnetPolarity_sentence)                        
+                        form.sentiWordnetMajority = majority(form.sentiWordnetPolarity_sentence)
                         form.sentiWordnetConfusionMatrix = confusionMatrix(form.annotations, form.sentiWordnetPolarity)
                         form.sentiWordnetPrecise = precise(form.annotations, form.sentiWordnetPolarity)
                         form.sentiWordnetRecall = recall(form.annotations, form.sentiWordnetPolarity)
                         form.sentiWordnetF1Score = F1Score(form.textblobPrecise,form.sentiWordnetRecall)
                     elif i == "Stanford NLP":
-                        form.stanfordNLPPolarity = stanfordNLPSentimentFunction(form.content)                        
+                        form.stanfordNLPPolarity = stanfordNLPSentimentFunction(form.content)
                         form.stanfordNLPPolarity_sentence = stanfordNLPSentimentFunction_sentence(form.content_sentence)
-                        form.stanfordNLPMajority = majority(form.stanfordNLPPolarity_sentence) 
+                        form.stanfordNLPMajority = majority(form.stanfordNLPPolarity_sentence)
                         form.stanfordNLPConfusionMatrix = confusionMatrix(form.annotations, form.stanfordNLPPolarity)
 
                 positiveSet,negativeSet=separatePN(form.annotations,form.content)
@@ -117,6 +117,9 @@ def sentimentAnalysis(request):
                 negativeHashtag= extractHashtag(negativeList)
                 form.positiveTopFrequentHashtag=top_freqeunt(positiveHashtag)
                 form.negativeTopFrequentHashtag=top_freqeunt(negativeHashtag)
+
+                #sorted Sentiment Result F1 Score
+                form.sortedF1ScoreLists = F1ScoreSorted(form.vaderF1Score,form.textblobF1Score,form.sentiWordnetF1Score)
 
                 #surface metrics
                 positiveCleansingText = cleansing(positiveList)
@@ -161,6 +164,7 @@ def expert_page(request):
             response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
             return response
         return render(request,'expert_page.html',session)
+
 
 def makeFile(pageType):
     file = open("result.txt", 'w')
@@ -406,7 +410,7 @@ def vaderSentimentFucntion(sentences):
         elif vs['compound']<=-0.05:
             polarities.append("Negative")
     return scores, polarities
-        
+
 
 def vaderSentimentFucntion_sentence(sentences):
     scores = []
@@ -416,7 +420,7 @@ def vaderSentimentFucntion_sentence(sentences):
         score, polarity = vaderSentimentFucntion(sentences[i])
         scores.append(score)
         polarities.append(polarity)
-    return scores, polarities    
+    return scores, polarities
 
 #switch use dictionary
 def getPolarity(x):
@@ -426,7 +430,7 @@ def getPolarity(x):
         2: "Neutral",
         3: "Positive",
         4: "Positive",
-    }[x]    
+    }[x]
 
 def stanfordNLPSentimentFunction(sentences):
     nlp = StanfordCoreNLP('http://localhost:9000')
@@ -450,7 +454,7 @@ def stanfordNLPSentimentFunction_sentence(sentences):
     for i in range(count):
         polarity = stanfordNLPSentimentFunction(sentences[i])
         polarities.append(polarity)
-    return polarities   
+    return polarities
 
 
 #convert the result sentiment analysis for compare each of things
@@ -582,7 +586,7 @@ def sentiWordnetSentimentFunction_sentence(sentences):
         score, polarity = sentiWordnetSentimentFunction(sentences[i])
         scores.append(score)
         polarities.append(polarity)
-    return scores, polarities    
+    return scores, polarities
 
 def confusionMatrix (annotation_result, tool_result):
  return confusion_matrix(annotation_result, tool_result, labels=["Positive", "Negative"])
@@ -596,6 +600,11 @@ def recall(annotation_result, tool_result):
 def F1Score(precision, recall):
     F1Score = 2*precision*recall/(precision+recall)
     return F1Score
+
+def F1ScoreSorted(vaderF1,textBlobF1,sentiF1):
+    result=[("Vader F1 Score",vaderF1),("TextBlob",textBlobF1),("SentiWordNet Dictionary F1 Score",sentiF1)]
+    result.sort(key=lambda element : element[1],reverse=True)
+    return result
 
 def average(score):
     result = []
@@ -612,7 +621,7 @@ def majority(polarities):
     count = len(polarities)
     for i in range(count):
         pos = 0
-        neg = 0 
+        neg = 0
         for polarity in polarities[i]:
             if polarity == 'Positive':
                 pos += 1
@@ -626,7 +635,7 @@ def majority(polarities):
             result.append("Positive")
         else:
             result.append("Negative")
-    return result    
+    return result
 
 def kappaScore(annotation_result, tool_result):
-    return cohen_kappa_score(annotation_result, tool_result)    
+    return cohen_kappa_score(annotation_result, tool_result)

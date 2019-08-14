@@ -11,10 +11,10 @@
   <div class="row">
     <div class="leftcolumn">
       <div class="card">
-        <button type="submit" id="sentiment_button" name="sentiment">Sentiment Analysis Result ▽</button>
+        <button type="submit" id="matrix_button" name="sentiment">Confusion Matrix ▽</button>
       </div>
       <div class="card">
-        <button type="submit" id="matrix_button" name="sentiment">Confusion Matrix ▽</button>
+        <button type="submit" id="sentiment_button" name="sentiment">Sentiment Analysis Result ▽</button>
       </div>
       <div class="card">
         <button type="submit" id="entire_button" name="sentiment">Entire Contents Analysis ▽</button>
@@ -28,47 +28,21 @@
     </div>
     <div class="rightcolumn">
       <div class="cardGrey">
-          <h3 align="center">Tweet Level Sentiment Analysis</h3>
-        </div>
-      <div class="card" align="center">
-          <table width="1300px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
-              <tr>
-                  <td rowspan = "2" align= "center">tweet id</td>
-                  <td colspan = "2" align= "center">vader</td>
-                  <td colspan = "2" align= "center">textblob</td>
-                  <td colspan = "1" align= "center">stanford NLP</td>
-                  <td colspan = "2" align= "center">sentiWordnet</td>
-                </tr>
-                <tr>
-                  <td align="center">score</td>
-                  <td align="center">polarity</td>	
-                  <td align="center">score</td>
-                  <td align="center">polarity</td>	
-                  <td align="center">polarity</td>			
-                  <td align="center">score</td>
-                  <td align="center">polarity</td>
-                </tr> 
-                {% for id in form.ids%}  
-                <tr>
-                 <td>{{id}}</td> 
-                 <td align= "center">{{form.vaderScores|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.vaderPolarity|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.textblobScores|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.textblobPolarity|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.textblobPolarity|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.sentiWordnetScore|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.sentiWordnetPolarity|index:forloop.counter0}}</td>
-                </tr>
-                  {%endfor%}
-              </table>
-      </div>  
-      
-      
-
-      <div class="cardGrey" align="center">
         <h3 align="center">Confusion Matrix</h3>
       </div>
       <div class="card" id="matrix_content">
+        <table width= "1000px" align="center" border="1">
+          <tr>
+            <th> Tool </th>
+            <th> F1-Score </th>
+          </tr>
+          {% for tool in form.sortedF1ScoreLists%}
+            <tr>
+              <td> {{tool.0}} </td>
+              <td> {{tool.1}} </td>
+            </tr>
+          {% endfor%}
+        </table>
       <table width= "1000px" align="center" border="1">
         <tr>
           <td>
@@ -211,13 +185,79 @@
             </tr>
             <tr>
               <h5 align="center"> F1-score: {{form.sentiWordnetF1Score}}  </h5>
-              <h5 align="center"> F1-score: {{form.textblobF1Score}} </h5>
             </tr>
           </table>
         </td>
         </tr>
       </table>
       <br/>
+      </div>
+        <div class="cardGrey">
+          <h3 align="center">Tweet Level Sentiment Analysis</h3>
+        </div>
+      <div class="card" align="center" id="tweet_sentiment">
+          <table width="1300px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
+              <tr>
+                  <td rowspan = "2" align= "center">tweet id</td>
+                  <td colspan = "2" align= "center">vader</td>
+                  <td colspan = "2" align= "center">textblob</td>
+                  <td colspan = "1" align= "center">stanford NLP</td>
+                  <td colspan = "2" align= "center">sentiWordnet</td>
+                </tr>
+                <tr>
+                  <td align="center">score</td>
+                  <td align="center">polarity</td>
+                  <td align="center">score</td>
+                  <td align="center">polarity</td>
+                  <td align="center">polarity</td>
+                  <td align="center">score</td>
+                  <td align="center">polarity</td>
+                </tr>
+                {% for id in form.ids%}
+                <tr>
+                 <td>{{id}}</td>
+                 <td align= "center">{{form.vaderScores|index:forloop.counter0}}</td>
+                  {% if form.vaderPolarity|index:forloop.counter0 == "Positive" %}
+                    <td align= "center"><font color="#47C83E">{{form.vaderPolarity|index:forloop.counter0}} </font></td>
+                  {% endif %}
+                  {% if form.vaderPolarity|index:forloop.counter0 == "Negative" %}
+                    <td align= "center"><font color="#FF0000">{{form.vaderPolarity|index:forloop.counter0}} </font></td>
+                  {% endif %}
+                  {% if form.vaderPolarity|index:forloop.counter0 == "Neutral" %}
+                    <td align= "center">{{form.vaderPolarity|index:forloop.counter0}}</td>
+                  {% endif %}
+                 <td align= "center">{{form.textblobScores|index:forloop.counter0}}</td>
+                 {% if form.textblobPolarity|index:forloop.counter0 == "Positive" %}
+                   <td align= "center"><font color="#47C83E">{{form.textblobPolarity|index:forloop.counter0}}</font></td>
+                 {% endif %}
+                 {% if form.textblobPolarity|index:forloop.counter0 == "Negative" %}
+                   <td align= "center"><font color="#FF0000">{{form.textblobPolarity|index:forloop.counter0}}</font></td>
+                 {% endif %}
+                 {% if form.textblobPolarity|index:forloop.counter0 == "Neutral" %}
+                   <td align= "center">{{form.textblobPolarity|index:forloop.counter0}}</td>
+                 {% endif %}
+                 {% if form.stanfordNLPPolarity|index:forloop.counter0 == "Positive" %}
+                   <td align= "center"><font color="#47C83E">{{form.stanfordNLPPolarity|index:forloop.counter0}}</font></td>
+                 {% endif %}
+                 {% if form.stanfordNLPPolarity|index:forloop.counter0 == "Negative" %}
+                   <td align= "center"><font color="#FF0000">{{form.stanfordNLPPolarity|index:forloop.counter0}}</font></td>
+                 {% endif %}
+                 {% if form.stanfordNLPPolarity|index:forloop.counter0 == "Neutral" %}
+                   <td align= "center">{{form.stanfordNLPPolarity|index:forloop.counter0}}</td>
+                 {% endif %}
+                 <td align= "center">{{form.sentiWordnetScore|index:forloop.counter0}}</td>
+                 {% if form.sentiWordnetPolarity|index:forloop.counter0 == "Positive" %}
+                   <td align= "center"><font color="#47C83E">{{form.sentiWordnetPolarity|index:forloop.counter0}}</font></td>
+                 {% endif %}
+                 {% if form.sentiWordnetPolarity|index:forloop.counter0 == "Negative" %}
+                   <td align= "center"><font color="#FF0000">{{form.sentiWordnetPolarity|index:forloop.counter0}}</font></td>
+                 {% endif %}
+                 {% if form.sentiWordnetPolarity|index:forloop.counter0 == "Neutral" %}
+                   <td align= "center">{{form.sentiWordnetPolarity|index:forloop.counter0}}</td>
+                 {% endif %}
+                </tr>
+                  {%endfor%}
+              </table>
       </div>
       <div class="cardGrey" align="center">
         <h3 align="center">Vocabulary Size of Text : {{form.wordcounter}}</h3>
@@ -345,6 +385,15 @@
       var isPositiveChecked=true;
       var isNegativeChecked=true;
       $('#matrix_button').click(function(e) {
+        if(isMatrixChecked) {
+          $( "#tweet_sentiment" ).hide( "blind", 500 );
+          isMatrixChecked=false;
+        } else {
+          $( "#tweet_sentiment" ).show( "blind", 500 );
+          isMatrixChecked=true;
+        }
+      });
+      $('#sentiment_button').click(function(e) {
         if(isMatrixChecked) {
           $( "#matrix_content" ).hide( "blind", 500 );
           isMatrixChecked=false;
