@@ -35,6 +35,7 @@ from nltk.corpus import sentiwordnet as swn
 from nltk import sent_tokenize, word_tokenize, pos_tag
 from sklearn.metrics import cohen_kappa_score
 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Create your views here.
 session ={}
@@ -82,9 +83,9 @@ def sentimentAnalysis(request):
                         form.vaderMajority = majority(form.vaderPolarity_sentence)
                         #form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
                         form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
-                        form.vaderPrecise = precise(form.annotations, form.vaderPolarity)
-                        form.vaderRecall = recall(form.annotations, form.vaderPolarity)
-                        form.vaderF1Score = F1Score(form.vaderPrecise,form.vaderRecall)
+                        form.vaderPrecise = round(precise(form.annotations, form.vaderPolarity),2)
+                        form.vaderRecall = round(recall(form.annotations, form.vaderPolarity),2)
+                        form.vaderF1Score = round(F1Score(form.vaderPrecise,form.vaderRecall),2)
                     elif i == "TextBlob":
                         form.textblobScores, form.textblobPolarity =textblobSentimentFunction(form.content)
                         form.textblobScores_sentence, form.textblobPolarity_sentence = textblobSentimentFunction_sentence(form.content_sentence)
@@ -92,18 +93,18 @@ def sentimentAnalysis(request):
                         form.textblobMajority = majority(form.textblobPolarity_sentence)
                         #form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
                         form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
-                        form.textblobPrecise = precise(form.annotations, form.textblobPolarity)
-                        form.textblobRecall = recall(form.annotations, form.textblobPolarity)
-                        form.textblobF1Score = F1Score(form.textblobPrecise,form.textblobRecall)
+                        form.textblobPrecise = round(precise(form.annotations, form.textblobPolarity),2)
+                        form.textblobRecall = round(recall(form.annotations, form.textblobPolarity),2)
+                        form.textblobF1Score = round(F1Score(form.textblobPrecise,form.textblobRecall),2)
                     elif i == "sentiWordnet":
                         form.sentiWordnetScore, form.sentiWordnetPolarity = sentiWordnetSentimentFunction(form.content)
                         form.sentiWordnetScore_sentence, form.sentiWordnetPolarity_sentence = sentiWordnetSentimentFunction_sentence(form.content_sentence)
                         form.sentiWordnetAverage = average(form.sentiWordnetScore_sentence)
                         form.sentiWordnetMajority = majority(form.sentiWordnetPolarity_sentence)
                         form.sentiWordnetConfusionMatrix = confusionMatrix(form.annotations, form.sentiWordnetPolarity)
-                        form.sentiWordnetPrecise = precise(form.annotations, form.sentiWordnetPolarity)
-                        form.sentiWordnetRecall = recall(form.annotations, form.sentiWordnetPolarity)
-                        form.sentiWordnetF1Score = F1Score(form.textblobPrecise,form.sentiWordnetRecall)
+                        form.sentiWordnetPrecise = round(precise(form.annotations, form.sentiWordnetPolarity),2)
+                        form.sentiWordnetRecall = round(recall(form.annotations, form.sentiWordnetPolarity),2)
+                        form.sentiWordnetF1Score = round(F1Score(form.textblobPrecise,form.sentiWordnetRecall),2)
                     elif i == "Stanford NLP":
                         form.stanfordNLPPolarity = stanfordNLPSentimentFunction(form.content)
                         form.stanfordNLPPolarity_sentence = stanfordNLPSentimentFunction_sentence(form.content_sentence)
@@ -134,6 +135,17 @@ def sentimentAnalysis(request):
                 form.negativeWordcounter = wordcounter(negativeCleansingText)
                 save_wordcloud(form.negativeWord_frequent,"negative")
 
+                page = request.GET.get('page', 1)
+                paginator = Paginator(form.ids, 10)
+                try:
+                    pageOfTweet = paginator.page(page)
+                except PageNotAnInteger:
+                    pageOfTweet = paginator.page(1)
+                except EmptyPage:
+                    pageOfTweet = paginator.page(paginator.num_pages)
+
+                form.pageOfTweet=pageOfTweet
+
                 context = {
                     'form':form,
                     }
@@ -153,8 +165,19 @@ def sentimentAnalysis(request):
 def expert_page(request):
     if request.method == 'POST':
         global session
-        if 'metric' in request.POST:
-            return render(request,'expert_metrics.html',session)
+
+        page = request.GET.get('page', 1)
+        paginator = Paginator(session['form'].content, 10)
+
+        try:
+            pageOfTweet = paginator.page(page)
+        except PageNotAnInteger:
+            pageOfTweet = paginator.page(1)
+        except EmptyPage:
+            pageOfTweet = paginator.page(paginator.num_pages)
+
+        session.pageOfTweet=pageOfTweet
+
         if 'download' in request.POST:
             makeFile("expert")
             path_to_file = os.path.realpath("result.txt")
@@ -402,7 +425,7 @@ def vaderSentimentFucntion(sentences):
     polarities = []
     for sentence in sentences:
         vs = analyzer.polarity_scores(sentence)
-        scores.append(vs['compound']) #only Compound value
+        scores.append(round(vs['compound'],2)) #only Compound value
         if vs['compound'] >= 0.05:
             polarities.append("Positive")
         elif vs['compound'] <0.05 and vs['compound'] >-0.05:
@@ -510,7 +533,7 @@ def textblobSentimentFunction(sentences):
             polarities.append("Neutral")
         elif score<=-0.05:
             polarities.append("Negative")
-        scores.append(score)
+        scores.append(round(score,2))
     return scores, polarities
 
 def textblobSentimentFunction_sentence(sentences):
@@ -569,7 +592,7 @@ def sentiWordnetSentimentFunction(text):
                 sentiment += swn_synset.pos_score() - swn_synset.neg_score()
                 tokens_count += 1
 
-        scores.append(sentiment)
+        scores.append(round(sentiment,2))
         if sentiment > 0:
             polarities.append("Positive")
         elif sentiment < 0:

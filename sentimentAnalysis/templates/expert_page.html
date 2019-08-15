@@ -28,13 +28,47 @@
     </div>
     <div class="rightcolumn">
       <div class="cardGrey">
+        <h3 align="center">Testing Pagination</h3>
+      </div>
+      <div class="card" align="center" id="tweet_sentiment">
+          <table width="1300px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
+            <tr><th>Tweet Content</th></tr>
+            {% for content in pageOfTweet %}
+            <tr>
+              <td>{{content}}</td>
+            </tr>
+            {% endfor %}
+          </table>
+          {% if users.has_other_pages %}
+  <ul class="pagination">
+    {% if form.pageOfTweet.has_previous %}
+      <li><a href="?page={{ form.pageOfTweet.previous_page_number }}">&laquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&laquo;</span></li>
+    {% endif %}
+    {% for i in form.pageOfTweet.paginator.page_range %}
+      {% if form.pageOfTweet.number == i %}
+        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+      {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+    {% if users.has_next %}
+      <li><a href="?page={{ form.pageOfTweet.next_page_number }}">&raquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&raquo;</span></li>
+    {% endif %}
+  </ul>
+{% endif %}
+      </div>
+      <div class="cardGrey">
         <h3 align="center">Confusion Matrix</h3>
       </div>
       <div class="card" id="matrix_content">
         <table width= "1000px" align="center" border="1">
           <tr>
-            <th align=center> Tool </th>
-            <th align=center> F1-Score </th>
+            <th align="center"> Tool </th>
+            <th align="center"> F1-Score </th>
           </tr>
           {% for tool in form.sortedF1ScoreLists%}
           {% if forloop.counter0 == 0 %}
@@ -201,7 +235,7 @@
       <div class="card" align="center" id="tweet_sentiment">
           <table width="1300px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
               <tr>
-                  <td rowspan = "2" align= "center">tweet id</td>
+                  <td rowspan = "2" align= "center" width="600px" >tweet content</td>
                   <td colspan = "2" align= "center">vader</td>
                   <td colspan = "2" align= "center">textblob</td>
                   <td colspan = "1" align= "center">stanford NLP</td>
@@ -218,7 +252,7 @@
                 </tr>
                 {% for id in form.ids%}
                 <tr>
-                 <td align="center">{{id}}</td>
+                 <td align="center">{{form.content|index:forloop.counter0}}</td>
                  <td align= "center">{{form.vaderScores|index:forloop.counter0}}</td>
                   {% if form.vaderPolarity|index:forloop.counter0 == "Positive" %}
                     <td align= "center"><font color="#47C83E">{{form.vaderPolarity|index:forloop.counter0}} </font></td>
