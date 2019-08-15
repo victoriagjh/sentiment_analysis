@@ -33,16 +33,19 @@
       <div class="card" id="matrix_content">
         <table width= "1000px" align="center" border="1">
           <tr>
-            <th> Tool </th>
-            <th> F1-Score </th>
+            <th align=center> Tool </th>
+            <th align=center> F1-Score </th>
           </tr>
           {% for tool in form.sortedF1ScoreLists%}
-            <tr>
-              <td> {{tool.0}} </td>
-              <td> {{tool.1}} </td>
-            </tr>
+          {% if forloop.counter0 == 0 %}
+            <tr> <td align="center"> <font color="#FF007F" style="font-weight: bold;">{{tool.0}}</font> </td> <td align="center"><font style="font-weight: bold;" color="#FF007F"> {{tool.1}} </font> </td> </tr>
+          {% endif %}
+          {% if forloop.counter0 != 0 %}
+            <tr> <td align="center"> <font align="center"> {{tool.0}} </font></td> <td align="center"> <font>{{tool.1}} </font></td> </tr>
+          {% endif %}
           {% endfor%}
         </table>
+      <br/>
       <table width= "1000px" align="center" border="1">
         <tr>
           <td>
@@ -215,7 +218,7 @@
                 </tr>
                 {% for id in form.ids%}
                 <tr>
-                 <td>{{id}}</td>
+                 <td align="center">{{id}}</td>
                  <td align= "center">{{form.vaderScores|index:forloop.counter0}}</td>
                   {% if form.vaderPolarity|index:forloop.counter0 == "Positive" %}
                     <td align= "center"><font color="#47C83E">{{form.vaderPolarity|index:forloop.counter0}} </font></td>
@@ -386,19 +389,19 @@
       var isNegativeChecked=true;
       $('#matrix_button').click(function(e) {
         if(isMatrixChecked) {
-          $( "#tweet_sentiment" ).hide( "blind", 500 );
+          $( "#matrix_content" ).hide( "blind", 500 );
           isMatrixChecked=false;
         } else {
-          $( "#tweet_sentiment" ).show( "blind", 500 );
+          $( "#matrix_content" ).show( "blind", 500 );
           isMatrixChecked=true;
         }
       });
       $('#sentiment_button').click(function(e) {
         if(isMatrixChecked) {
-          $( "#matrix_content" ).hide( "blind", 500 );
+          $( "#tweet_sentiment" ).hide( "blind", 500 );
           isMatrixChecked=false;
         } else {
-          $( "#matrix_content" ).show( "blind", 500 );
+          $( "#tweet_sentiment" ).show( "blind", 500 );
           isMatrixChecked=true;
         }
       });

@@ -540,10 +540,10 @@ def penn_to_wn(tag):
 def sentiWordnetSentimentFunction(text):
     scores = []
     polarities = []
-    sentiment = 0.0
     tokens_count = 0
 
     for sentence in text:
+        sentiment = 0.0
         raw_sentences = sent_tokenize(sentence)
         #품사 태그
         for raw_sentence in raw_sentences:
