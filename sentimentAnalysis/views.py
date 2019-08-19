@@ -136,7 +136,7 @@ def sentimentAnalysis(request):
                 save_wordcloud(form.negativeWord_frequent,"negative")
 
                 page = request.GET.get('page', 1)
-                paginator = Paginator(form.ids, 10)
+                paginator = Paginator(form.content, 25)
                 try:
                     pageOfTweet = paginator.page(page)
                 except PageNotAnInteger:
@@ -165,9 +165,8 @@ def sentimentAnalysis(request):
 def expert_page(request):
     if request.method == 'POST':
         global session
-
         page = request.GET.get('page', 1)
-        paginator = Paginator(session['form'].content, 10)
+        paginator = Paginator(session['form'].content, 25)
 
         try:
             pageOfTweet = paginator.page(page)
@@ -177,6 +176,7 @@ def expert_page(request):
             pageOfTweet = paginator.page(paginator.num_pages)
 
         session.pageOfTweet=pageOfTweet
+        session.page=page
 
         if 'download' in request.POST:
             makeFile("expert")
@@ -186,7 +186,8 @@ def expert_page(request):
             response = HttpResponse(rfile, content_type='application/txt')
             response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
             return response
-        return render(request,'expert_page.html',session)
+
+    return render(request,'expert_page.html',session)
 
 
 def makeFile(pageType):
