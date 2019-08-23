@@ -34,6 +34,7 @@ from nltk.corpus import wordnet as wn
 from nltk.corpus import sentiwordnet as swn
 from nltk import sent_tokenize, word_tokenize, pos_tag
 from sklearn.metrics import cohen_kappa_score
+import numpy as np
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -77,8 +78,8 @@ def sentimentAnalysis(request):
                 #sentimentAnalysis
                 for i in tools:
                     if i == "Vader Sentiment":
-                        form.vaderScores, form.vaderPolarity =vaderSentimentFucntion(form.content)
-                        form.vaderScores_sentence, form.vaderPolarity_sentence = vaderSentimentFucntion_sentence(form.content_sentence)
+                        form.vaderScores, form.vaderPolarity, form.vaderCountpol =vaderSentimentFucntion(form.content)
+                        form.vaderScores_sentence, form.vaderPolarity_sentence, form.vaderCountpol_sentence = vaderSentimentFucntion_sentence(form.content_sentence)
                         form.vaderAverage = average(form.vaderScores_sentence)
                         form.vaderMajority = majority(form.vaderPolarity_sentence)
                         #form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
@@ -87,8 +88,8 @@ def sentimentAnalysis(request):
                         form.vaderRecall = round(recall(form.annotations, form.vaderPolarity),2)
                         form.vaderF1Score = round(F1Score(form.vaderPrecise,form.vaderRecall),2)
                     elif i == "TextBlob":
-                        form.textblobScores, form.textblobPolarity =textblobSentimentFunction(form.content)
-                        form.textblobScores_sentence, form.textblobPolarity_sentence = textblobSentimentFunction_sentence(form.content_sentence)
+                        form.textblobScores, form.textblobPolarity, form.textblobCountpol = textblobSentimentFunction(form.content)
+                        form.textblobScores_sentence, form.textblobPolarity_sentence, form.textblobCountpol_sentence = textblobSentimentFunction_sentence(form.content_sentence)
                         form.textblobAverage = average(form.textblobScores_sentence)
                         form.textblobMajority = majority(form.textblobPolarity_sentence)
                         #form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
@@ -97,8 +98,8 @@ def sentimentAnalysis(request):
                         form.textblobRecall = round(recall(form.annotations, form.textblobPolarity),2)
                         form.textblobF1Score = round(F1Score(form.textblobPrecise,form.textblobRecall),2)
                     elif i == "sentiWordnet":
-                        form.sentiWordnetScore, form.sentiWordnetPolarity = sentiWordnetSentimentFunction(form.content)
-                        form.sentiWordnetScore_sentence, form.sentiWordnetPolarity_sentence = sentiWordnetSentimentFunction_sentence(form.content_sentence)
+                        form.sentiWordnetScore, form.sentiWordnetPolarity, form.sentiWordnetCountpol = sentiWordnetSentimentFunction(form.content)
+                        form.sentiWordnetScore_sentence, form.sentiWordnetPolarity_sentence, form.sentiWordnetCountpol_sentence = sentiWordnetSentimentFunction_sentence(form.content_sentence)
                         form.sentiWordnetAverage = average(form.sentiWordnetScore_sentence)
                         form.sentiWordnetMajority = majority(form.sentiWordnetPolarity_sentence)
                         form.sentiWordnetConfusionMatrix = confusionMatrix(form.annotations, form.sentiWordnetPolarity)
@@ -106,8 +107,8 @@ def sentimentAnalysis(request):
                         form.sentiWordnetRecall = round(recall(form.annotations, form.sentiWordnetPolarity),2)
                         form.sentiWordnetF1Score = round(F1Score(form.textblobPrecise,form.sentiWordnetRecall),2)
                     elif i == "Stanford NLP":
-                        form.stanfordNLPPolarity = stanfordNLPSentimentFunction(form.content)
-                        form.stanfordNLPPolarity_sentence = stanfordNLPSentimentFunction_sentence(form.content_sentence)
+                        form.stanfordNLPPolarity, form.stanfordNLPCountpol = stanfordNLPSentimentFunction(form.content)
+                        form.stanfordNLPPolarity_sentence, form.stanfordNLPCountpol_sentence = stanfordNLPSentimentFunction_sentence(form.content_sentence)
                         form.stanfordNLPMajority = majority(form.stanfordNLPPolarity_sentence)
                         form.stanfordNLPConfusionMatrix = confusionMatrix(form.annotations, form.stanfordNLPPolarity)
 
@@ -135,8 +136,15 @@ def sentimentAnalysis(request):
                 form.negativeWordcounter = wordcounter(negativeCleansingText)
                 save_wordcloud(form.negativeWord_frequent,"negative")
 
-                page = request.GET.get('page', 1)
+                #for kappa calculate
+                form.sumPolarity_sentence = sum_for_kappa_sentence(form.vaderCountpol_sentence, form.textblobCountpol_sentence, form.sentiWordnetCountpol_sentence, form.stanfordNLPCountpol_sentence)
+                form.sumPolarity_tweet = sum_for_kappa_tweet(form.vaderCountpol, form.textblobCountpol, form.sentiWordnetCountpol, form.stanfordNLPCountpol)
+                form.KappaScore_sentence = fleiss_kappa(form.sumPolarity_sentence)
+                form.KappaScore_tweet = fleiss_kappa(form.sumPolarity_tweet)
+
+                page = request.POST.get('page',1)
                 paginator = Paginator(form.content, 25)
+
                 try:
                     pageOfTweet = paginator.page(page)
                 except PageNotAnInteger:
@@ -145,6 +153,7 @@ def sentimentAnalysis(request):
                     pageOfTweet = paginator.page(paginator.num_pages)
 
                 form.pageOfTweet=pageOfTweet
+                form.page=page
 
                 context = {
                     'form':form,
@@ -165,19 +174,6 @@ def sentimentAnalysis(request):
 def expert_page(request):
     if request.method == 'POST':
         global session
-        page = request.GET.get('page', 1)
-        paginator = Paginator(session['form'].content, 25)
-
-        try:
-            pageOfTweet = paginator.page(page)
-        except PageNotAnInteger:
-            pageOfTweet = paginator.page(1)
-        except EmptyPage:
-            pageOfTweet = paginator.page(paginator.num_pages)
-
-        session.pageOfTweet=pageOfTweet
-        session.page=page
-
         if 'download' in request.POST:
             makeFile("expert")
             path_to_file = os.path.realpath("result.txt")
@@ -186,6 +182,24 @@ def expert_page(request):
             response = HttpResponse(rfile, content_type='application/txt')
             response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
             return response
+
+    page = request.POST.get('page',1)
+    paginator = Paginator(session['form'].content, 25)
+
+    try:
+        pageOfTweet = paginator.page(page)
+    except PageNotAnInteger:
+        pageOfTweet = paginator.page(1)
+    except EmptyPage:
+        pageOfTweet = paginator.page(paginator.num_pages)
+
+    session.pageOfTweet=pageOfTweet
+    session.page=page
+
+    path_to_file = os.path.realpath("wpqkf.txt")
+    fi=open(path_to_file,'w')
+    fi.write(page)
+    fi.close()
 
     return render(request,'expert_page.html',session)
 
@@ -424,27 +438,39 @@ def vaderSentimentFucntion(sentences):
     analyzer = SentimentIntensityAnalyzer()
     scores = []
     polarities = []
+    count_pol = []
     for sentence in sentences:
+        positive = 0
+        negative = 0
+        neutral = 0
         vs = analyzer.polarity_scores(sentence)
-        scores.append(round(vs['compound'],2)) #only Compound value
+        scores.append(vs['compound']) #only Compound value
         if vs['compound'] >= 0.05:
             polarities.append("Positive")
+            positive += 1
+            count_pol.append([positive, neutral, negative])
         elif vs['compound'] <0.05 and vs['compound'] >-0.05:
             polarities.append("Neutral")
+            neutral += 1
+            count_pol.append([positive, neutral, negative])
         elif vs['compound']<=-0.05:
             polarities.append("Negative")
-    return scores, polarities
+            negative += 1
+            count_pol.append([positive, neutral, negative])
+    return scores, polarities, count_pol
 
 
 def vaderSentimentFucntion_sentence(sentences):
     scores = []
     polarities = []
+    count_polarity = []
     count = len(sentences)
     for i in range(count):
-        score, polarity = vaderSentimentFucntion(sentences[i])
+        score, polarity, count_pol = vaderSentimentFucntion(sentences[i])
         scores.append(score)
         polarities.append(polarity)
-    return scores, polarities
+        count_polarity.append(count_pol)
+    return scores, polarities, count_polarity
 
 #switch use dictionary
 def getPolarity(x):
@@ -459,7 +485,11 @@ def getPolarity(x):
 def stanfordNLPSentimentFunction(sentences):
     nlp = StanfordCoreNLP('http://localhost:9000')
     result=[]
+    count_pol = []
     for i in range(0,len(sentences)):
+        positive = 0
+        negative = 0
+        neutral = 0
         cnt=[0,0,0,0,0]
         res = nlp.annotate(sentences[i],properties={
                        'annotators': 'sentiment',
@@ -469,16 +499,27 @@ def stanfordNLPSentimentFunction(sentences):
         for s in res["sentences"]:
             cnt[int(s["sentimentValue"])]+=1
         index=cnt.index(max(cnt))
+        if index == (1 or 2):
+          negative += 1
+          count_pol.append([positive, neutral, negative])
+        elif index == (3 or 4):
+          positive += 1
+          count_pol.append([positive, neutral, negative])
+        else:
+            neutral += 1
+            count_pol.append([positive, neutral, negative])
         result.append(getPolarity(index))
-    return result
+    return result, count_pol
 
 def stanfordNLPSentimentFunction_sentence(sentences):
     polarities = []
+    count_polarity = []
     count = len(sentences)
     for i in range(count):
-        polarity = stanfordNLPSentimentFunction(sentences[i])
+        polarity, count_pol = stanfordNLPSentimentFunction(sentences[i])
         polarities.append(polarity)
-    return polarities
+        count_polarity.append(count_pol)
+    return polarities, count_polarity
 
 
 #convert the result sentiment analysis for compare each of things
@@ -525,27 +566,39 @@ def compareFileWithVader(annotations, toolResults):
 def textblobSentimentFunction(sentences):
     scores = []
     polarities = []
+    count_pol = []
     for sentence in sentences:
+        positive = 0
+        negative = 0
+        neutral = 0
         testimonial = TextBlob(sentence)
         score = testimonial.sentiment.polarity
         if score >= 0.05:
             polarities.append("Positive")
+            positive += 1
+            count_pol.append([positive, neutral, negative])
         elif score <0.05 and score >-0.05:
             polarities.append("Neutral")
+            neutral += 1
+            count_pol.append([positive, neutral, negative])
         elif score<=-0.05:
             polarities.append("Negative")
+            negative += 1
+            count_pol.append([positive, neutral, negative])
         scores.append(round(score,2))
-    return scores, polarities
+    return scores, polarities, count_pol
 
 def textblobSentimentFunction_sentence(sentences):
     scores=[]
     polarities = []
+    count_polarity = []
     count = len(sentences)
     for i in range(count):
-        score, polarity = textblobSentimentFunction(sentences[i])
+        score, polarity, count_pol = textblobSentimentFunction(sentences[i])
         scores.append(score)
         polarities.append(polarity)
-    return scores, polarities
+        count_polarity.append(count_pol)
+    return scores, polarities, count_polarity
 
 def penn_to_wn(tag):
     """
@@ -565,10 +618,14 @@ def sentiWordnetSentimentFunction(text):
     scores = []
     polarities = []
     tokens_count = 0
+    count_pol=[]
 
     for sentence in text:
         sentiment = 0.0
         raw_sentences = sent_tokenize(sentence)
+        positive = 0
+        negative = 0
+        neutral = 0
         #품사 태그
         for raw_sentence in raw_sentences:
             tagged_sentence = pos_tag(word_tokenize(raw_sentence))
@@ -596,21 +653,30 @@ def sentiWordnetSentimentFunction(text):
         scores.append(round(sentiment,2))
         if sentiment > 0:
             polarities.append("Positive")
+            positive += 1
+            count_pol.append([positive, neutral, negative])
         elif sentiment < 0:
             polarities.append("Negative")
+            negative += 1
+            count_pol.append([positive, neutral, negative])
         else:
             polarities.append("Neutral")
-    return scores, polarities
+            neutral += 1
+            count_pol.append([positive, neutral, negative])
+    return scores, polarities, count_pol
 
 def sentiWordnetSentimentFunction_sentence(sentences):
     scores=[]
     polarities = []
+    count_polarity = []
     count = len(sentences)
     for i in range(count):
-        score, polarity = sentiWordnetSentimentFunction(sentences[i])
+        score, polarity, count_pol = sentiWordnetSentimentFunction(sentences[i])
         scores.append(score)
         polarities.append(polarity)
-    return scores, polarities
+        count_polarity.append(count_pol)
+    return scores, polarities, count_polarity
+
 
 def confusionMatrix (annotation_result, tool_result):
  return confusion_matrix(annotation_result, tool_result, labels=["Positive", "Negative"])
@@ -661,5 +727,39 @@ def majority(polarities):
             result.append("Negative")
     return result
 
-def kappaScore(annotation_result, tool_result):
-    return cohen_kappa_score(annotation_result, tool_result)
+def sum_for_kappa_sentence(a,b,c,d):
+  count_pol = []
+  for i in range(len(a)):
+    count_polarity=[]
+    for j in range(len(a[i])):
+      sum_pos = a[i][j][0]+b[i][j][0]+c[i][j][0]+d[i][j][0]
+      sum_neu = a[i][j][1]+b[i][j][1]+c[i][j][1]+d[i][j][1]
+      sum_neg = a[i][j][2]+b[i][j][2]+c[i][j][2]+d[i][j][2]
+      count_polarity.append([sum_pos, sum_neu, sum_neg])
+    count_pol.append(count_polarity)
+  return count_pol
+
+def sum_for_kappa_tweet(a,b,c,d):
+    result = []
+    for i in range(len(a)):
+      count_pol = []
+      sum_pos = a[i][0]+b[i][0]+c[i][0]+d[i][0]
+      sum_neu = a[i][1]+b[i][1]+c[i][1]+d[i][1]
+      sum_neg = a[i][2]+b[i][2]+c[i][2]+d[i][2]
+      count_pol.append([sum_pos, sum_neu, sum_neg])
+      result.append(count_pol)
+    return result
+
+def fleiss_kappa(matrixes):
+    result = []
+    for matrix in matrixes:
+        M = np.array(matrix)
+        N, k = M.shape  # N is # of items, k is # of categories
+        n_annotators = float(np.sum(M[0]))
+        p = np.sum(M, axis=0) / (N * n_annotators)
+        P = (np.sum(M * M, axis=1) - n_annotators) / (n_annotators * (n_annotators - 1))
+        Pbar = np.sum(P) / N
+        PbarE = np.sum(p * p)
+        kappa = (Pbar - PbarE) / (1 - PbarE)
+        result.append(round(kappa,2))
+    return result
