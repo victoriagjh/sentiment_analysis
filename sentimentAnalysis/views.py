@@ -2,7 +2,6 @@ from sys import platform as sys_pf
 if sys_pf == 'darwin':
     import matplotlib
     matplotlib.use("TkAgg")
-
 import os
 from django.shortcuts import render
 from django.conf import settings
@@ -37,7 +36,6 @@ from sklearn.metrics import cohen_kappa_score
 import numpy as np
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
 # Create your views here.
 session ={}
 def sentimentAnalysis(request):
@@ -61,8 +59,8 @@ def sentimentAnalysis(request):
 
                 form.ids=ids
                 form.annotations=annotations
-                form.content = contents #text type(list)
-                form.content_sentence = sentenceLevel(form.content)
+                form.content = contents #by tweet
+                form.content_sentence = sentenceLevel(form.content) #by sentence
                 form.hashtag = hashtags #text type(list)
                 form.tool = tools
 
@@ -72,33 +70,30 @@ def sentimentAnalysis(request):
                 form.topFrequentWords=top_freqeunt(cleansingText)
                 form.wordcounter = wordcounter(cleansingText)
                 save_wordcloud(form.word_frequent,"basic")
-
                 form.hashtag_frequent = top_freqeunt(hashtags)
 
                 #sentimentAnalysis
                 for i in tools:
                     if i == "Vader Sentiment":
-                        form.vaderScores, form.vaderPolarity, form.vaderCountpol =vaderSentimentFucntion(form.content)
+                        form.vaderScores, form.vaderPolarity, form.vaderCountpol =vaderSentimentFucntion(form.content) #result of tweet
                         form.vaderScores_sentence, form.vaderPolarity_sentence, form.vaderCountpol_sentence = vaderSentimentFucntion_sentence(form.content_sentence)
                         form.vaderAverage = average(form.vaderScores_sentence)
                         form.vaderMajority = majority(form.vaderPolarity_sentence)
-                        #form.vaderCategory=compareFileWithVader(form.annotations,form.vaderPolarity)
                         form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
                         form.vaderPrecise = round(precise(form.annotations, form.vaderPolarity),2)
                         form.vaderRecall = round(recall(form.annotations, form.vaderPolarity),2)
                         form.vaderF1Score = round(F1Score(form.vaderPrecise,form.vaderRecall),2)
                     elif i == "TextBlob":
-                        form.textblobScores, form.textblobPolarity, form.textblobCountpol = textblobSentimentFunction(form.content)
+                        form.textblobScores, form.textblobPolarity, form.textblobCountpol = textblobSentimentFunction(form.content) #result of tweet
                         form.textblobScores_sentence, form.textblobPolarity_sentence, form.textblobCountpol_sentence = textblobSentimentFunction_sentence(form.content_sentence)
                         form.textblobAverage = average(form.textblobScores_sentence)
                         form.textblobMajority = majority(form.textblobPolarity_sentence)
-                        #form.textblobCategory=compareFileWithVader(form.annotations,form.textblobPolarity)
                         form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
                         form.textblobPrecise = round(precise(form.annotations, form.textblobPolarity),2)
                         form.textblobRecall = round(recall(form.annotations, form.textblobPolarity),2)
                         form.textblobF1Score = round(F1Score(form.textblobPrecise,form.textblobRecall),2)
                     elif i == "sentiWordnet":
-                        form.sentiWordnetScore, form.sentiWordnetPolarity, form.sentiWordnetCountpol = sentiWordnetSentimentFunction(form.content)
+                        form.sentiWordnetScore, form.sentiWordnetPolarity, form.sentiWordnetCountpol = sentiWordnetSentimentFunction(form.content) #result of tweet
                         form.sentiWordnetScore_sentence, form.sentiWordnetPolarity_sentence, form.sentiWordnetCountpol_sentence = sentiWordnetSentimentFunction_sentence(form.content_sentence)
                         form.sentiWordnetAverage = average(form.sentiWordnetScore_sentence)
                         form.sentiWordnetMajority = majority(form.sentiWordnetPolarity_sentence)
@@ -107,11 +102,12 @@ def sentimentAnalysis(request):
                         form.sentiWordnetRecall = round(recall(form.annotations, form.sentiWordnetPolarity),2)
                         form.sentiWordnetF1Score = round(F1Score(form.textblobPrecise,form.sentiWordnetRecall),2)
                     elif i == "Stanford NLP":
-                        form.stanfordNLPPolarity, form.stanfordNLPCountpol = stanfordNLPSentimentFunction(form.content)
+                        form.stanfordNLPPolarity, form.stanfordNLPCountpol = stanfordNLPSentimentFunction(form.content) #result of tweet
                         form.stanfordNLPPolarity_sentence, form.stanfordNLPCountpol_sentence = stanfordNLPSentimentFunction_sentence(form.content_sentence)
                         form.stanfordNLPMajority = majority(form.stanfordNLPPolarity_sentence)
                         form.stanfordNLPConfusionMatrix = confusionMatrix(form.annotations, form.stanfordNLPPolarity)
 
+                #surface metric according to positive and negative
                 positiveSet,negativeSet=separatePN(form.annotations,form.content)
                 positiveList = list(positiveSet)
                 negativeList = list(negativeSet)
@@ -119,9 +115,6 @@ def sentimentAnalysis(request):
                 negativeHashtag= extractHashtag(negativeList)
                 form.positiveTopFrequentHashtag=top_freqeunt(positiveHashtag)
                 form.negativeTopFrequentHashtag=top_freqeunt(negativeHashtag)
-
-                #sorted Sentiment Result F1 Score
-                form.sortedF1ScoreLists = F1ScoreSorted(form.vaderF1Score,form.textblobF1Score,form.sentiWordnetF1Score)
 
                 #surface metrics
                 positiveCleansingText = cleansing(positiveList)
@@ -136,6 +129,9 @@ def sentimentAnalysis(request):
                 form.negativeWordcounter = wordcounter(negativeCleansingText)
                 save_wordcloud(form.negativeWord_frequent,"negative")
 
+                #sorted Sentiment Result F1 Score
+                form.sortedF1ScoreLists = F1ScoreSorted(form.vaderF1Score,form.textblobF1Score,form.sentiWordnetF1Score)
+
                 #for kappa calculate
                 form.sumPolarity_sentence = sum_for_kappa_sentence(form.vaderCountpol_sentence, form.textblobCountpol_sentence, form.sentiWordnetCountpol_sentence, form.stanfordNLPCountpol_sentence)
                 form.sumPolarity_tweet = sum_for_kappa_tweet(form.vaderCountpol, form.textblobCountpol, form.sentiWordnetCountpol, form.stanfordNLPCountpol)
@@ -144,7 +140,6 @@ def sentimentAnalysis(request):
 
                 page = request.POST.get('page',1)
                 paginator = Paginator(form.content, 25)
-
                 try:
                     pageOfTweet = paginator.page(page)
                 except PageNotAnInteger:
@@ -182,7 +177,6 @@ def expert_page(request):
             response = HttpResponse(rfile, content_type='application/txt')
             response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
             return response
-
     page = request.POST.get('page',1)
     paginator = Paginator(session['form'].content, 25)
 
@@ -196,6 +190,7 @@ def expert_page(request):
     session.pageOfTweet=pageOfTweet
     session.page=page
 
+    #tweet
     path_to_file = os.path.realpath("wpqkf.txt")
     fi=open(path_to_file,'w')
     fi.write(page)
@@ -372,13 +367,6 @@ def extractHashtag(list):
             hashtag.append(j)
     return hashtag
 
-def convertToString(list):
-    contentString=""
-    for i in list:
-        contentString+=i
-        contentString+=" "
-    return contentString
-
 def separatePN(annotations,text):
     positiveSet = set()
     negativeSet = set()
@@ -410,7 +398,7 @@ def cleansing(content):
             if w not in stop_words:
                     result.append(w)
     return result
-
+#For WordCloud
 def wordcounter(text):
     return(len(text))
 
@@ -418,15 +406,16 @@ def word_frequent(text):
     fd_content = FreqDist(text)
     return fd_content
 
-def top_freqeunt(list):
-    fd_content = FreqDist(list)
-    return fd_content.most_common(5)
-
 def save_wordcloud(text,fileName):
     wc = WordCloud(width=1000, height=600, background_color="white", random_state=0)
     plt.imshow(wc.generate_from_frequencies(text))
     plt.axis("off")
     plt.savefig("sentimentAnalysis/static/img/"+fileName+".png", format = "png")
+
+#For Surface Metric
+def top_freqeunt(list):
+    fd_content = FreqDist(list)
+    return fd_content.most_common(5)
 
 def sentenceLevel(text):
     result = []
@@ -472,16 +461,6 @@ def vaderSentimentFucntion_sentence(sentences):
         count_polarity.append(count_pol)
     return scores, polarities, count_polarity
 
-#switch use dictionary
-def getPolarity(x):
-    return {
-        0: "Negative",
-        1: "Negative",
-        2: "Neutral",
-        3: "Positive",
-        4: "Positive",
-    }[x]
-
 def stanfordNLPSentimentFunction(sentences):
     nlp = StanfordCoreNLP('http://localhost:9000')
     result=[]
@@ -521,47 +500,15 @@ def stanfordNLPSentimentFunction_sentence(sentences):
         count_polarity.append(count_pol)
     return polarities, count_polarity
 
-
-#convert the result sentiment analysis for compare each of things
-def convertSentimentResult(toolName,sentimentResult):
-    converted=[]
-    if toolName=="Vader" or toolName=="TextBlob":
-        for i in sentimentResult:
-            if i >= 0.05:
-                converted.append("Positive")
-            elif i<0.05 and i>-0.05:
-                converted.append("Neutral")
-            elif i<=-0.05:
-                converted.append("Negative")
-        return converted
-    elif toolName=="userFile":
-        for i in sentimentResult:
-            if i == "4":
-                converted.append("Positive")
-            elif i == "2":
-                converted.append("Neutral")
-            elif i == "0":
-                converted.append("Negative")
-        return converted
-    elif toolName == "sentiWordnet":
-        for i in sentimentResult:
-            if i > 0:
-                converted.append("Positive")
-            elif i < 0:
-                converted.append("Negative")
-            else:
-                converted.append("Neutral")
-    return converted
-
-#compare the polarity of two lists
-def compareFileWithVader(annotations, toolResults):
-    category=[]
-    for i in range(0,len(annotations)):
-        if annotations[i]==toolResults[i]:
-            category.append(True)
-        else:
-            category.append(False)
-    return category
+#switch use dictionary
+def getPolarity(x):
+    return {
+        0: "Negative",
+        1: "Negative",
+        2: "Neutral",
+        3: "Positive",
+        4: "Positive",
+    }[x]
 
 def textblobSentimentFunction(sentences):
     scores = []
@@ -600,6 +547,7 @@ def textblobSentimentFunction_sentence(sentences):
         count_polarity.append(count_pol)
     return scores, polarities, count_polarity
 
+#For sentiwordnet function
 def penn_to_wn(tag):
     """
     Convert between the PennTreebank tags to simple Wordnet tags
@@ -677,7 +625,6 @@ def sentiWordnetSentimentFunction_sentence(sentences):
         count_polarity.append(count_pol)
     return scores, polarities, count_polarity
 
-
 def confusionMatrix (annotation_result, tool_result):
  return confusion_matrix(annotation_result, tool_result, labels=["Positive", "Negative"])
 
@@ -703,7 +650,7 @@ def average(score):
         sum = 0
         for j in score[i]:
             sum += j
-        result.append(sum/count)
+        result.append(round(sum/count,2))
     return result
 
 def majority(polarities):
