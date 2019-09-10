@@ -7,6 +7,7 @@ from django.shortcuts import render
 from django.conf import settings
 from django.http import HttpResponseRedirect,HttpResponse,Http404
 from .forms import UploadFileForm
+from .models import SAResult,SAResultManager
 from django.contrib import messages
 
 import nltk
@@ -34,6 +35,7 @@ from nltk.corpus import sentiwordnet as swn
 from nltk import sent_tokenize, word_tokenize, pos_tag
 from sklearn.metrics import cohen_kappa_score
 import numpy as np
+
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 # Create your views here.
@@ -138,8 +140,20 @@ def sentimentAnalysis(request):
                 form.KappaScore_sentence = fleiss_kappa(form.sumPolarity_sentence)
                 form.KappaScore_tweet = fleiss_kappa(form.sumPolarity_tweet)
 
+                SAResultList=[]
+                SAResultObjectList=[]
+                for i in range(0,len(ids)):
+                    temp=SAResult.objects.create_result(form.ids[i],form.content[i],form.vaderScores[i],form.vaderPolarity[i],form.textblobScores[i],form.textblobPolarity[i],
+                    form.stanfordNLPPolarity[i],form.sentiWordnetScore[i],form.sentiWordnetPolarity[i],form.KappaScore_tweet[i])
+                    SAResultObjectList.append(temp)
+
+                for i in range(0,len(SAResultObjectList)):
+                    SAResultList.append(SAResult.objects.filter(ids=SAResultObjectList[i].ids).values()[0])
+
+                form.SAResultList=SAResultList
+
                 page = request.POST.get('page',1)
-                paginator = Paginator(form.content, 25)
+                paginator = Paginator(form.SAResultList, 25)
                 try:
                     pageOfTweet = paginator.page(page)
                 except PageNotAnInteger:
@@ -155,6 +169,7 @@ def sentimentAnalysis(request):
                     }
                 global session
                 session=context
+
                 return render(request, "expert_page.html",session)
             if not tools:
                 messages.warning(request, 'You should check the tool at least 1!', extra_tags='alert')
@@ -164,7 +179,6 @@ def sentimentAnalysis(request):
         'form':form,
     }
     return render(request, 'main_page.html', context)
-
 
 def expert_page(request):
     if request.method == 'POST':
@@ -178,7 +192,7 @@ def expert_page(request):
             response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
             return response
     page = request.POST.get('page',1)
-    paginator = Paginator(session['form'].content, 25)
+    paginator = Paginator(session['form'].SAResultList, 25)
 
     try:
         pageOfTweet = paginator.page(page)
@@ -707,6 +721,6 @@ def fleiss_kappa(matrixes):
         P = (np.sum(M * M, axis=1) - n_annotators) / (n_annotators * (n_annotators - 1))
         Pbar = np.sum(P) / N
         PbarE = np.sum(p * p)
-        kappa = (Pbar - PbarE) / (1 - PbarE)
+        kappa = ((Pbar - PbarE) / (1 - PbarE))
         result.append(round(kappa,2))
     return result

@@ -218,52 +218,53 @@
                <td align="center">score</td>
                <td align="center">polarity</td>
              </tr>
-             {% for id in form.pageOfTweet%}
+             {% for tweet in form.pageOfTweet%}
              <tr>
-              <td align="center">{{form.content|index:forloop.counter0}}</td>
-              <td align= "center">{{form.vaderScores|index:forloop.counter0}}</td>
-               {% if form.vaderPolarity|index:forloop.counter0 == "Positive" %}
-                 <td align= "center"><font color="#47C83E">{{form.vaderPolarity|index:forloop.counter0}} </font></td>
+              <td align="center">{{tweet.tweetContent}}</td>
+              <td align= "center">{{tweet.vaderTweetScore}}</td>
+               {% if tweet.vaderTweetPolarity == "Positive" %}
+                 <td align= "center"><font color="#47C83E">{{tweet.vaderTweetPolarity}} </font></td>
                {% endif %}
-               {% if form.vaderPolarity|index:forloop.counter0 == "Negative" %}
-                 <td align= "center"><font color="#FF0000">{{form.vaderPolarity|index:forloop.counter0}} </font></td>
+               {% if tweet.vaderTweetPolarity == "Negative" %}
+                 <td align= "center"><font color="#FF0000">{{tweet.vaderTweetPolarity}} </font></td>
                {% endif %}
-               {% if form.vaderPolarity|index:forloop.counter0 == "Neutral" %}
-                 <td align= "center">{{form.vaderPolarity|index:forloop.counter0}}</td>
+               {% if tweet.vaderTweetPolarity == "Neutral" %}
+                 <td align= "center">{{tweet.vaderTweetPolarity}}</td>
                {% endif %}
-              <td align= "center">{{form.textblobScores|index:forloop.counter0}}</td>
-              {% if form.textblobPolarity|index:forloop.counter0 == "Positive" %}
-                <td align= "center"><font color="#47C83E">{{form.textblobPolarity|index:forloop.counter0}}</font></td>
+              <td align= "center">{{tweet.textblobTweetScore}}</td>
+              {% if tweet.textblobTweetPolarity == "Positive" %}
+                <td align= "center"><font color="#47C83E">{{tweet.textblobTweetPolarity}}</font></td>
               {% endif %}
-              {% if form.textblobPolarity|index:forloop.counter0 == "Negative" %}
-                <td align= "center"><font color="#FF0000">{{form.textblobPolarity|index:forloop.counter0}}</font></td>
+              {% if tweet.textblobTweetPolarity == "Negative" %}
+                <td align= "center"><font color="#FF0000">{{tweet.textblobTweetPolarity}}</font></td>
               {% endif %}
-              {% if form.textblobPolarity|index:forloop.counter0 == "Neutral" %}
-                <td align= "center">{{form.textblobPolarity|index:forloop.counter0}}</td>
+              {% if tweet.textblobTweetPolarity == "Neutral" %}
+                <td align= "center">{{tweet.textblobTweetPolarity}}</td>
               {% endif %}
-              {% if form.stanfordNLPPolarity|index:forloop.counter0 == "Positive" %}
-                <td align= "center"><font color="#47C83E">{{form.stanfordNLPPolarity|index:forloop.counter0}}</font></td>
+              {% if tweet.stanfordNLPTweetPolarity == "Positive" %}
+                <td align= "center"><font color="#47C83E">{{tweet.stanfordNLPTweetPolarity}}</font></td>
               {% endif %}
-              {% if form.stanfordNLPPolarity|index:forloop.counter0 == "Negative" %}
-                <td align= "center"><font color="#FF0000">{{form.stanfordNLPPolarity|index:forloop.counter0}}</font></td>
+              {% if tweet.stanfordNLPTweetPolarity == "Negative" %}
+                <td align= "center"><font color="#FF0000">{{tweet.stanfordNLPTweetPolarity}}</font></td>
               {% endif %}
-              {% if form.stanfordNLPPolarity|index:forloop.counter0 == "Neutral" %}
-                <td align= "center">{{form.stanfordNLPPolarity|index:forloop.counter0}}</td>
+              {% if tweet.stanfordNLPTweetPolarity == "Neutral" %}
+                <td align= "center">{{tweet.stanfordNLPTweetPolarity}}</td>
               {% endif %}
-              <td align= "center">{{form.sentiWordnetScore|index:forloop.counter0}}</td>
-              {% if form.sentiWordnetPolarity|index:forloop.counter0 == "Positive" %}
-                <td align= "center"><font color="#47C83E">{{form.sentiWordnetPolarity|index:forloop.counter0}}</font></td>
+              <td align= "center">{{tweet.sentiWordNetTweetScore}}</td>
+              {% if tweet.sentiWordNetTweetPolarity == "Positive" %}
+                <td align= "center"><font color="#47C83E">{{tweet.sentiWordNetTweetPolarity}}</font></td>
               {% endif %}
-              {% if form.sentiWordnetPolarity|index:forloop.counter0 == "Negative" %}
-                <td align= "center"><font color="#FF0000">{{form.sentiWordnetPolarity|index:forloop.counter0}}</font></td>
+              {% if tweet.sentiWordNetTweetPolarity == "Negative" %}
+                <td align= "center"><font color="#FF0000">{{tweet.sentiWordNetTweetPolarity}}</font></td>
               {% endif %}
-              {% if form.sentiWordnetPolarity|index:forloop.counter0 == "Neutral" %}
-                <td align= "center">{{form.sentiWordnetPolarity|index:forloop.counter0}}</td>
+              {% if tweet.sentiWordNetTweetPolarity == "Neutral" %}
+                <td align= "center">{{tweet.sentiWordNetTweetPolarity}}</td>
               {% endif %}
-              <td align= "center">{{form.KappaScore_tweet|index:forloop.counter0}}</td>
+              <td align= "center">{{tweet.tweetKappa}}</td>
              </tr>
                {%endfor%}
            </table>
+
            {% if form.pageOfTweet.has_other_pages %}
               <ul class="pagination">
                 {% if form.pageOfTweet.has_previous %}
