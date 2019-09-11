@@ -40,6 +40,7 @@ import numpy as np
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 # Create your views here.
 session ={}
+forms={}
 def sentimentAnalysis(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -152,7 +153,7 @@ def sentimentAnalysis(request):
 
                 form.SAResultList=SAResultList
 
-                page = request.POST.get('page',1)
+                page = request.GET.get('page',1)
                 paginator = Paginator(form.SAResultList, 25)
                 try:
                     pageOfTweet = paginator.page(page)
@@ -169,6 +170,8 @@ def sentimentAnalysis(request):
                     }
                 global session
                 session=context
+                global forms
+                forms=form
 
                 return render(request, "expert_page.html",session)
             if not tools:
@@ -181,8 +184,9 @@ def sentimentAnalysis(request):
     return render(request, 'main_page.html', context)
 
 def expert_page(request):
+    global session
+    global forms
     if request.method == 'POST':
-        global session
         if 'download' in request.POST:
             makeFile("expert")
             path_to_file = os.path.realpath("result.txt")
@@ -191,20 +195,24 @@ def expert_page(request):
             response = HttpResponse(rfile, content_type='application/txt')
             response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
             return response
-    page = request.POST.get('page',1)
+
+    page = request.GET.get('page',1)
     paginator = Paginator(session['form'].SAResultList, 25)
 
     try:
-        pageOfTweet = paginator.page(page)
+        pageOfTweet = paginator.get_page(page)
     except PageNotAnInteger:
-        pageOfTweet = paginator.page(1)
+        pageOfTweet = paginator.get_page(1)
     except EmptyPage:
-        pageOfTweet = paginator.page(paginator.num_pages)
+        pageOfTweet = paginator.get_page(paginator.num_pages)
 
-    session.pageOfTweet=pageOfTweet
-    session.page=page
+    forms.pageOfTweet=pageOfTweet
+    forms.page=page
 
-    #tweet
+    session = {
+        'form':forms,
+        }
+
     path_to_file = os.path.realpath("wpqkf.txt")
     fi=open(path_to_file,'w')
     fi.write(page)
