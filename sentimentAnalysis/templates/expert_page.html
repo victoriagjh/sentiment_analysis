@@ -4,7 +4,6 @@
 {{ List|index:x }}
 {{ List|index:x|index:y }}
 
-
 {% block content%}
   <div class ="page-header" align= "center">
     <h1>Sentiment Analysis Result</h1>
@@ -12,64 +11,44 @@
   <div class="row">
     <div class="leftcolumn">
       <div class="card">
-        <button type="submit" id="sentiment" name="sentiment">Sentiment Analysis Result</button>
+        <button type="submit" id="matrix_button" name="sentiment">Confusion Matrix ▽</button>
       </div>
       <div class="card">
-        <button type="submit" id="sentiment" name="sentiment">Confusion Matrix</button>
+        <button type="submit" id="tweet_button" name="sentiment">Tweet Level Sentiment Analysis Result ▽</button>
       </div>
       <div class="card">
-        <button type="submit" id="sentiment" name="sentiment">Entire Contents Analysis</button>
+        <button type="submit" id="sentence_button" name="sentiment">Sentence Level Sentiment Analysis Result ▽</button>
       </div>
       <div class="card">
-        <button type="submit" id="sentiment" name="sentiment">Positive Group Analysis</button>
+        <button type="submit" id="entire_button" name="sentiment">Entire Contents Analysis ▽</button>
       </div>
       <div class="card">
-        <button type="submit" id="sentiment" name="sentiment">Negative Group Analysis</button>
+        <button type="submit" id="positive_button" name="sentiment">Positive Group Analysis ▽</button>
+      </div>
+      <div class="card">
+        <button type="submit" id="negative_button" name="sentiment">Negative Group Analysis ▽</button>
       </div>
     </div>
     <div class="rightcolumn">
       <div class="cardGrey">
-          <h3 align="center">Tweet Level Sentiment Analysis</h3>
-        </div>
-      <div class="card" align="center">
-          <table width="1300px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
-              <tr>
-                  <td rowspan = "2" align= "center">tweet id</td>
-                  <td colspan = "2" align= "center">vader</td>
-                  <td colspan = "2" align= "center">textblob</td>
-                  <td colspan = "1" align= "center">stanford NLP</td>
-                  <td colspan = "2" align= "center">sentiWordnet</td>
-                </tr>
-                <tr>
-                  <td align="center">score</td>
-                  <td align="center">polarity</td>	
-                  <td align="center">score</td>
-                  <td align="center">polarity</td>	
-                  <td align="center">polarity</td>			
-                  <td align="center">score</td>
-                  <td align="center">polarity</td>
-                </tr> 
-                {% for id in form.ids%}  
-                <tr>
-                 <td>{{id}}</td> 
-                 <td align= "center">{{form.vaderScores|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.vaderPolarity|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.textblobScores|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.textblobPolarity|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.textblobPolarity|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.sentiWordnetScore|index:forloop.counter0}}</td>
-                 <td align= "center">{{form.sentiWordnetPolarity|index:forloop.counter0}}</td>
-                </tr>
-                  {%endfor%}
-              </table>
-      </div>  
-      
-      
-
-      <div class="cardGrey" align="center">
         <h3 align="center">Confusion Matrix</h3>
       </div>
-      <div class="card">
+      <div class="card" id="matrix_content">
+        <table width= "1000px" align="center" border="1">
+          <tr>
+            <th align="center"> Tool </th>
+            <th align="center"> F1-Score </th>
+          </tr>
+          {% for tool in form.sortedF1ScoreLists%}
+          {% if forloop.counter0 == 0 %}
+            <tr> <td align="center"> <font color="#FF007F" style="font-weight: bold;">{{tool.0}}</font> </td> <td align="center"><font style="font-weight: bold;" color="#FF007F"> {{tool.1}} </font> </td> </tr>
+          {% endif %}
+          {% if forloop.counter0 != 0 %}
+            <tr> <td align="center"> <font align="center"> {{tool.0}} </font></td> <td align="center"> <font>{{tool.1}} </font></td> </tr>
+          {% endif %}
+          {% endfor%}
+        </table>
+        <br/>
       <table width= "1000px" align="center" border="1">
         <tr>
           <td>
@@ -212,7 +191,6 @@
             </tr>
             <tr>
               <h5 align="center"> F1-score: {{form.sentiWordnetF1Score}}  </h5>
-              <h5 align="center"> F1-score: {{form.textblobF1Score}} </h5>
             </tr>
           </table>
         </td>
@@ -220,11 +198,220 @@
       </table>
       <br/>
       </div>
+      <div class="cardGrey">
+       <h3 align="center">Tweet Level Sentiment Analysis</h3>
+     </div>
+   <div class="card" align="center" id="tweet_sentiment">
+     <form action="http://localhost:8000/" method="get">
+       <table width="1300px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
+           <tr>
+               <td rowspan = "2" align= "center" width="600px" >tweet content</td>
+               <td colspan = "2" align= "center">vader</td>
+               <td colspan = "2" align= "center">textblob</td>
+               <td colspan = "1" align= "center">stanford NLP</td>
+               <td colspan = "2" align= "center">sentiWordnet</td>
+               <td rowspan = "2" align= "center">Kappa score</td>
+             </tr>
+             <tr>
+               <td align="center">score</td>
+               <td align="center">polarity</td>
+               <td align="center">score</td>
+               <td align="center">polarity</td>
+               <td align="center">polarity</td>
+               <td align="center">score</td>
+               <td align="center">polarity</td>
+             </tr>
+             {% for tweet in form.pageOfTweet%}
+             <tr>
+              <td align="center">{{tweet.tweetContent}}</td>
+              <td align= "center">{{tweet.vaderTweetScore}}</td>
+               {% if tweet.vaderTweetPolarity == "Positive" %}
+                 <td align= "center"><font color="#47C83E">{{tweet.vaderTweetPolarity}} </font></td>
+               {% endif %}
+               {% if tweet.vaderTweetPolarity == "Negative" %}
+                 <td align= "center"><font color="#FF0000">{{tweet.vaderTweetPolarity}} </font></td>
+               {% endif %}
+               {% if tweet.vaderTweetPolarity == "Neutral" %}
+                 <td align= "center">{{tweet.vaderTweetPolarity}}</td>
+               {% endif %}
+              <td align= "center">{{tweet.textblobTweetScore}}</td>
+              {% if tweet.textblobTweetPolarity == "Positive" %}
+                <td align= "center"><font color="#47C83E">{{tweet.textblobTweetPolarity}}</font></td>
+              {% endif %}
+              {% if tweet.textblobTweetPolarity == "Negative" %}
+                <td align= "center"><font color="#FF0000">{{tweet.textblobTweetPolarity}}</font></td>
+              {% endif %}
+              {% if tweet.textblobTweetPolarity == "Neutral" %}
+                <td align= "center">{{tweet.textblobTweetPolarity}}</td>
+              {% endif %}
+              {% if tweet.stanfordNLPTweetPolarity == "Positive" %}
+                <td align= "center"><font color="#47C83E">{{tweet.stanfordNLPTweetPolarity}}</font></td>
+              {% endif %}
+              {% if tweet.stanfordNLPTweetPolarity == "Negative" %}
+                <td align= "center"><font color="#FF0000">{{tweet.stanfordNLPTweetPolarity}}</font></td>
+              {% endif %}
+              {% if tweet.stanfordNLPTweetPolarity == "Neutral" %}
+                <td align= "center">{{tweet.stanfordNLPTweetPolarity}}</td>
+              {% endif %}
+              <td align= "center">{{tweet.sentiWordNetTweetScore}}</td>
+              {% if tweet.sentiWordNetTweetPolarity == "Positive" %}
+                <td align= "center"><font color="#47C83E">{{tweet.sentiWordNetTweetPolarity}}</font></td>
+              {% endif %}
+              {% if tweet.sentiWordNetTweetPolarity == "Negative" %}
+                <td align= "center"><font color="#FF0000">{{tweet.sentiWordNetTweetPolarity}}</font></td>
+              {% endif %}
+              {% if tweet.sentiWordNetTweetPolarity == "Neutral" %}
+                <td align= "center">{{tweet.sentiWordNetTweetPolarity}}</td>
+              {% endif %}
+              <td align= "center">{{tweet.tweetKappa}}</td>
+             </tr>
+               {%endfor%}
+           </table>
+
+           {% if form.pageOfTweet.has_other_pages %}
+              <ul class="pagination">
+                {% if form.pageOfTweet.has_previous %}
+                  <li><a href="http://localhost:8000/expert?page={{ form.pageOfTweet.previous_page_number }}">&laquo;</a></li>
+                {% else %}
+                <li class="disabled"><span>&laquo;</span></li>
+                {% endif %}
+                {% for i in form.pageOfTweet.paginator.page_range %}
+                  {% if form.pageOfTweet.number == i %}
+                    <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+                  {% else %}
+                    <li><a href="http://localhost:8000/expert?page={{ i }}">{{ i }}</a></li>
+                  {% endif %}
+                {% endfor %}
+                {% if form.pageOfTweet.has_next %}
+                  <li><a href="http://localhost:8000/expert?page={{ form.pageOfTweet.next_page_number }}">&raquo;</a></li>
+                {% else %}
+                  <li class="disabled"><span>&raquo;</span></li>
+                {% endif %}
+              </ul>
+            {% endif %}
+            </form>
+   </div>
+   <div class="cardGrey">
+     <h3 align="center">Sentence Level Sentiment Analysis</h3>
+   </div>
+   <div class = "card" align = "center" id="sentence_sentiment">
+   <table width="1300px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
+     <tr>
+     <td rowspan = "2" align= "center">tweet id</td>
+     <td rowspan = "2" align= "center">sentence number</td>
+     <td colspan = "4" align= "center">vader</td>
+     <td colspan = "4" align= "center">textblob</td>
+     <td colspan = "2" align= "center">stanford NLP</td>
+     <td colspan = "4" align= "center">sentiWordnet</td>
+     <td rowspan = "2" align= "center">Kappa score</td>
+     </tr>
+     <tr>
+       <td align="center">score</td>
+       <td align="center">polarity</td>
+       <td align="center">average score</td>
+       <td align="center">major polarity</td>
+       <td align="center">score</td>
+       <td align="center">polarity</td>
+       <td align="center">average score</td>
+       <td align="center">major polarity</td>
+       <td align="center">polarity</td>
+       <td align="center">major polarity</td>
+       <td align="center">score</td>
+       <td align="center">polarity</td>
+       <td align="center">average score</td>
+       <td align="center">major polarity</td>
+     </tr>
+     {% for sentences in form.content_sentence %}
+         {% for sentence in sentences %}
+         <tr>
+           {% if forloop.first %}
+             <td rowspan = "{{ sentences|length }}" align="center">{{ forloop.parentloop.counter}}</td>
+           {% endif %}
+           <td align="center">{{ forloop.counter }}</td>
+           <td align="center">{{ form.vaderScores_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 }}</td>
+           {% if form.vaderPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 == "Positive" %}
+              <td align="center"><font color="#47C83E">{{ form.vaderPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 }}</font></td>
+           {% elif form.vaderPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 == "Negative" %}
+              <td align="center"><font color="#FF0000">{{ form.vaderPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 }}</font></td>
+           {% else %}
+              <td align="center">{{ form.vaderPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 }}</td>
+           {% endif %}
+           {% if forloop.first %}
+              <td rowspan = "{{ sentences|length }}" align="center">{{form.vaderAverage|index:forloop.parentloop.counter0}}</td>
+                {% if form.vaderMajority|index:forloop.parentloop.counter0 == "Positive" %}
+                  <td rowspan = "{{ sentences|length }}" align="center"><font color="#47C83E">{{ form.vaderMajority|index:forloop.parentloop.counter0 }}</font></td>
+                {% elif form.vaderMajority|index:forloop.parentloop.counter0 == "Negative" %}
+                  <td rowspan = "{{ sentences|length }}" align="center"><font color="#FF0000">{{ form.vaderMajority|index:forloop.parentloop.counter0 }}</font></td>
+                {% else %}
+                  <td rowspan = "{{ sentences|length }}" align="center">{{form.vaderMajority|index:forloop.parentloop.counter0}}</td>
+                {% endif %}
+           {% endif %}
+
+           <td align="center">{{ form.textblobScores_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 }}</td>
+           {% if form.textblobPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 == "Positive" %}
+              <td align="center"><font color="#47C83E">{{ form.textblobPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 }}</font></td>
+           {% elif form.textblobPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 == "Negative" %}
+              <td align="center"><font color="#FF0000">{{ form.textblobPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 }}</font></td>
+           {% else %}
+           <td align="center">{{ form.textblobPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 }}</td>
+           {% endif %}
+           {% if forloop.first %}
+              <td rowspan = "{{ sentences|length }}" align="center">{{form.textblobAverage|index:forloop.parentloop.counter0}}</td>
+                {% if form.textblobMajority|index:forloop.parentloop.counter0 == "Positive" %}
+                  <td rowspan = "{{ sentences|length }}" align="center"><font color="#47C83E">{{ form.textblobMajority|index:forloop.parentloop.counter0 }}</font></td>
+                {% elif form.textblobMajority|index:forloop.parentloop.counter0 == "Negative" %}
+                  <td rowspan = "{{ sentences|length }}" align="center"><font color="#FF0000">{{ form.textblobMajority|index:forloop.parentloop.counter0 }}</font></td>
+                {% else %}
+                  <td rowspan = "{{ sentences|length }}" align="center">{{form.textblobMajority|index:forloop.parentloop.counter0}}</td>
+                {% endif %}
+           {% endif %}
+
+           {% if form.stanfordNLPPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 == "Positive" %}
+              <td align="center"><font color="#47C83E">{{form.stanfordNLPPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0}}</font></td>
+           {% elif form.stanfordNLPPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 == "Negative" %}
+              <td align="center"><font color="#FF0000">{{form.stanfordNLPPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0}}</font></td>
+           {% else %}
+           <td align="center">{{form.stanfordNLPPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0}}</td>
+           {% endif %}
+           {% if forloop.first %}
+              {% if form.stanfordNLPMajority|index:forloop.parentloop.counter0 == "Positive" %}
+                <td rowspan = "{{ sentences|length }}" align="center"><font color="#47C83E">{{ form.stanfordNLPMajority|index:forloop.parentloop.counter0 }}</font></td>
+              {% elif form.stanfordNLPMajority|index:forloop.parentloop.counter0 == "Negative" %}
+                <td rowspan = "{{ sentences|length }}" align="center"><font color="#FF0000">{{ form.stanfordNLPMajority|index:forloop.parentloop.counter0 }}</font></td>
+              {% else %}
+                <td rowspan = "{{ sentences|length }}" align="center">{{form.stanfordNLPMajority|index:forloop.parentloop.counter0}}</td>
+              {% endif %}
+           {% endif %}
+
+           <td align="center">{{form.sentiWordnetScore_sentence|index:forloop.parentloop.counter0|index:forloop.counter0}}</td>
+           {% if form.sentiWordnetPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 == "Positive" %}
+              <td align="center"><font color="#47C83E">{{form.sentiWordnetPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0}}</font></td>
+           {% elif form.sentiWordnetPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0 == "Negative" %}
+              <td align="center"><font color="#FF0000">{{form.sentiWordnetPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0}}</font></td>
+           {% else %}
+           <td align="center">{{form.sentiWordnetPolarity_sentence|index:forloop.parentloop.counter0|index:forloop.counter0}}</td>
+           {% endif %}
+           {% if forloop.first %}
+            <td rowspan = "{{ sentences|length }}" align="center">{{form.sentiWordnetAverage|index:forloop.parentloop.counter0}}</td>
+              {% if form.sentiWordnetMajority|index:forloop.parentloop.counter0 == "Positive" %}
+                <td rowspan = "{{ sentences|length }}" align="center"><font color="#47C83E">{{ form.sentiWordnetMajority|index:forloop.parentloop.counter0 }}</font></td>
+              {% elif form.sentiWordnetMajority|index:forloop.parentloop.counter0 == "Negative" %}
+                <td rowspan = "{{ sentences|length }}" align="center"><font color="#FF0000">{{ form.sentiWordnetMajority|index:forloop.parentloop.counter0 }}</font></td>
+              {% else %}
+                <td rowspan = "{{ sentences|length }}" align="center">{{form.sentiWordnetMajority|index:forloop.parentloop.counter0}}</td>
+              {% endif %}
+           <td rowspan = "{{ sentences|length }}" align="center">{{form.KappaScore_sentence|index:forloop.parentloop.counter0}}</td>
+           {% endif %}
+           </tr>
+         {% endfor %}
+     {% endfor %}
+   </table>
+</div>
       <div class="cardGrey" align="center">
         <h3 align="center">Vocabulary Size of Text : {{form.wordcounter}}</h3>
       </div>
       <div class="card" align="center">
-        <div className="content-Analysis" align="center">
+        <div className="content-Analysis" align="center" id="entire_content">
         <table width= "1400px">
             <td>
               <h3 align="center">Top Frequent Words 5</h3>
@@ -260,7 +447,7 @@
       <div class="cardGrey" align="center">
         <h3 align="center">Positive Vocabulary Size of Text : {{form.positiveWordcounter}}</h3>
       </div>
-      <div class="card" align="center">
+      <div class="card" align="center" id="positive_content">
         <table width= "1400px">
             <td>
               <h3 align="center">Positive Top Frequent Words 5</h3>
@@ -296,7 +483,7 @@
       <div class="cardGrey" align="center">
         <h3 align="center">Negative Vocabulary Size of Text : {{form.negativeWordcounter}}</h3>
       </div>
-      <div class="card" align="center">
+      <div class="card" align="center" id="negative_content">
         <table width= "1400px">
             <td>
               <h3 align="center">Negative Top Frequent Words 5</h3>
@@ -334,8 +521,71 @@
         <div align="center">
           <button type="submit" name="download" value="download" class="btn btn-primary">Download Results </button>
         </div>
+        <br/>
       </form>
     </div>
   </div>
-
+  <script type="text/javascript">
+    $(document).ready(function() {
+      var isSentimentChecked=true;
+      var isMatrixChecked=true;
+      var isEntireChecked=true;
+      var isPositiveChecked=true;
+      var isNegativeChecked=true;
+      $('#matrix_button').click(function(e) {
+        if(isMatrixChecked) {
+          $( "#matrix_content" ).hide( "blind", 500 );
+          isMatrixChecked=false;
+        } else {
+          $( "#matrix_content" ).show( "blind", 500 );
+          isMatrixChecked=true;
+        }
+      });
+      $('#tweet_button').click(function(e) {
+        if(isMatrixChecked) {
+          $( "#tweet_sentiment" ).hide( "blind", 500 );
+          isMatrixChecked=false;
+        } else {
+          $( "#tweet_sentiment" ).show( "blind", 500 );
+          isMatrixChecked=true;
+        }
+      });
+      $('#sentence_button').click(function(e) {
+        if(isMatrixChecked) {
+          $( "#sentence_sentiment" ).hide( "blind", 500 );
+          isMatrixChecked=false;
+        } else {
+          $( "#sentence_sentiment" ).show( "blind", 500 );
+          isMatrixChecked=true;
+        }
+      });
+      $('#entire_button').click(function(e) {
+        if(isEntireChecked) {
+          $( "#entire_content" ).hide( "blind", 500 );
+          isEntireChecked=false;
+        } else {
+          $( "#entire_content" ).show( "blind", 500 );
+          isEntireChecked=true;
+        }
+      });
+      $('#positive_button').click(function(e) {
+        if(isPositiveChecked) {
+          $( "#positive_content" ).hide( "blind", 500 );
+          isPositiveChecked=false;
+        } else {
+          $( "#positive_content" ).show( "blind", 500 );
+          isPositiveChecked=true;
+        }
+      });
+      $('#negative_button').click(function(e) {
+        if(isNegativeChecked) {
+          $( "#negative_content" ).hide( "blind", 500 );
+          isNegativeChecked=false;
+        } else {
+          $( "#negative_content" ).show( "blind", 500 );
+          isNegativeChecked=true;
+        }
+      });
+    })
+  </script>
 {% endblock %}
