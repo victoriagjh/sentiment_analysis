@@ -24,5 +24,5 @@ class SAResult(models.Model):
     sentiWordNetTweetScore=models.FloatField(default=150.00)
     sentiWordNetTweetPolarity=models.CharField(max_length=200,default='SOME STRING')
     tweetKappa=models.FloatField(default=150.00,null=True)
-
+    
     objects = SAResultManager()

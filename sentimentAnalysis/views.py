@@ -151,6 +151,7 @@ def sentimentAnalysis(request):
                 for i in range(0,len(SAResultObjectList)):
                     SAResultList.append(SAResult.objects.filter(ids=SAResultObjectList[i].ids).values()[0])
 
+                #sortedSAResultList=sorted(SAResultList,key=lambda SAResultList:(SAResultList['tweetKappa']),reverse=True)
                 form.SAResultList=SAResultList
 
                 page = request.GET.get('page',1)
@@ -212,12 +213,6 @@ def expert_page(request):
     session = {
         'form':forms,
         }
-
-    path_to_file = os.path.realpath("wpqkf.txt")
-    fi=open(path_to_file,'w')
-    fi.write(page)
-    fi.close()
-
     return render(request,'expert_page.html',session)
 
 
