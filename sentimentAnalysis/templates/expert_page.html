@@ -292,123 +292,146 @@
             </form>
    </div>
    <div class="cardGrey">
-     <h3 align="center">Sentence Level Sentiment Analysis</h3>
-   </div>
-   <div class = "card" align = "center" id="sentence_sentiment">
-   <table width="1300px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
-    <tr>
-      <td rowspan = "2" align= "center">tweet id</td>
-      <td rowspan = "2" align= "center">sentence number</td>
-      <td colspan = "4" align= "center">vader</td>
-      <td colspan = "4" align= "center">textblob</td>
-      <td colspan = "2" align= "center">stanford NLP</td>
-      <td colspan = "4" align= "center">sentiWordnet</td>
-      <td rowspan = "2" align= "center">Kappa score</td>
-      </tr>
-      <tr>
-        <td align="center">score</td>
-        <td align="center">polarity</td>
-        <td align="center">average score</td>
-        <td align="center">major polarity</td>
-        <td align="center">score</td>
-        <td align="center">polarity</td>
-        <td align="center">average score</td>
-        <td align="center">major polarity</td>
-        <td align="center">polarity</td>
-        <td align="center">major polarity</td>
-        <td align="center">score</td>
-        <td align="center">polarity</td>
-        <td align="center">average score</td>
-        <td align="center">major polarity</td>
+    <h3 align="center">Sentence Level Sentiment Analysis</h3>
+  </div>
+  <div class = "card" align = "center" id="sentence_sentiment">
+    <form action="http://localhost:8000/" method="get">
+  <table width="1300px"  cellpadding="5" cellspacing="0" border="1" align="center" style="border-collapse:collapse; border:1px gray solid;">
+   <tr>
+     <td rowspan = "2" align= "center">tweet id</td>
+     <td rowspan = "2" align= "center">sentence number</td>
+     <td colspan = "4" align= "center">vader</td>
+     <td colspan = "4" align= "center">textblob</td>
+     <td colspan = "2" align= "center">stanford NLP</td>
+     <td colspan = "4" align= "center">sentiWordnet</td>
+     <td rowspan = "2" align= "center">Kappa score</td>
      </tr>
-     {% for sentences in form.SAResult_sentence_List %}
-      {% for sentence in sentences.vaderSentenceScoreList %}
-         <tr>
-          {% if forloop.first %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ forloop.parentloop.counter}}</td>
-          {% endif %} 
-          <td align="center">{{ forloop.counter }}</td>
-          <td align="center">{{ sentences.vaderSentenceScoreList|index:forloop.counter0 }}</td>   
-          {% if sentences.vaderSentencePolarityList|index:forloop.counter0 == "'Positive'" %}
-          <td align="center"><font color="#47C83E">{{ sentences.vaderSentencePolarityList|index:forloop.counter0 }}</font></td>
-          {% elif sentences.vaderSentencePolarityList|index:forloop.counter0 == "'Negative'" %}
-          <td align="center"><font color="#FF0000">{{ sentences.vaderSentencePolarityList|index:forloop.counter0 }}</font></td>
+     <tr>
+       <td align="center">score</td>
+       <td align="center">polarity</td>
+       <td align="center">average score</td>
+       <td align="center">major polarity</td>
+       <td align="center">score</td>
+       <td align="center">polarity</td>
+       <td align="center">average score</td>
+       <td align="center">major polarity</td>
+       <td align="center">polarity</td>
+       <td align="center">major polarity</td>
+       <td align="center">score</td>
+       <td align="center">polarity</td>
+       <td align="center">average score</td>
+       <td align="center">major polarity</td>
+    </tr>
+    {% for sentences in form.pageOfSentence %}
+     {% for sentence in sentences.vaderSentenceScoreList %}
+        <tr>
+         {% if forloop.first %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ forloop.parentloop.counter}}</td>
+         {% endif %}
+         <td align="center">{{ forloop.counter }}</td>
+         <td align="center">{{ sentences.vaderSentenceScoreList|index:forloop.counter0 }}</td>
+         {% if sentences.vaderSentencePolarityList|index:forloop.counter0 == "'Positive'" %}
+         <td align="center"><font color="#47C83E">{{ sentences.vaderSentencePolarityList|index:forloop.counter0 }}</font></td>
+         {% elif sentences.vaderSentencePolarityList|index:forloop.counter0 == "'Negative'" %}
+         <td align="center"><font color="#FF0000">{{ sentences.vaderSentencePolarityList|index:forloop.counter0 }}</font></td>
+         {% else %}
+         <td align="center">{{ sentences.vaderSentencePolarityList|index:forloop.counter0 }}</td>
+         {% endif %}
+         {% if forloop.first %}
+         <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.vaderAverage }}</td>
+           {% if sentences.vaderMajority == "Positive" %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#47C83E">{{ sentences.vaderMajority}}</font></td>
+           {% elif sentences.vadertMajority == "Negative" %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#FF0000">{{ sentences.vaderMajority }}</font></td>
+           {% else %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.vaderMajority }}</td>
+           {% endif %}
+         {% endif %}
+
+         <td align="center">{{ sentences.textblobSentenceScoreList|index:forloop.counter0 }}</td>
+         {% if sentences.textblobSentencePolarityList|index:forloop.counter0 == "'Positive'" %}
+         <td align="center"><font color="#47C83E">{{ sentences.textblobSentencePolarityList|index:forloop.counter0 }}</font></td>
+         {% elif sentences.textblobSentencePolarityList|index:forloop.counter0 == "'Negative'" %}
+         <td align="center"><font color="#FF0000">{{ sentences.textblobSentencePolarityList|index:forloop.counter0 }}</font></td>
+         {% else %}
+         <td align="center">{{ sentences.textblobSentencePolarityList|index:forloop.counter0 }}</td>
+         {% endif %}
+
+         {% if forloop.first %}
+         <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.textblobAverage }}</td>
+           {% if sentences.textblobMajority == "Positive" %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#47C83E">{{ sentences.textblobMajority}}</font></td>
+           {% elif sentences.textblobMajority == "Negative" %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#FF0000">{{ sentences.textblobMajority }}</font></td>
+           {% else %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.textblobMajority }}</td>
+           {% endif %}
+         {% endif %}
+
+         {% if sentences.stanfordNLPSentencePolarityList|index:forloop.counter0 == "'Positive'" %}
+         <td align="center"><font color="#47C83E">{{ sentences.stanfordNLPSentencePolarityList|index:forloop.counter0 }}</font></td>
+         {% elif  sentences.stanfordNLPSentencePolarityList|index:forloop.counter0 == "'Negative'" %}
+         <td align="center"><font color="#FF0000">{{ sentences.stanfordNLPSentencePolarityList|index:forloop.counter0 }}</font></td>
+         {% else %}
+         <td align="center">{{ sentences.stanfordNLPSentencePolarityList|index:forloop.counter0 }}</td>
+         {% endif %}
+
+         {% if forloop.first %}
+           {% if sentences.stanfordNLPMajority == "Positive" %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#47C83E">{{ sentences.stanfordNLPMajority }}</font></td>
+           {% elif sentences.stanfordNLPMajority == "Negative" %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#FF0000">{{ sentences.stanfordNLPMajority }}</font></td>
+           {% else %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.stanfordNLPMajority }}</td>
+           {% endif %}
+         {% endif %}
+
+         <td align="center">{{ sentences.sentiWordNetSentenceScoreList|index:forloop.counter0 }}</td>
+         {% if sentences.sentiWordNetSentencePolarityList|index:forloop.counter0 == "'Positive'" %}
+         <td align="center"><font color="#47C83E">{{ sentences.sentiWordNetSentencePolarityList|index:forloop.counter0 }}</font></td>
+         {% elif sentences.sentiWordNetSentencePolarityList|index:forloop.counter0 == "'Negative'" %}
+         <td align="center"><font color="#FF0000">{{ sentences.sentiWordNetSentencePolarityList|index:forloop.counter0 }}</font></td>
+         {% else %}
+         <td align="center">{{ sentences.sentiWordNetSentencePolarityList|index:forloop.counter0 }}</td>
+         {% endif %}
+
+         {% if forloop.first %}
+         <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.sentiWordNetAverage }}</td>
+           {% if sentences.sentiWordNetMajority == "Positive" %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#47C83E">{{ sentences.sentiWordNetMajority }}</font></td>
+           {% elif sentences.sentiWordNetMajority == "Negative" %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#FF0000">{{ sentences.sentiWordNetMajority }}</font></td>
+           {% else %}
+           <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.sentiWordNetMajority }}</td>
+           {% endif %}
+         <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"> {{ sentences.sentenceKappa }}</td>
+         {% endif %}
+       </tr>
+     {% endfor %}
+    {% endfor %}
+  </table>
+  {% if form.pageOfSentence.has_other_pages %}
+      <ul class="pagination">
+        {% if form.pageOfSentence.has_previous %}
+          <li><a href="http://localhost:8000/expert?sentence_page={{ form.pageOfSentence.previous_page_number }}">&laquo;</a></li>
+        {% else %}
+        <li class="disabled"><span>&laquo;</span></li>
+        {% endif %}
+        {% for i in form.pageOfSentence.paginator.page_range %}
+          {% if form.pageOfSentence.number == i %}
+            <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
           {% else %}
-          <td align="center">{{ sentences.vaderSentencePolarityList|index:forloop.counter0 }}</td>
+            <li><a href="http://localhost:8000/expert?sentence_page={{ i }}">{{ i }}</a></li>
           {% endif %}
-          {% if forloop.first %}
-          <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.vaderAverage }}</td>
-            {% if sentences.vaderMajority == "Positive" %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#47C83E">{{ sentences.vaderMajority}}</font></td>
-            {% elif sentences.vadertMajority == "Negative" %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#FF0000">{{ sentences.vaderMajority }}</font></td>
-            {% else %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.vaderMajority }}</td>
-            {% endif %}
-          {% endif %}
-
-          <td align="center">{{ sentences.textblobSentenceScoreList|index:forloop.counter0 }}</td>
-          {% if sentences.textblobSentencePolarityList|index:forloop.counter0 == "'Positive'" %}
-          <td align="center"><font color="#47C83E">{{ sentences.textblobSentencePolarityList|index:forloop.counter0 }}</font></td>
-          {% elif sentences.textblobSentencePolarityList|index:forloop.counter0 == "'Negative'" %}
-          <td align="center"><font color="#FF0000">{{ sentences.textblobSentencePolarityList|index:forloop.counter0 }}</font></td>
-          {% else %}
-          <td align="center">{{ sentences.textblobSentencePolarityList|index:forloop.counter0 }}</td>
-          {% endif %}
-
-          {% if forloop.first %}
-          <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.textblobAverage }}</td>
-            {% if sentences.textblobMajority == "Positive" %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#47C83E">{{ sentences.textblobMajority}}</font></td>
-            {% elif sentences.textblobMajority == "Negative" %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#FF0000">{{ sentences.textblobMajority }}</font></td>
-            {% else %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.textblobMajority }}</td>
-            {% endif %}
-          {% endif %}
-
-          {% if sentences.stanfordNLPSentencePolarityList|index:forloop.counter0 == "'Positive'" %}
-          <td align="center"><font color="#47C83E">{{ sentences.stanfordNLPSentencePolarityList|index:forloop.counter0 }}</font></td>
-          {% elif  sentences.stanfordNLPSentencePolarityList|index:forloop.counter0 == "'Negative'" %}
-          <td align="center"><font color="#FF0000">{{ sentences.stanfordNLPSentencePolarityList|index:forloop.counter0 }}</font></td>
-          {% else %}
-          <td align="center">{{ sentences.stanfordNLPSentencePolarityList|index:forloop.counter0 }}</td>
-          {% endif %}
-
-          {% if forloop.first %} 
-            {% if sentences.stanfordNLPMajority == "Positive" %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#47C83E">{{ sentences.stanfordNLPMajority }}</font></td>
-            {% elif sentences.stanfordNLPMajority == "Negative" %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#FF0000">{{ sentences.stanfordNLPMajority }}</font></td>
-            {% else %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.stanfordNLPMajority }}</td>
-            {% endif %}
-          {% endif %}
-
-          <td align="center">{{ sentences.sentiWordNetSentenceScoreList|index:forloop.counter0 }}</td>
-          {% if sentences.sentiWordNetSentencePolarityList|index:forloop.counter0 == "'Positive'" %}
-          <td align="center"><font color="#47C83E">{{ sentences.sentiWordNetSentencePolarityList|index:forloop.counter0 }}</font></td>
-          {% elif sentences.sentiWordNetSentencePolarityList|index:forloop.counter0 == "'Negative'" %}
-          <td align="center"><font color="#FF0000">{{ sentences.sentiWordNetSentencePolarityList|index:forloop.counter0 }}</font></td>
-          {% else %}
-          <td align="center">{{ sentences.sentiWordNetSentencePolarityList|index:forloop.counter0 }}</td>
-          {% endif %}
-
-          {% if forloop.first %} 
-          <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.sentiWordNetAverage }}</td>
-            {% if sentences.sentiWordNetMajority == "Positive" %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#47C83E">{{ sentences.sentiWordNetMajority }}</font></td>
-            {% elif sentences.sentiWordNetMajority == "Negative" %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"><font color="#FF0000">{{ sentences.sentiWordNetMajority }}</font></td>
-            {% else %}
-            <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center">{{ sentences.sentiWordNetMajority }}</td>
-            {% endif %}
-          <td rowspan = "{{ sentences.vaderSentenceScoreList|length }}" align="center"> {{ sentences.sentenceKappa }}</td>
-          {% endif %}
-        </tr>
-      {% endfor %} 
-     {% endfor %} 
-   </table>
+        {% endfor %}
+        {% if form.pageOfSentence.has_next %}
+          <li><a href="http://localhost:8000/expert?sentence_page={{ form.pageOfSentence.next_page_number }}">&raquo;</a></li>
+        {% else %}
+          <li class="disabled"><span>&raquo;</span></li>
+        {% endif %}
+      </ul>
+    {% endif %}
+</form>
 </div>
       <div class="cardGrey" align="center">
         <h3 align="center">Vocabulary Size of Text : {{form.wordcounter}}</h3>

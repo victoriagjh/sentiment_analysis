@@ -147,17 +147,15 @@ def sentimentAnalysis(request):
                 SAResult_sentence_List = []
                 SAResultObject_sentence_List = []
                 for i in range(0, len(form.ids)):
-                    temp = SAResultSentence.objects.createSentenceresult(form.ids[i], str(form.vaderScores_sentence[i]), str(form.vaderPolarity_sentence[i]), form.vaderAverage[i], form.vaderMajority[i], 
-                    str(form.textblobScores_sentence[i]), str(form.textblobPolarity_sentence[i]), form.textblobAverage[i], form.textblobMajority[i], str(form.stanfordNLPPolarity_sentence[i]), form.stanfordNLPMajority[i], 
+                    temp = SAResultSentence.objects.createSentenceresult(form.ids[i], str(form.vaderScores_sentence[i]), str(form.vaderPolarity_sentence[i]), form.vaderAverage[i], form.vaderMajority[i],
+                    str(form.textblobScores_sentence[i]), str(form.textblobPolarity_sentence[i]), form.textblobAverage[i], form.textblobMajority[i], str(form.stanfordNLPPolarity_sentence[i]), form.stanfordNLPMajority[i],
                     str(form.sentiWordnetScore_sentence[i]), str(form.sentiWordnetPolarity_sentence[i]), form.sentiWordnetAverage[i], form.sentiWordnetMajority[i], form.KappaScore_sentence[i])
 
                     SAResultObject_sentence_List.append(temp)
 
                 for i in range(0,len(SAResultObject_sentence_List)):
                     SAResult_sentence_List.append(SAResultSentence.objects.filter(ids = SAResultObject_sentence_List[i].ids).values()[0])
-            
-                sorted(SAResult_sentence_List, key = lambda i: i['sentenceKappa']) 
-                
+
                 for dicts in SAResult_sentence_List:
                     for key in dicts:
                         if "List" in key:
@@ -165,11 +163,8 @@ def sentimentAnalysis(request):
                             dicts[key] = dicts[key].replace("]","")
                             dicts[key] = dicts[key].split(",")
 
-                SAResult_sentence_List = sorted(SAResult_sentence_List, key = lambda SAResult_sentence_List: SAResult_sentence_List['sentenceKappa'])                 
-                form.SAResult_sentence_List = SAResult_sentence_List           
-                
-                page = request.POST.get('page',1)
-                paginator = Paginator(form.content, 25)
+                SAResult_sentence_List = sorted(SAResult_sentence_List, key = lambda SAResult_sentence_List: SAResult_sentence_List['sentenceKappa'])
+                form.SAResult_sentence_List = SAResult_sentence_List
 
                 SAResultList=[]
                 SAResultObjectList=[]
@@ -181,8 +176,8 @@ def sentimentAnalysis(request):
                 for i in range(0,len(SAResultObjectList)):
                     SAResultList.append(SAResult.objects.filter(ids=SAResultObjectList[i].ids).values()[0])
 
-                #sortedSAResultList=sorted(SAResultList,key=lambda SAResultList:(SAResultList['tweetKappa']),reverse=True)
-                form.SAResultList=SAResultList
+                sortedSAResultList=sorted(SAResultList,key=lambda SAResultList:(SAResultList['tweetKappa']))
+                form.SAResultList=sortedSAResultList
 
                 page = request.GET.get('page',1)
                 paginator = Paginator(form.SAResultList, 25)
@@ -195,6 +190,18 @@ def sentimentAnalysis(request):
 
                 form.pageOfTweet=pageOfTweet
                 form.page=page
+
+                sentence_page = request.GET.get('sentence_page',1)
+                sentence_paginator = Paginator(form.SAResult_sentence_List, 25)
+                try:
+                    pageOfSentence = sentence_paginator.page(sentence_page)
+                except PageNotAnInteger:
+                    pageOfSentence = sentence_paginator.page(1)
+                except EmptyPage:
+                    pageOfSentence = sentence_paginator.page(sentence_paginator.num_pages)
+
+                form.pageOfSentence=pageOfSentence
+                form.sentence_page=sentence_page
 
                 context = {
                     'form':form,
@@ -228,7 +235,7 @@ def expert_page(request):
             response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
             return response
 
-    page = request.GET.get('page',1)
+    page = request.GET.get('page',forms.page)
     paginator = Paginator(session['form'].SAResultList, 25)
 
     try:
@@ -242,17 +249,22 @@ def expert_page(request):
     forms.pageOfTweet=pageOfTweet
     forms.page=page
 
+    sentence_page = request.GET.get('sentence_page',forms.sentence_page)
+    sentence_paginator = Paginator(forms.SAResult_sentence_List, 25)
+    try:
+        pageOfSentence = sentence_paginator.page(sentence_page)
+    except PageNotAnInteger:
+        pageOfSentence = sentence_paginator.page(1)
+    except EmptyPage:
+        pageOfSentence = sentence_paginator.page(sentence_paginator.num_pages)
+
+    forms.pageOfSentence=pageOfSentence
+    forms.sentence_page=sentence_page
+
     session = {
         'form':forms,
         }
 
-    path_to_file = os.path.realpath("wpqkf.txt")
-    fi=open(path_to_file,'w')
-    fi.write(page)
-    fi.close()
-    session = {
-        'form':forms,
-        }
     return render(request,'expert_page.html',session)
 
 
@@ -761,17 +773,9 @@ def fleiss_kappa(matrixes):
         P = (np.sum(M * M, axis=1) - n_annotators) / (n_annotators * (n_annotators - 1))
         Pbar = np.sum(P) / N
         PbarE = np.sum(p * p)
-<<<<<<< HEAD
-<<<<<<< HEAD
         kappa = (Pbar - PbarE) / (1 - PbarE)
         if Pbar == 1.0:
             result.append(1.0)
         else:
              result.append(round(kappa,2))
-=======
-=======
->>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
-        kappa = ((Pbar - PbarE) / (1 - PbarE))
-        result.append(round(kappa,2))
->>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
     return result
