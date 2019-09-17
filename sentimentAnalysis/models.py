@@ -5,6 +5,38 @@ from django.core.validators import FileExtensionValidator
 class UploadFileModel(models.Model):
     file = models.FileField(validators=[FileExtensionValidator(allowed_extensions=['txt'])])
 
+class SAResultSentenceManager(models.Manager):
+    def createSentenceresult(self, ids, vaderSentenceScoreList, vaderSentencePolarityList, vaderAverage, vaderMajority, 
+                               textblobSentenceScoreList, textblobSentencePolarityList, textblobAverage, textblobMajority, 
+                               stanfordNLPSentencePolarityList, stanfordNLPMajority, 
+                               sentiWordNetSentenceScoreList, sentiWordNetSentencePolarityList, sentiWordNetAverage, sentiWordNetMajority, 
+                               sentenceKappa):
+        res = self.create(ids = ids, vaderSentenceScoreList = vaderSentenceScoreList, vaderSentencePolarityList = vaderSentencePolarityList, vaderAverage = vaderAverage, vaderMajority =vaderMajority, 
+        textblobSentenceScoreList = textblobSentenceScoreList, textblobSentencePolarityList = textblobSentencePolarityList, textblobAverage = textblobAverage, textblobMajority = textblobMajority, 
+        stanfordNLPSentencePolarityList = stanfordNLPSentencePolarityList, stanfordNLPMajority = stanfordNLPMajority, 
+        sentiWordNetSentenceScoreList = sentiWordNetSentenceScoreList, sentiWordNetSentencePolarityList = sentiWordNetSentencePolarityList, sentiWordNetAverage = sentiWordNetAverage, sentiWordNetMajority = sentiWordNetMajority, 
+        sentenceKappa = sentenceKappa)
+        return res
+
+class SAResultSentence(models.Model):
+    ids = models.CharField(max_length = 200, primary_key=True, default = "SOME STRING")
+    vaderSentenceScoreList = models.CharField(max_length = 200, default = "SOME STRING")
+    vaderSentencePolarityList = models.CharField(max_length = 200, default = "SOME STRING")
+    vaderAverage = models.FloatField(default=150.0)
+    vaderMajority = models.CharField(max_length = 200, default = "SOME STRING")
+    textblobSentenceScoreList = models.CharField(max_length = 200, default = "SOME STRING")
+    textblobSentencePolarityList = models.CharField(max_length = 200, default = "SOME STRING")
+    textblobAverage = models.FloatField(default=150.0)
+    textblobMajority = models.CharField(max_length = 200, default = "SOME STRING")
+    stanfordNLPSentencePolarityList = models.CharField(max_length = 200, default = "SOME STRING")
+    stanfordNLPMajority = models.CharField(max_length = 200, default = "SOME STRING")
+    sentiWordNetSentenceScoreList = models.CharField(max_length = 200, default = "SOME STRING")
+    sentiWordNetSentencePolarityList = models.CharField(max_length = 200, default = "SOME STRING")
+    sentiWordNetAverage = models.FloatField(default=150.0)
+    sentiWordNetMajority = models.CharField(max_length = 200, default = "SOME STRING")
+    sentenceKappa = models.FloatField(default=150.00, null=True)
+    objects = SAResultSentenceManager()
+    
 class SAResultManager(models.Manager):
     def create_result(self,ids,tweetContent,vaderTweetScore,vaderTweetPolarity,textblobTweetScore,textblobTweetPolarity,
     stanfordNLPTweetPolarity,sentiWordNetTweetScore,sentiWordNetTweetPolarity,tweetKappa):

@@ -7,6 +7,7 @@ from django.shortcuts import render
 from django.conf import settings
 from django.http import HttpResponseRedirect,HttpResponse,Http404
 from .forms import UploadFileForm
+from .models import SAResultSentence,SAResultSentenceManager
 from .models import SAResult,SAResultManager
 from django.contrib import messages
 
@@ -38,6 +39,8 @@ import numpy as np
 
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .models import SAResultSentence
+
 # Create your views here.
 session ={}
 forms={}
@@ -141,6 +144,33 @@ def sentimentAnalysis(request):
                 form.KappaScore_sentence = fleiss_kappa(form.sumPolarity_sentence)
                 form.KappaScore_tweet = fleiss_kappa(form.sumPolarity_tweet)
 
+                SAResult_sentence_List = []
+                SAResultObject_sentence_List = []
+                for i in range(0, len(form.ids)):
+                    temp = SAResultSentence.objects.createSentenceresult(form.ids[i], str(form.vaderScores_sentence[i]), str(form.vaderPolarity_sentence[i]), form.vaderAverage[i], form.vaderMajority[i], 
+                    str(form.textblobScores_sentence[i]), str(form.textblobPolarity_sentence[i]), form.textblobAverage[i], form.textblobMajority[i], str(form.stanfordNLPPolarity_sentence[i]), form.stanfordNLPMajority[i], 
+                    str(form.sentiWordnetScore_sentence[i]), str(form.sentiWordnetPolarity_sentence[i]), form.sentiWordnetAverage[i], form.sentiWordnetMajority[i], form.KappaScore_sentence[i])
+
+                    SAResultObject_sentence_List.append(temp)
+
+                for i in range(0,len(SAResultObject_sentence_List)):
+                    SAResult_sentence_List.append(SAResultSentence.objects.filter(ids = SAResultObject_sentence_List[i].ids).values()[0])
+            
+                sorted(SAResult_sentence_List, key = lambda i: i['sentenceKappa']) 
+                
+                for dicts in SAResult_sentence_List:
+                    for key in dicts:
+                        if "List" in key:
+                            dicts[key] = dicts[key].replace("[","")
+                            dicts[key] = dicts[key].replace("]","")
+                            dicts[key] = dicts[key].split(",")
+
+                SAResult_sentence_List = sorted(SAResult_sentence_List, key = lambda SAResult_sentence_List: SAResult_sentence_List['sentenceKappa'])                 
+                form.SAResult_sentence_List = SAResult_sentence_List           
+                
+                page = request.POST.get('page',1)
+                paginator = Paginator(form.content, 25)
+
                 SAResultList=[]
                 SAResultObjectList=[]
                 for i in range(0,len(ids)):
@@ -177,6 +207,7 @@ def sentimentAnalysis(request):
                 return render(request, "expert_page.html",session)
             if not tools:
                 messages.warning(request, 'You should check the tool at least 1!', extra_tags='alert')
+
     else:
         form = UploadFileForm()
     context = {
@@ -207,9 +238,18 @@ def expert_page(request):
     except EmptyPage:
         pageOfTweet = paginator.get_page(paginator.num_pages)
 
+
     forms.pageOfTweet=pageOfTweet
     forms.page=page
 
+    session = {
+        'form':forms,
+        }
+
+    path_to_file = os.path.realpath("wpqkf.txt")
+    fi=open(path_to_file,'w')
+    fi.write(page)
+    fi.close()
     session = {
         'form':forms,
         }
@@ -662,12 +702,9 @@ def F1ScoreSorted(vaderF1,textBlobF1,sentiF1):
 
 def average(score):
     result = []
-    count = len(score)
-    for i in range(count):
-        sum = 0
-        for j in score[i]:
-            sum += j
-        result.append(round(sum/count,2))
+    for i in score:
+        avg = sum(i, 0.0)/len(i)
+        result.append(round(avg,2))
     return result
 
 def majority(polarities):
@@ -724,6 +761,17 @@ def fleiss_kappa(matrixes):
         P = (np.sum(M * M, axis=1) - n_annotators) / (n_annotators * (n_annotators - 1))
         Pbar = np.sum(P) / N
         PbarE = np.sum(p * p)
+<<<<<<< HEAD
+<<<<<<< HEAD
+        kappa = (Pbar - PbarE) / (1 - PbarE)
+        if Pbar == 1.0:
+            result.append(1.0)
+        else:
+             result.append(round(kappa,2))
+=======
+=======
+>>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
         kappa = ((Pbar - PbarE) / (1 - PbarE))
         result.append(round(kappa,2))
+>>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
     return result
