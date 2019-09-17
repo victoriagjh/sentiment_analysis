@@ -7,11 +7,8 @@ from django.shortcuts import render
 from django.conf import settings
 from django.http import HttpResponseRedirect,HttpResponse,Http404
 from .forms import UploadFileForm
-<<<<<<< HEAD
 from .models import SAResultSentence,SAResultSentenceManager
-=======
 from .models import SAResult,SAResultManager
->>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
 from django.contrib import messages
 
 import nltk
@@ -173,6 +170,7 @@ def sentimentAnalysis(request):
                 
                 page = request.POST.get('page',1)
                 paginator = Paginator(form.content, 25)
+
                 SAResultList=[]
                 SAResultObjectList=[]
                 for i in range(0,len(ids)):
@@ -217,13 +215,6 @@ def sentimentAnalysis(request):
     }
     return render(request, 'main_page.html', context)
 
-<<<<<<< HEAD
-#정렬하고 다시 list로 바꾸는 함수 만들기!
-
-
-
-=======
->>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
 def expert_page(request):
     global session
     global forms
@@ -246,7 +237,7 @@ def expert_page(request):
         pageOfTweet = paginator.get_page(1)
     except EmptyPage:
         pageOfTweet = paginator.get_page(paginator.num_pages)
-<<<<<<< HEAD
+
 
     forms.pageOfTweet=pageOfTweet
     forms.page=page
@@ -259,12 +250,6 @@ def expert_page(request):
     fi=open(path_to_file,'w')
     fi.write(page)
     fi.close()
-=======
-
-    forms.pageOfTweet=pageOfTweet
-    forms.page=page
->>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
-
     session = {
         'form':forms,
         }
@@ -777,12 +762,15 @@ def fleiss_kappa(matrixes):
         Pbar = np.sum(P) / N
         PbarE = np.sum(p * p)
 <<<<<<< HEAD
+<<<<<<< HEAD
         kappa = (Pbar - PbarE) / (1 - PbarE)
         if Pbar == 1.0:
             result.append(1.0)
         else:
              result.append(round(kappa,2))
 =======
+=======
+>>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
         kappa = ((Pbar - PbarE) / (1 - PbarE))
         result.append(round(kappa,2))
 >>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
