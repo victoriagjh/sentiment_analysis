@@ -7,6 +7,11 @@ from django.shortcuts import render
 from django.conf import settings
 from django.http import HttpResponseRedirect,HttpResponse,Http404
 from .forms import UploadFileForm
+<<<<<<< HEAD
+from .models import SAResultSentence,SAResultSentenceManager
+=======
+from .models import SAResult,SAResultManager
+>>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
 from django.contrib import messages
 
 import nltk
@@ -35,9 +40,13 @@ from nltk import sent_tokenize, word_tokenize, pos_tag
 from sklearn.metrics import cohen_kappa_score
 import numpy as np
 
+
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .models import SAResultSentence
+
 # Create your views here.
 session ={}
+forms={}
 def sentimentAnalysis(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -138,8 +147,47 @@ def sentimentAnalysis(request):
                 form.KappaScore_sentence = fleiss_kappa(form.sumPolarity_sentence)
                 form.KappaScore_tweet = fleiss_kappa(form.sumPolarity_tweet)
 
+                SAResult_sentence_List = []
+                SAResultObject_sentence_List = []
+                for i in range(0, len(form.ids)):
+                    temp = SAResultSentence.objects.createSentenceresult(form.ids[i], str(form.vaderScores_sentence[i]), str(form.vaderPolarity_sentence[i]), form.vaderAverage[i], form.vaderMajority[i], 
+                    str(form.textblobScores_sentence[i]), str(form.textblobPolarity_sentence[i]), form.textblobAverage[i], form.textblobMajority[i], str(form.stanfordNLPPolarity_sentence[i]), form.stanfordNLPMajority[i], 
+                    str(form.sentiWordnetScore_sentence[i]), str(form.sentiWordnetPolarity_sentence[i]), form.sentiWordnetAverage[i], form.sentiWordnetMajority[i], form.KappaScore_sentence[i])
+
+                    SAResultObject_sentence_List.append(temp)
+
+                for i in range(0,len(SAResultObject_sentence_List)):
+                    SAResult_sentence_List.append(SAResultSentence.objects.filter(ids = SAResultObject_sentence_List[i].ids).values()[0])
+            
+                sorted(SAResult_sentence_List, key = lambda i: i['sentenceKappa']) 
+                
+                for dicts in SAResult_sentence_List:
+                    for key in dicts:
+                        if "List" in key:
+                            dicts[key] = dicts[key].replace("[","")
+                            dicts[key] = dicts[key].replace("]","")
+                            dicts[key] = dicts[key].split(",")
+
+                SAResult_sentence_List = sorted(SAResult_sentence_List, key = lambda SAResult_sentence_List: SAResult_sentence_List['sentenceKappa'])                 
+                form.SAResult_sentence_List = SAResult_sentence_List           
+                
                 page = request.POST.get('page',1)
                 paginator = Paginator(form.content, 25)
+                SAResultList=[]
+                SAResultObjectList=[]
+                for i in range(0,len(ids)):
+                    temp=SAResult.objects.create_result(form.ids[i],form.content[i],form.vaderScores[i],form.vaderPolarity[i],form.textblobScores[i],form.textblobPolarity[i],
+                    form.stanfordNLPPolarity[i],form.sentiWordnetScore[i],form.sentiWordnetPolarity[i],form.KappaScore_tweet[i])
+                    SAResultObjectList.append(temp)
+
+                for i in range(0,len(SAResultObjectList)):
+                    SAResultList.append(SAResult.objects.filter(ids=SAResultObjectList[i].ids).values()[0])
+
+                #sortedSAResultList=sorted(SAResultList,key=lambda SAResultList:(SAResultList['tweetKappa']),reverse=True)
+                form.SAResultList=SAResultList
+
+                page = request.GET.get('page',1)
+                paginator = Paginator(form.SAResultList, 25)
                 try:
                     pageOfTweet = paginator.page(page)
                 except PageNotAnInteger:
@@ -155,9 +203,13 @@ def sentimentAnalysis(request):
                     }
                 global session
                 session=context
+                global forms
+                forms=form
+
                 return render(request, "expert_page.html",session)
             if not tools:
                 messages.warning(request, 'You should check the tool at least 1!', extra_tags='alert')
+
     else:
         form = UploadFileForm()
     context = {
@@ -165,10 +217,17 @@ def sentimentAnalysis(request):
     }
     return render(request, 'main_page.html', context)
 
+<<<<<<< HEAD
+#정렬하고 다시 list로 바꾸는 함수 만들기!
 
+
+
+=======
+>>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
 def expert_page(request):
+    global session
+    global forms
     if request.method == 'POST':
-        global session
         if 'download' in request.POST:
             makeFile("expert")
             path_to_file = os.path.realpath("result.txt")
@@ -177,25 +236,38 @@ def expert_page(request):
             response = HttpResponse(rfile, content_type='application/txt')
             response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
             return response
-    page = request.POST.get('page',1)
-    paginator = Paginator(session['form'].content, 25)
+
+    page = request.GET.get('page',1)
+    paginator = Paginator(session['form'].SAResultList, 25)
 
     try:
-        pageOfTweet = paginator.page(page)
+        pageOfTweet = paginator.get_page(page)
     except PageNotAnInteger:
-        pageOfTweet = paginator.page(1)
+        pageOfTweet = paginator.get_page(1)
     except EmptyPage:
-        pageOfTweet = paginator.page(paginator.num_pages)
+        pageOfTweet = paginator.get_page(paginator.num_pages)
+<<<<<<< HEAD
 
-    session.pageOfTweet=pageOfTweet
-    session.page=page
+    forms.pageOfTweet=pageOfTweet
+    forms.page=page
 
-    #tweet
+    session = {
+        'form':forms,
+        }
+
     path_to_file = os.path.realpath("wpqkf.txt")
     fi=open(path_to_file,'w')
     fi.write(page)
     fi.close()
+=======
 
+    forms.pageOfTweet=pageOfTweet
+    forms.page=page
+>>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
+
+    session = {
+        'form':forms,
+        }
     return render(request,'expert_page.html',session)
 
 
@@ -645,12 +717,9 @@ def F1ScoreSorted(vaderF1,textBlobF1,sentiF1):
 
 def average(score):
     result = []
-    count = len(score)
-    for i in range(count):
-        sum = 0
-        for j in score[i]:
-            sum += j
-        result.append(round(sum/count,2))
+    for i in score:
+        avg = sum(i, 0.0)/len(i)
+        result.append(round(avg,2))
     return result
 
 def majority(polarities):
@@ -707,6 +776,14 @@ def fleiss_kappa(matrixes):
         P = (np.sum(M * M, axis=1) - n_annotators) / (n_annotators * (n_annotators - 1))
         Pbar = np.sum(P) / N
         PbarE = np.sum(p * p)
+<<<<<<< HEAD
         kappa = (Pbar - PbarE) / (1 - PbarE)
+        if Pbar == 1.0:
+            result.append(1.0)
+        else:
+             result.append(round(kappa,2))
+=======
+        kappa = ((Pbar - PbarE) / (1 - PbarE))
         result.append(round(kappa,2))
+>>>>>>> 6bae2d5cecce851fb1bb5ddbea6a8656fd341d75
     return result
