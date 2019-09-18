@@ -18,4 +18,3 @@ sentimentAnalysis/migrations/0005_auto_20190910_0812.py
 sentimentAnalysis/migrations/0006_auto_20190910_0817.py
 ignore-migrations/
 local_settings.py
-__pycache__
