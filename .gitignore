@@ -1,12 +1,9 @@
 
-*.txt
 *.pyc
 *.pyc
 *.pyc
 sentiment_analysis/__pycache__/settings.cpython-37.pyc
 sentimentAnalysis/migrations/0019_auto_20190910_1018.py
-*.txt
-*.txt
 .DS_Store
 .DS_Store
 *.sqlite3
