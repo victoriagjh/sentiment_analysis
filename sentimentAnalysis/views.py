@@ -404,7 +404,7 @@ def makeFile(pageType):
 
 def preprocessFile(f):
     fileName="text/"+f.name
-    file = open(fileName, "r", encoding='UTF-8')
+    file = open(fileName, "r", encoding='utf-8',errors="ignore")
     text=file.readlines()
 
     id = []
