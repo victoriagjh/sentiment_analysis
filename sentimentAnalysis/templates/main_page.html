@@ -40,6 +40,10 @@
           </table>
     <br>
     <button type="submit" class="btn btn-primary" width="20%">Submit</button>
+    <div>
+        <button type = "button" onclick = "location.href = '{% url 'signIn' %}'">LogIn</button>
+        <button type ="button" onclick = "location.href = '{% url 'log' %}'">Logout</button>
+    </div>
   </form>
   {% if messages %}
     <ul class="messages">

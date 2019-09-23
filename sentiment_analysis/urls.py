@@ -21,4 +21,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('expert/', views.expert_page, name='expert_page'),
     path('', views.sentimentAnalysis, name='sentimentAnalysis'),
+    path('signIn/', views.signIn, name='signIn'),
+    path('postsign/', views.postsign, name="post"),
+    path('logout/', views.logout, name='log'),
+    path('signUp/', views.postsign, name='signup'),
+    path('postsignup/', views.postsignup, name='signup'),
+    path('auth/', include('social_django.urls', namespace='social'))
 ]

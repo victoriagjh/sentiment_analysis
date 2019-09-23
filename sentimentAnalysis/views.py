@@ -1,3 +1,6 @@
+import pyrebase
+from django.contrib import auth
+
 from sys import platform as sys_pf
 if sys_pf == 'darwin':
     import matplotlib
@@ -10,7 +13,6 @@ from .forms import UploadFileForm
 from .models import SAResultSentence,SAResultSentenceManager
 from .models import SAResult,SAResultManager
 from django.contrib import messages
-
 import nltk
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize import word_tokenize
@@ -40,6 +42,61 @@ import numpy as np
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import SAResultSentence
+
+#for firebase 
+config =    {
+    'apiKey': "AIzaSyCb_2E4OJqcZFcTBo981Fnlx1T8QYxoTgw",
+    'authDomain': "sentimentanalysis-fe681.firebaseapp.com",
+    'databaseURL': "https://sentimentanalysis-fe681.firebaseio.com",
+    'projectId': "sentimentanalysis-fe681",
+    'storageBucket': "",
+    'messagingSenderId': "146468531592",
+    'appId': "1:146468531592:web:6a0f85f0a695ffcf7e9e3d"
+  }
+
+#Initialize Firebase
+firebase = pyrebase.initialize_app(config)
+auther = firebase.auth()
+database = firebase.database()
+
+
+def signIn(request):
+    return render(request, "signIn.html")
+
+def postsign(request):
+    email = request.POST.get('email')
+    password = request.POST.get('password')
+    try:
+        user = auther.sign_in_with_email_and_password(email, password)
+    except:
+        messages = "invalid credentials"
+        return render(request, "signIn.html", {"message":messages})
+    print(user['idToken'])
+    session_id=user['idToken']
+    request.session['uid'] = str(session_id)
+    return render(request, "main_page.html")
+
+def logout(request):
+    auth.logout(request)
+    return render(request, 'signIn.html')
+
+def signUp(request):
+    return render(request, 'signUp.html')
+
+def postsignup(request):
+    name = request.POST.get('name')
+    email = request.POST.get('email')
+    password = request.POST.get('password')
+    try:
+        user = auther.create_user_with_email_and_password(email, password)
+    except:
+        messages = "unable to create account try again"
+        return render(request, "signUp.html", {"message":messages})
+
+    uid = user['localId']
+    data = {"name":name, "status":"l"}
+    database.child("users").child(uid).child("details").set(data)
+    return render(request, "signIn.html")
 
 # Create your views here.
 session ={}
@@ -404,7 +461,7 @@ def makeFile(pageType):
 
 def preprocessFile(f):
     fileName="text/"+f.name
-    file = open(fileName, "r", encoding='UTF-8')
+    file = open(fileName, "r", encoding='utf-8',errors="ignore")
     text=file.readlines()
 
     id = []
