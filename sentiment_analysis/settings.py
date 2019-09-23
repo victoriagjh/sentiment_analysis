@@ -41,11 +41,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'sentimentAnalysis',
     'crispy_forms',
+<<<<<<< HEAD
+=======
     'whitenoise.runserver_nostatic',
 
 ]
 
 MIDDLEWARE = [
+>>>>>>> 38f7682ac52017831c9a28f68347fa6a09407920
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -70,6 +73,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         'libraries':{
             'index': 'sentimentAnalysis.templatetags.index',
@@ -118,6 +123,15 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGGING = { 'version': 1, 'disable_existing_loggers': False, 'handlers': { 'file': { 'level': 'DEBUG', 'class': 'logging.FileHandler', 'filename': 'debug.log', }, }, 'loggers': { 'django': { 'handlers': ['file'], 'level': 'DEBUG', 'propagate': True, }, }, }
 
 
+#for google Authentication
+AUTHENTICATION_BACKENDS = (
+ 'social_core.backends.open_id.OpenIdAuth',  # for Google authentication
+ 'social_core.backends.google.GoogleOpenId',  # for Google authentication
+ 'social_core.backends.google.GoogleOAuth2',  # for Google authentication
+ 
+ 'django.contrib.auth.backends.ModelBackend',
+)
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -152,7 +166,18 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 from django.contrib.messages import constants as message_constants
 MESSAGE_LEVEL = message_constants.DEBUG
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '332968973712-oobdjg7amk6ombqgoaauva94moubdbvu.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'Myk96le9NuwhvbtVlhIPkV7V'
+=======
+=======
+>>>>>>> 38f7682ac52017831c9a28f68347fa6a09407920
 import dj_database_url
 
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
+<<<<<<< HEAD
+>>>>>>> 38f7682ac52017831c9a28f68347fa6a09407920
+=======
+>>>>>>> 38f7682ac52017831c9a28f68347fa6a09407920
