@@ -43,7 +43,7 @@ import numpy as np
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import SAResultSentence
 
-#for firebase 
+#for firebase
 config =    {
     'apiKey': "AIzaSyCb_2E4OJqcZFcTBo981Fnlx1T8QYxoTgw",
     'authDomain': "sentimentanalysis-fe681.firebaseapp.com",
@@ -58,7 +58,6 @@ config =    {
 firebase = pyrebase.initialize_app(config)
 auther = firebase.auth()
 database = firebase.database()
-
 
 def signIn(request):
     return render(request, "signIn.html")
