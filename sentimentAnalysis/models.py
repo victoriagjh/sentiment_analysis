@@ -5,24 +5,14 @@ from django.core.validators import FileExtensionValidator
 class UploadFileModel(models.Model):
     file = models.FileField(validators=[FileExtensionValidator(allowed_extensions=['txt'])])
 
-class SAResultManager(models.Manager):
-    def create_result(self,ids,tweetContent,vaderTweetScore,vaderTweetPolarity,textblobTweetScore,textblobTweetPolarity,
-    stanfordNLPTweetPolarity,sentiWordNetTweetScore,sentiWordNetTweetPolarity,tweetKappa):
-        res=self.create(ids=ids,tweetContent=tweetContent,vaderTweetScore=vaderTweetScore,vaderTweetPolarity=vaderTweetPolarity,
-        textblobTweetScore=textblobTweetScore,textblobTweetPolarity=textblobTweetPolarity,
-        stanfordNLPTweetPolarity=stanfordNLPTweetPolarity,sentiWordNetTweetScore=sentiWordNetTweetScore,sentiWordNetTweetPolarity=sentiWordNetTweetPolarity,tweetKappa=tweetKappa)
-        return res
+class RequestlistManager(models.Manager):
+    def create_request(self, user_number, project_number, request_time, request_status):
+        request= self.create(user_number = user_number, project_number = project_number, project_status = request_status)
+        return request    
 
-class SAResult(models.Model):
-    ids=models.CharField(max_length=200,primary_key=True,default="SOME STRING")
-    tweetContent=models.CharField(max_length=200,default='SOME STRING')
-    vaderTweetScore=models.FloatField(default=150.0)
-    vaderTweetPolarity=models.CharField(max_length=200,default='SOME STRING')
-    textblobTweetScore=models.FloatField(default=150.00)
-    textblobTweetPolarity=models.CharField(max_length=200,default='SOME STRING')
-    stanfordNLPTweetPolarity=models.CharField(max_length=200,default='SOME STRING')
-    sentiWordNetTweetScore=models.FloatField(default=150.00)
-    sentiWordNetTweetPolarity=models.CharField(max_length=200,default='SOME STRING')
-    tweetKappa=models.FloatField(default=150.00,null=True)
-    
-    objects = SAResultManager()
+class Requestlist(models.Model):
+    user_id = models.TextField(default = "something", primary_key=True)
+    project_number = models.IntegerField(default = 0)
+    project_status = models.TextField(default = "fail")
+
+    objects = RequestlistManager()

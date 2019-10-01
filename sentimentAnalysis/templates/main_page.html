@@ -12,65 +12,24 @@
     <br/>
   </div>
   <div align="center">
+    <form method="post" enctype="multipart/form-data" novalidate>
     <table width="700px">
           <tr>
             <th>
-          <form method="post" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
             {{ form.as_p }}
           </th>
           <th>
-            <h5 align="center">choose the tools</h5>
-            <div class="tools-checkbox">
-              <input type="checkbox" checked="checked" id="vader" name="vader" style="width:20px;height:20px;"/>
-              <label for="vader"><span style="font-size: 15pt">Vader Sentiment</span></label> <br>
-
-              <input type="checkbox" checked="checked" id="textblob" name="textblob" style="width:20px;height:20px;"/>
-              <label for="textblob"><span style="font-size: 15pt">TextBlob</span></label> <br>
-
-              <input type="checkbox" checked="checked" id="stanford" name="stanford" style="width:20px;height:20px;"/>
-              <label for="stanford"><span style="font-size: 15pt">Stanford NLP</span></label> <br>
-
-              <input type="checkbox" checked="checked" id="sentiwordnet" name="sentiwordnet" style="width:20px;height:20px;"/>
-              <label for="stanford"><span style="font-size: 15pt">sentiWordnet</span></label> <br>
-            </div>
-            </div>
+              Id:
+              <input name = "user_id" id = "user_id">
+              Project Number:
+              <input  name="project_number" id="project_number">
           </th>
           </tr>
           </table>
     <br>
-    <button type="submit" class="btn btn-primary" width="20%">Submit</button>
+    <button type = "submit" class="btn btn-primary" width="20%">Submit</button>
   </form>
-  {% if messages %}
-    <ul class="messages">
-    {% for message in messages %}
-    <div className="alert alert-success" role="alert">
-      {{ message }}
-      </div>
-    {% endfor %}
-    </ul>
-  {% endif %}
   </div>
-  <br>
-  <div class="tool-explanation" align="center">
-    <h4>About Tools for NLP</h4>
-    <table width="700px" height="400px" className="tool-explanation">
-  <tr>
-    <th width = "125px" style="text-align:center"> <a href="https://github.com/cjhutto/vaderSentiment/blob/master/README.rst">Vader</a></th>
-    <th> VADER (Valence Aware Dictionary and sEntiment Reasoner) is a lexicon and rule-based sentiment analysis tool that is specifically attuned to sentiments expressed in social media </th>
-  </tr>
-  <tr>
-    <th width = "125px" style="text-align:center"><a href="https://textblob.readthedocs.io/en/dev/quickstart.html"> TextBlob </a></th>
-    <th> TextBlob provides NLP tasks such as part-of-speech tagging, noun phrase extraction, sentiment analysis, and more </th>
-  </tr>
-  <tr>
-    <th width = "125px" style="text-align:center"><a href="https://stanfordnlp.github.io/CoreNLP/"> Standford NLP </a></th>
-    <th> Standford NLP provide statistical NLP, deep learning NLP, and rule-based NLP tools for major computational linguistics problems, which can be incorporated into applications with human language </th>
-  </tr>
-  <tr>
-    <th width = "125px" style="text-align:center"> <a href="http://nmis.isti.cnr.it/sebastiani/Publications/LREC10.pdf">dictionary </a></th>
-    <th> dictionary is a lexical resource explicitly devised for supporting sentiment classification and opinion mining applications.  </th>
-  </tr>
-</table>
-  </div>
+
 {% endblock %}

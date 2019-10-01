@@ -19,6 +19,7 @@ from sentimentAnalysis import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('expert/', views.expert_page, name='expert_page'),
-    path('', views.sentimentAnalysis, name='sentimentAnalysis'),
+    path('', views.main, name='main_page'),    
+
 ]
+
