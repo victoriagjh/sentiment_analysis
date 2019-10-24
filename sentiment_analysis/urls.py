@@ -19,7 +19,8 @@ from sentimentAnalysis import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.main, name='main_page'),    
+    path('', views.main, name='main_page'),
+    path('signIn/', views.signIn, name='signIn'),
+    path('signUp/', views.postsign, name='signup'),
 
 ]
-

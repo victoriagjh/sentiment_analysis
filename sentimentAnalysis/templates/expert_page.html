@@ -10,9 +10,10 @@
   </div>
   {% for display in lists%}
   <tr>
-    <td>user ID : {{display.user_id}}</td>
-    <td>Project Number: {{display.project_number}}</td>
-    <td>project Status: {{display.project_status}}</td>
+    <td>user ID : {{display.request_id}}</td>
+    <td>Project Number: {{display.request_owner}}</td>
+    <td>project Status: {{display.request_status}}</td>
+    <br>
   </tr>
   {% endfor %}
 {% endblock %}

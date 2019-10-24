@@ -1,0 +1,55 @@
+.contents{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/*for tweet */
+.tweet {
+  width: 800px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 2px 2px 2px 2px #EEEEEE;
+}
+
+
+.information {
+  width: 840px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-shadow: 2px 2px 2px #EEEEEE;   
+}
+
+.information a{cursor:pointer;}
+.hide{
+  display:none;
+}
+
+.polarity{
+    display: flex;
+     width: 800px;
+    justify-content: space-around;
+    padding:20px;
+}
+
+.polarity_button{
+  background: white;
+  padding:5px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid green; 
+  color:green;
+}
+.info-button{
+  color: indigo;
+}
