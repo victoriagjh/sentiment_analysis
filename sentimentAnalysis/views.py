@@ -35,9 +35,12 @@ import random
 
 def main(request):
     if request.method == 'POST':
-        if 'request_id' in request.POST:
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid() and 'request_id' in request.POST:
+            form.save() #Save the Input File
+            filePath="text/"+request.FILES['file'].name
             Requestlist(request_id = request.POST.get('request_id', ''), request_owner = request.POST.get('request_owner',0), request_status = "unassigned",
-            request_issued_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()),request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()), request_content = random.randrange(1,101)).save()
+            request_issued_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()),request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()), request_content = random.randrange(1,101), file_path = filePath).save()
             unassignedRequest = None
             unassignedRequest = Requestlist.objects.get(request_id = request.POST.get('request_id', ''))
             if unassignedRequest != None :
@@ -53,7 +56,6 @@ def main(request):
             context = {'lists':lists}
             return render(request, "expert_page.html", context)
     return render(request, "main_page.html") # context)
-    
 #이지 코드 넣은 부분
 def afterlogin(request):
     return  render(request, "main_page.html")
