@@ -54,7 +54,7 @@ class tweet(models.Model):
 
     stanfordNLPPolarity = models.CharField(max_length=200,default='SOME STRING')
     stanfordNLPCountpol = models.CharField(max_length=200,default='SOME STRING')
-    stanfordNLPConfusionMatrix = models.FloatField(default=150.0)
+
     objects = tweetResultManager()
 
 class requestResultManager(models.Manager):
