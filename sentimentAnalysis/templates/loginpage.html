@@ -1,0 +1,54 @@
+{% load static %}
+
+{% if message %}
+<script>
+    alert('{{ message }}');
+</script>
+{% endif %}
+
+<html lang='en'>
+  <head>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+  
+  </head>
+  <body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <span class="mdl-layout-title">Sentiment Analysis Tools</span>
+          <div class="mdl-layout-spacer"></div>
+        </div>
+      </header>
+      <div class="mdl-layout__drawer">
+        <span class="mdl-layout-title">Account</span>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="">HOME</a>
+          <a class="mdl-navigation__link" href="">Request</a>
+          <a class="mdl-navigation__link" href="">LogIn</a>
+          <a class="mdl-navigation__link" href="">Signout</a>
+        </nav>
+      </div>
+      <main class="mdl-layout__content">
+          <form action ="/postsign/" method = "post">
+          <div class="page-content">
+            {% csrf_token %}
+              <div class="demo-card-square mdl-card mdl-shadow--2dp login-box">
+                  <h6>Member Login</h6>
+                  <a href = "{% url 'social:begin' 'google-oauth2' %}">Login with Google </a>
+                  <p class= "text">OR</p>
+                  <input type="text" type = "email" value = "email" name = "email" onfocus="this.value=''" class="email">
+                  <input type="text" type ="password" value = "password" name = "password" onfocus="this.value=''" class="password">
+                  <input type = submit value="Continue">
+                  <a class = "text" href="{% url 'google' %}">Google</a>
+                  <a class = "text" href="{% url 'signUp' %}">Don't have an account?</a>
+              </div>  
+          </div>
+      </form>
+      </main>
+    </div>
+  </body>
+</html>

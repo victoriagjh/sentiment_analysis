@@ -13,16 +13,5 @@
 <title>SignIn</title>
 </head>
 
-<form action = "/postsign/" method="post">
-{% csrf_token %}
-    Email:
-    <input type = "email" name = "email">
-    Password:
-    <input type="password" name="password">
-    <input type="submit" value="SignIn">
-    <button type = "button" onclick="location.href='{% url 'signup' %}'">SignUp</button>
-
-    <a href = "{% url 'social:begin' 'google-oauth2' %}">Login with Google </a>
-</form>
 
 {% endblock %}

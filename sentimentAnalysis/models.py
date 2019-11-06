@@ -1,9 +1,11 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 
 # Create your models here.
 class UploadFileModel(models.Model):
     file = models.FileField(validators=[FileExtensionValidator(allowed_extensions=['txt'])])
+
 
 class SAResultSentenceManager(models.Manager):
     def createSentenceresult(self, ids, vaderSentenceScoreList, vaderSentencePolarityList, vaderAverage, vaderMajority, 

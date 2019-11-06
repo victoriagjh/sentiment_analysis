@@ -1,80 +1,138 @@
 {% extends "base.html" %}
 {% load static %}
-
 {% block content %}
-  <div class="page-header"align="center">
-      <h1>Sentiment Analysis</h1>
-  </div>
-  <div className="description", align="center">
-    <h3>Description</h3>
-    <h4>This web application allows users to upload their text files, </h4>
-    <h4> experiment with several commonly used sentiment anlaysis tools, get sentiment scores and compare their performances.</h4>
-    <br/>
-  </div>
-  <div align="center">
-    <table width="700px">
-          <tr>
-            <th>
-          <form method="post" enctype="multipart/form-data" novalidate>
+<html lang='en'>
+  <head>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+  </head>
+  <body>
+    {% csrf_token %}
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <span class="mdl-layout-title">Sentiment Analysis Tools</span>
+          <div class="mdl-layout-spacer"></div>
+        </div>
+      </header>
+      <div class="mdl-layout__drawer">
+        {% if e %} 
+        <span class="mdl-layout-title">{{ e }}!</span>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="">HOME</a>
+          <a class="mdl-navigation__link" href="">Request</a>
+          <a class="mdl-navigation__link" href="{% url 'logout_view' %}" href="">Logout</a>
+        </nav>
+        {% elif user.username %}
+        <span class="mdl-layout-title">{{ user.username }}!</span>
+        <nav class="mdl-navigation">
+            <a class="mdl-navigation__link" href="">HOME</a>
+            <a class="mdl-navigation__link" href="">Request</a>
+            <a class="mdl-navigation__link" href="{% url 'logout_view' %}" href="">Logout</a>
+          </nav>
+        {% else %}
+        <span class="mdl-layout-title">Account</span>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="">HOME</a>
+          <a class="mdl-navigation__link" href="">Request</a>
+          <a class="mdl-navigation__link" href="{% url 'signIn' %}">LogIn</a>
+        </nav>
+        {% endif %}
+      </div> 
+      <main class="mdl-layout__content">
+        <div class="page-content">
+            <h1>SELECT FILE TO ANALYZE</h1>
+            <form method="post" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
-            {{ form.as_p }}
-          </th>
-          <th>
-            <h5 align="center">choose the tools</h5>
-            <div class="tools-checkbox">
-              <input type="checkbox" checked="checked" id="vader" name="vader" style="width:20px;height:20px;"/>
-              <label for="vader"><span style="font-size: 15pt">Vader Sentiment</span></label> <br>
-
-              <input type="checkbox" checked="checked" id="textblob" name="textblob" style="width:20px;height:20px;"/>
-              <label for="textblob"><span style="font-size: 15pt">TextBlob</span></label> <br>
-
-              <input type="checkbox" checked="checked" id="stanford" name="stanford" style="width:20px;height:20px;"/>
-              <label for="stanford"><span style="font-size: 15pt">Stanford NLP</span></label> <br>
-
-              <input type="checkbox" checked="checked" id="sentiwordnet" name="sentiwordnet" style="width:20px;height:20px;"/>
-              <label for="stanford"><span style="font-size: 15pt">sentiWordnet</span></label> <br>
+              <div class="before" id ="before">
+                <h4>SELECT OR DRAG & DROP FILES TO CONVERT</h4>
+                  <label for = file class = "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored submit-btn select">
+                      Choose the file
+                  </label>
+                  <div class="hide">
+                      <input type="file" name ="file" id="file" class = "upload">
+                  </div>
+              </div>
+                <script>
+                    $(document).ready(function(){
+                        $('input[type="file"]').change(function(e){
+                            var fileName = e.target.files[0].name;
+                          $( "#before" ).hide();
+                          $( "h3.file-name").text(fileName);
+                          $( "#after" ).show();
+                        });
+                    });
+                </script>
+              <!--file selection result-->  
+              <div class="after" id="after" style="display: none;">
+                <div class="content">
+                    <div class="file-content">
+                      <h3 class ="file-name"><i class="material-icons">attach_file</i></h3>
+                      <h6>7.56MB <button class="mdl-button mdl-js-button" disabled>x</button></h6>
+                    </div>
+                    <br>
+                    <div class="file-buttons">       
+                      <button class="mdl-button mdl-js-button mdl-button--primary ">
+                          <i class="material-icons add-button">add_box</i>
+                          Choose another file
+                      </button>
+                      <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored  file-button" >
+                          Submit
+                      </button>
+                  </div>
+                </div>
+              </div>
+          </form>
+          <br>
+          <a class="login" href="">Want to save the project?</a>                  
+        </div>
+        <dialog class="mdl-dialog">
+            <h3 class="mdl-dialog__title">About</h3>
+            <h4>What is Sentiment Analysis</h4>
+            <p>This web application allows users to upload their text files, experiment with several
+                commonly used sentiment analysis tools, get sentiment scores and compare their performances
+            </p>
+            <br><br>                        
+            <h4>About Tools for NLP</h4>
+            <br>
+            <h5>VADER</h5>
+            <p>
+            VADER(Valence Aware Dictionary and Sentiment Reasoner) is a lexicon and rule -based 
+            sentiment analysis tool that is specifically attuned to sentiments expressed in social media.
+            </p>
+            <h5>Textblob</h5>
+            <p>TextBlob provides NLP tasks such as part-of-speech tagging, noun phrase extraction, sentiment analysis, and more.</p>
+            <h5>StanfordNLP</h5>
+            <p>StanfordNLP probide statistical NLP, deep learning NLP, and ruld-based NLP tools for major computational linguistics problems. which can be incorporated into applications with human language.</p>
+            <h5>SentiWordNet</h5> 
+            <p>SentiWordNEt is a lexical resource explicitly devised for supporting sentiment classification and opinion mining applications.</p>
+            <div class="mdl-dialog__actions">
+              <button type="button" class="mdl-button close">Close</button>
             </div>
-            </div>
-          </th>
-          </tr>
-          </table>
-    <br>
-    <button type="submit" class="btn btn-primary" width="20%">Submit</button>
-    <div>
-        <button type = "button" onclick = "location.href = '{% url 'signIn' %}'">LogIn</button>
-        <button type ="button" onclick = "location.href = '{% url 'log' %}'">Logout</button>
+          </dialog>
+      </main>
+      <footer class="mdl-mini-footer">
+        <button id="show-dialog" type="button" class="mdl-button">
+          More information
+        </button>
+      </footer>
+      <script>
+          var dialog = document.querySelector('dialog');
+          var showDialogButton = document.querySelector('#show-dialog');
+          if (! dialog.showModal) {
+            dialogPolyfill.registerDialog(dialog);
+          }
+          showDialogButton.addEventListener('click', function() {
+            dialog.showModal();
+          });
+          dialog.querySelector('.close').addEventListener('click', function() {
+            dialog.close();
+          });
+        </script>
     </div>
-  </form>
-  {% if messages %}
-    <ul class="messages">
-    {% for message in messages %}
-    <div className="alert alert-success" role="alert">
-      {{ message }}
-      </div>
-    {% endfor %}
-    </ul>
-  {% endif %}
-  </div>
-  <br>
-  <div class="tool-explanation" align="center">
-    <h4>About Tools for NLP</h4>
-    <table width="700px" height="400px" className="tool-explanation">
-  <tr>
-    <th width = "125px" style="text-align:center"> <a href="https://github.com/cjhutto/vaderSentiment/blob/master/README.rst">Vader</a></th>
-    <th> VADER (Valence Aware Dictionary and sEntiment Reasoner) is a lexicon and rule-based sentiment analysis tool that is specifically attuned to sentiments expressed in social media </th>
-  </tr>
-  <tr>
-    <th width = "125px" style="text-align:center"><a href="https://textblob.readthedocs.io/en/dev/quickstart.html"> TextBlob </a></th>
-    <th> TextBlob provides NLP tasks such as part-of-speech tagging, noun phrase extraction, sentiment analysis, and more </th>
-  </tr>
-  <tr>
-    <th width = "125px" style="text-align:center"><a href="https://stanfordnlp.github.io/CoreNLP/"> Standford NLP </a></th>
-    <th> Standford NLP provide statistical NLP, deep learning NLP, and rule-based NLP tools for major computational linguistics problems, which can be incorporated into applications with human language </th>
-  </tr>
-  <tr>
-    <th width = "125px" style="text-align:center"> <a href="http://nmis.isti.cnr.it/sebastiani/Publications/LREC10.pdf">dictionary </a></th>
-    <th> dictionary is a lexical resource explicitly devised for supporting sentiment classification and opinion mining applications.  </th>
-  </tr>
-</table>
-  </div>
+  </body>
+</html>
 {% endblock %}
