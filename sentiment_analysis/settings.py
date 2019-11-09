@@ -14,7 +14,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -115,7 +114,14 @@ USE_L10N = True
 
 USE_TZ = True
 
-
+#for google Authentication
+AUTHENTICATION_BACKENDS = (
+ 'social.backends.facebook.FacebookOAuth2',
+ 'social_core.backends.open_id.OpenIdAuth',  # for Google authentication
+ 'social_core.backends.google.GoogleOpenId',  # for Google authentication
+ 'social_core.backends.google.GoogleOAuth2',  # for Google authentication
+ 'django.contrib.auth.backends.ModelBackend',
+)
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 

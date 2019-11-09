@@ -32,6 +32,20 @@ from .models import Requestlist, RequestlistManager
 import time
 from .tasks import run
 import random
+import yaml
+import pyrebase
+
+session ={}
+stream = open("sentimentAnalysis/config.yml", 'r')
+data_loaded = yaml.safe_load(stream)
+
+#for firebase
+config =  data_loaded
+
+#Initialize Firebase
+firebase = pyrebase.initialize_app(config)
+auther = firebase.auth()
+database = firebase.database()
 
 def main(request):
     if request.method == 'POST':
@@ -58,47 +72,56 @@ def main(request):
             return render(request, "expert_page.html", context)
     return render(request, "main_page.html") # context)
 #이지 코드 넣은 부분
+def google_login(request):
+    return render(request, "google.html")
+
 def afterlogin(request):
     return  render(request, "main_page.html")
 
+#로그인 페이지 들어가기
 def signIn(request):
     return render(request, "loginpage.html")
 
+#로그인 진행
 def postsign(request):
     email = request.POST.get('email')
     password = request.POST.get('password')
     try:
         user = auther.sign_in_with_email_and_password(email, password)
-    except:
+        print('user: ', user)
+    except Exception as exception:
+        print("ERROR : ", exception)
         messages = "invalid credentials"
-        return render(request, "signIn.html", {"message":messages})
-    print(user['idToken'])
+        return render(request, "loginpage.html", {"message":messages})
+    #print(user['idToken'])
     session_id=user['idToken']
     request.session['uid'] = str(session_id)
-    return render(request, "main_page.html")
+
+    return render(request, "main_page.html", {"e":email})
 
 def logout_view(request):
-    logout(request)
+    auth.logout(request)
     return render(request, "main_page.html")
 
-def logout(request):
-    auth.logout(request)
-    return render(request, 'loginpage.html')
-
+#회원가입 창
 def signUp(request):
     return render(request, 'signUp.html')
 
+#회원가입진행
 def postsignup(request):
     name = request.POST.get('name')
     email = request.POST.get('email')
     password = request.POST.get('password')
     try:
         user = auther.create_user_with_email_and_password(email, password)
-    except:
+        print("user:" , user)
+    except Exception as exception:
+        print("ERROR : ", exception)
         messages = "unable to create account try again"
         return render(request, "signUp.html", {"message":messages})
 
     uid = user['localId']
     data = {"name":name, "status":"l"}
     database.child("users").child(uid).child("details").set(data)
-    return render(request, "signIn.html")
+
+    return render(request, "loginpage.html")

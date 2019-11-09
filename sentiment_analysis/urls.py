@@ -19,10 +19,13 @@ from sentimentAnalysis import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.main, name='main_page'),
+    path('', views.main, name='main'),
     path('signIn/', views.signIn, name='signIn'),
-    path('signUp/', views.postsign, name='signup'),
-    path('logout/', views.logout, name='log'),
+    path('signUp', views.signUp, name='signUp'),
+    path('postsign/', views.postsign, name='postsign'),
+    path('accounts/profile/', views.afterlogin, name='afterlogin'),
+    path('auth/', include('social_django.urls', namespace='social')),
     path('logout_view/', views.logout_view, name='logout_view'),
-
-]
+    path('google/', views.google_login, name = "google"),
+    path('postsignup/', views.postsignup, name = 'postsignup')
+    ]

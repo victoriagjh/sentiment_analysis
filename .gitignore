@@ -17,3 +17,4 @@ sentimentAnalysis/migrations/0004_auto_20190910_0807.py
 sentimentAnalysis/migrations/0005_auto_20190910_0812.py
 sentimentAnalysis/migrations/0006_auto_20190910_0817.py
 ignore-migrations/
+sentimentAnalysis/config.yml

@@ -10,6 +10,7 @@
     <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
   </head>
   <body>
+    {% csrf_token %}
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
       <header class="mdl-layout__header">
         <div class="mdl-layout__header-row">
@@ -18,13 +19,20 @@
         </div>
       </header>
       <div class="mdl-layout__drawer">
-        {% if user.username != ""%}
-        <span class="mdl-layout-title">Hello {{ user.username }}!</span>
+        {% if e %}
+        <span class="mdl-layout-title">{{ e }}!</span>
         <nav class="mdl-navigation">
           <a class="mdl-navigation__link" href="">HOME</a>
           <a class="mdl-navigation__link" href="">Request</a>
           <a class="mdl-navigation__link" href="{% url 'logout_view' %}" href="">Logout</a>
         </nav>
+        {% elif user.username %}
+        <span class="mdl-layout-title">{{ user.username }}!</span>
+        <nav class="mdl-navigation">
+            <a class="mdl-navigation__link" href="">HOME</a>
+            <a class="mdl-navigation__link" href="">Request</a>
+            <a class="mdl-navigation__link" href="{% url 'logout_view' %}" href="">Logout</a>
+          </nav>
         {% else %}
         <span class="mdl-layout-title">Account</span>
         <nav class="mdl-navigation">
@@ -36,8 +44,7 @@
       </div>
       <main class="mdl-layout__content">
         <div class="page-content">
-            <h1>SELECT FILE TO ANALYZE</h1>
-            <form method="post" enctype="multipart/form-data" novalidate>
+          <form method="post" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
             <h6>    Request Id: </h6>
                 <input name = "request_id" id = "request_id">
@@ -75,7 +82,7 @@
                           <i class="material-icons add-button">add_box</i>
                           Choose another file
                       </button>
-                      <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored  file-button" >
+                      <button type="submit" class="mdl-button mdl-js-button mdl-button—raised mdl-button—colored  file-button" >
                           Submit
                       </button>
                   </div>
