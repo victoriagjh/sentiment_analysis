@@ -70,10 +70,12 @@ def postsign(request):
     password = request.POST.get('password')
     try:
         user = auther.sign_in_with_email_and_password(email, password)
-    except:
+        print('user: ', user)
+    except Exception as exception:
+        print("ERROR : ", exception)
         messages = "invalid credentials"
         return render(request, "loginpage.html", {"message":messages})
-    print(user['idToken'])
+    #print(user['idToken'])
     session_id=user['idToken']
     request.session['uid'] = str(session_id)
 
@@ -94,7 +96,9 @@ def postsignup(request):
     password = request.POST.get('password')
     try:
         user = auther.create_user_with_email_and_password(email, password)
-    except:
+        print("user:" , user)
+    except Exception as exception:
+        print("ERROR : ", exception)
         messages = "unable to create account try again"
         return render(request, "signUp.html", {"message":messages})
 
