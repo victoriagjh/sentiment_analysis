@@ -176,10 +176,10 @@ def vaderAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,content_s
             request.save()
 
             #Checker 비동기적으로 짜면 수정할 코드
-            if request.vader_status == "success" and request.textblob_status == "success" and request.sentiWordNet_status =="success" and request.stanfordNLP_status == "success":
+            if request.vader_status == "success" and request.textblob_status == "success" and request.sentiWordNet_status =="success" and request.stanfordNLP_status == "success" :
                 #mail보내기 코드
                 result = requestResult.objects.get(request_id=request_id)
-                result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordnetF1Score))
+                result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score))
                 result.save()
 
                 sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
@@ -258,10 +258,10 @@ def textblobAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,conten
         request.save()
 
     #Checker 비동기적으로 짜면 수정할 코드
-        if request.vader_status == "success" and request.textblob_status == "success" and request.sentiWordNet_status =="success" and request.stanfordNLP_status == "success":
+        if request.vader_status == "success" and request.textblob_status == "success" and request.sentiWordNet_status =="success" and request.stanfordNLP_status == "success" :
         #mail보내기 코드
             result = requestResult.objects.get(request_id=request_id)
-            result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordnetF1Score))
+            result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score))
             result.save()
 
             sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
@@ -366,11 +366,12 @@ def sentiWordNetAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,co
         request.save()
 
     #Checker 비동기적으로 짜면 수정할 코드
-        if request.vader_status == "success" and request.textblob_status == "success" and request.sentiWordNet_status =="success" and request.stanfordNLP_status == "success":
+        if request.vader_status == "success" and request.textblob_status == "success" and request.sentiWordNet_status =="success" and request.stanfordNLP_status == "success" :
             #mail보내기 코드
             result = requestResult.objects.get(request_id=request_id)
-            result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordnetF1Score))
+            result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score))
             result.save()
+
 
             sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
             sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
@@ -464,13 +465,14 @@ def stanfordNLPAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,con
             result = requestResult.objects.get(request_id=request_id)
             result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score))
             result.save()
+            request.save()
 
-            sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
-            sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
-            KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
-            kappas=fleiss_kappa(sumPolarity_tweet)
-            for i in range(0,len(tweet_id)):
-                tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
+            #sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
+            #sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
+            #KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
+            #kappas=fleiss_kappa(sumPolarity_tweet)
+            #for i in range(0,len(tweet_id)):
+                #tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
 
             request.request_status = "success"
             request.request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime())
@@ -481,6 +483,7 @@ def stanfordNLPAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,con
         request.save()
         print("Stanford NLP import Error")
     except Exception as exception:
+        print(exception)
         request.request_status = "failure"
         request.stanfordNLP_status = "failure"
         request.save()
@@ -597,19 +600,23 @@ def sum_for_kappa_tweet(a,b,c,d):
 
 def fleiss_kappa(matrixes):
     result = []
-    for matrix in matrixes:
-        M = np.array(matrix)
-        N, k = M.shape  # N is # of items, k is # of categories
-        n_annotators = float(np.sum(M[0]))
-        p = np.sum(M, axis=0) / (N * n_annotators)
-        P = (np.sum(M * M, axis=1) - n_annotators) / (n_annotators * (n_annotators - 1))
-        Pbar = np.sum(P) / N
-        PbarE = np.sum(p * p)
-        kappa = (Pbar - PbarE) / (1 - PbarE)
-        if Pbar == 1.0:
-            result.append(1.0)
-        else:
-             result.append(round(kappa,2))
+    try:
+        for matrix in matrixes:
+            M = np.array(matrix)
+            N, k = M.shape  # N is # of items, k is # of categories
+            n_annotators = float(np.sum(M[0]))
+            p = np.sum(M, axis=0) / (N * n_annotators)
+            P = (np.sum(M * M, axis=1) - n_annotators) / (n_annotators * (n_annotators - 1))
+            Pbar = np.sum(P) / N
+            PbarE = np.sum(p * p)
+            kappa = (Pbar - PbarE) / (1 - PbarE)
+            if Pbar == 1.0:
+                result.append(1.0)
+            else:
+                 result.append(round(kappa,2))
+    except Exception as exception:
+        print(exception)
+        print("this is KAPPA")
     return result
 
 def average(score):
