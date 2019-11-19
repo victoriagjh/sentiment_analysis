@@ -19,3 +19,4 @@ sentimentAnalysis/migrations/0006_auto_20190910_0817.py
 ignore-migrations/
 venv/
 myvenv/
+*.png
