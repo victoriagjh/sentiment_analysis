@@ -437,7 +437,7 @@ def stanfordNLPAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,con
                 else:
                     neutral += 1
                     count_pol.append([positive, neutral, negative])
-                result.append(getPolarity(index))
+            result.append(getPolarity(index))
 
         stanfordNLPPolarity_sentence, stanfordNLPCountpol_sentence = stanfordNLPSentimentFunction_sentence(content_sentence)
         stanfordNLPMajority = majority(stanfordNLPPolarity_sentence)
@@ -467,12 +467,12 @@ def stanfordNLPAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,con
             result.save()
             request.save()
 
-            #sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
-            #sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
-            #KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
-            #kappas=fleiss_kappa(sumPolarity_tweet)
-            #for i in range(0,len(tweet_id)):
-                #tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
+            sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
+            sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
+            KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
+            kappas=fleiss_kappa(sumPolarity_tweet)
+            for i in range(0,len(tweet_id)):
+                tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
 
             request.request_status = "success"
             request.request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime())
