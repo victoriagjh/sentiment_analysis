@@ -1,6 +1,3 @@
-import pyrebase
-from django.contrib import auth
-
 from sys import platform as sys_pf
 if sys_pf == 'darwin':
     import matplotlib
@@ -10,9 +7,8 @@ from django.shortcuts import render
 from django.conf import settings
 from django.http import HttpResponseRedirect,HttpResponse,Http404
 from .forms import UploadFileForm
-from .models import SAResultSentence,SAResultSentenceManager
-from .models import SAResult,SAResultManager
 from django.contrib import messages
+
 import nltk
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize import word_tokenize
@@ -32,17 +28,24 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from django.core.files import File
 from pycorenlp import StanfordCoreNLP
 
-from nltk.stem import WordNetLemmatizer
-from nltk.corpus import wordnet as wn
-from nltk.corpus import sentiwordnet as swn
-from nltk import sent_tokenize, word_tokenize, pos_tag
-from sklearn.metrics import cohen_kappa_score
-import numpy as np
+
+from .models import Requestlist, RequestlistManager
+from .models import tweet, tweetResultManager
+import time
+from .tasks import run
+import random
 import yaml
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .models import SAResultSentence
+#about firebase
+import pyrebase
+from django.contrib import auth
 
+import celery
+import json
+import requests
+
+
+session ={}
 stream = open("sentimentAnalysis/config.yml", 'r')
 data_loaded = yaml.safe_load(stream)
 
@@ -54,807 +57,133 @@ firebase = pyrebase.initialize_app(config)
 auther = firebase.auth()
 database = firebase.database()
 
-def google_login(request):
-    return render(request, "google.html")
 
-def afterlogin(request):
-    return  render(request, "main_page.html")
+#for jwt (11/18)
+import json
+from aiohttp import web
+from datetime import timedelta, datetime
+import jwt
 
-#로그인 페이지 들어가기
+from .models import TokenInfo, TokenInfoManager
+
+#default setting for jwt
+JWT_SECRET = 'secret'
+JWT_ALGORITHM = 'HS256'
+JWT_EXP_DELTA_SECONDS = 20
+
+##To respond directly to information (QuerySet) in JSON directly from the database
+def json_response(body='', **kwargs):
+    kwargs['body'] = json.dumps(body or kwargs['body']).encode('utf-8')
+    kwargs['content_type'] = 'text/json'
+    return web.Response(**kwargs)
+
+def main(request):
+    if request.method == 'POST': 
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid() and 'request_id' in request.POST:
+            form.save() #Save the Input File
+            filePath="text/"+request.FILES['file'].name
+            Requestlist(request_id = request.POST.get('request_id', ''), request_owner = request.POST.get('request_owner',0), request_status = "unassigned", request_pid = 0,
+            vader_status="unassigned", vader_pid = 0, textblob_status = "unassigned",textblob_pid = 0, stanfordNLP_status= "unassigned",stanfordNLP_pid = 0, sentiWordNet_status="unassigned", sentiWordNet_pid = 0,
+            request_issued_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()),request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()), file_path = filePath).save()
+            unassignedRequest = None
+            unassignedRequest = Requestlist.objects.get(request_id = request.POST.get('request_id', ''))
+            if unassignedRequest != None :
+                try:
+                    run.apply_async(kwargs={'id': unassignedRequest.request_id},time_limit=60*30, soft_time_limit=60*30)
+                except SoftTimeLimitExceeded:
+                    print("SoftTimeLimitExceeded : ", SoftTimeLimitExceeded)
+                    clean_up_in_a_hurry()
+                except TimeoutError as err:
+                    print("Timeout Error : ", err)
+                #run.delay(unassignedRequest.request_id
+            lists = Requestlist.objects.all()
+            context = {'lists':lists}
+            #tweet
+            tweets_list = tweet.objects.all()
+            tweets = {"tweets_list":tweets_list}
+            return render(request, "result_page.html", context) 
+    
+    #when cookie is exist
+    if(request.COOKIES.get('email') is not None):
+        #get from token
+        email = request.COOKIES.get('email')
+        token = request.COOKIES.get('token_info')
+        print("cookie_email: ", email)
+        print("cookie_token: ", token)
+        return render(request, "main_page.html", {"e":email}) 
+        # check the token authenticate 
+        # if(token authenticate succeess):
+        #     return render(request, "main_page.html", {"e":email})
+        # else(token authenticate fail):
+        #     return render(request, "main_page.html") 
+
+    #login request
+    elif(request.POST.get('email') != None):
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        try:
+            #login using firebase
+            user = auther.sign_in_with_email_and_password(email, password)
+            print('user: ', user)
+        except Exception as exception:
+            print("ERROR : ", exception)
+            messages = "nvalided account"
+            return render(request, "loginpage.html", {"message":messages}) 
+        #-----------------------------------
+        payload = {
+        'user_id': user['localId'], #local == uid(provided by firebase)
+        'email': email,
+        'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
+        }
+        jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
+
+        #save in database
+        TokenInfo(uid = user['localId'], email = email, token = jwt_token, state = "1").save()
+        print("token: ", jwt_token)
+        #save cookie
+        if jwt_token is not None:
+            response = render(request, "main_page.html", {"e":email})
+            response.set_cookie("token_info", jwt_token)
+            response.set_cookie("email", email)
+            return response
+        return render(request, "main_page.html")
+    # optional: store into our database
+    # send the jwt token to our client
+    # wrap the token in cookie
+    # send the html page to the user
+    else:
+        return render(request, "main_page.html") 
+           
+#이지 코드 넣은 부분
 def signIn(request):
     return render(request, "loginpage.html")
 
-#로그인 진행
-def postsign(request):
-    email = request.POST.get('email')
-    password = request.POST.get('password')
-    try:
-        user = auther.sign_in_with_email_and_password(email, password)
-        print('user: ', user)
-    except Exception as exception:
-        print("ERROR : ", exception)
-        messages = "invalid credentials"
-        return render(request, "loginpage.html", {"message":messages})
-    #print(user['idToken'])
-    session_id=user['idToken']
-    request.session['uid'] = str(session_id)
-
-    return render(request, "main_page.html", {"e":email})
-
 def logout_view(request):
+    response = render(request, "main_page.html")
+    response.delete_cookie('token_info')
     auth.logout(request)
-    return render(request, "main_page.html")    
+    return render(request, "main_page.html")
 
-#회원가입 창
+#회원가입 창 & 로그인 창
 def signUp(request):
-    return render(request, 'signUp.html')
-
-#회원가입진행
-def postsignup(request):
-    name = request.POST.get('name')
-    email = request.POST.get('email')
-    password = request.POST.get('password')
-    try:
-        user = auther.create_user_with_email_and_password(email, password)
-        print("user:" , user)
-    except Exception as exception:
-        print("ERROR : ", exception)
-        messages = "unable to create account try again"
-        return render(request, "signUp.html", {"message":messages})
-
-    uid = user['localId']
-    data = {"name":name, "status":"l"}
-    database.child("users").child(uid).child("details").set(data)
-
-    return render(request, "loginpage.html")
-
-# Create your views here.
-session ={}
-forms={}
-def sentimentAnalysis(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            tools = ["Vader Sentiment", "TextBlob", "sentiWordnet", "Stanford NLP"]
-            #preprocess the file
-            form.save()
-            form.name = request.FILES['file'].name
-            ids, contents, annotations, hashtags = preprocessFile(request.FILES['file'])
-
-            form.ids=ids
-            form.annotations=annotations
-            form.content = contents #by tweet
-            form.content_sentence = sentenceLevel(form.content) #by sentence
-            form.hashtag = hashtags #text type(list)
-            form.tool = tools
-
-            #surface metrics
-            cleansingText = cleansing(contents)
-            form.word_frequent = word_frequent(cleansingText)
-            form.topFrequentWords=top_freqeunt(cleansingText)
-            form.wordcounter = wordcounter(cleansingText)
-            save_wordcloud(form.word_frequent,"basic")
-            form.hashtag_frequent = top_freqeunt(hashtags)
-
-            #sentimentAnalysis
-            for i in tools:
-                if i == "Vader Sentiment":
-                    form.vaderScores, form.vaderPolarity, form.vaderCountpol =vaderSentimentFucntion(form.content) #result of tweet
-                    form.vaderScores_sentence, form.vaderPolarity_sentence, form.vaderCountpol_sentence = vaderSentimentFucntion_sentence(form.content_sentence)
-                    form.vaderAverage = average(form.vaderScores_sentence)
-                    form.vaderMajority = majority(form.vaderPolarity_sentence)
-                    form.vaderConfusionMatrix = confusionMatrix(form.annotations, form.vaderPolarity)
-                    form.vaderPrecise = round(precise(form.annotations, form.vaderPolarity),2)
-                    form.vaderRecall = round(recall(form.annotations, form.vaderPolarity),2)
-                    form.vaderF1Score = round(F1Score(form.vaderPrecise,form.vaderRecall),2)
-                elif i == "TextBlob":
-                    form.textblobScores, form.textblobPolarity, form.textblobCountpol = textblobSentimentFunction(form.content) #result of tweet
-                    form.textblobScores_sentence, form.textblobPolarity_sentence, form.textblobCountpol_sentence = textblobSentimentFunction_sentence(form.content_sentence)
-                    form.textblobAverage = average(form.textblobScores_sentence)
-                    form.textblobMajority = majority(form.textblobPolarity_sentence)
-                    form.textblobConfusionMatrix = confusionMatrix(form.annotations, form.textblobPolarity)
-                    form.textblobPrecise = round(precise(form.annotations, form.textblobPolarity),2)
-                    form.textblobRecall = round(recall(form.annotations, form.textblobPolarity),2)
-                    form.textblobF1Score = round(F1Score(form.textblobPrecise,form.textblobRecall),2)
-                elif i == "sentiWordnet":
-                    form.sentiWordnetScore, form.sentiWordnetPolarity, form.sentiWordnetCountpol = sentiWordnetSentimentFunction(form.content) #result of tweet
-                    form.sentiWordnetScore_sentence, form.sentiWordnetPolarity_sentence, form.sentiWordnetCountpol_sentence = sentiWordnetSentimentFunction_sentence(form.content_sentence)
-                    form.sentiWordnetAverage = average(form.sentiWordnetScore_sentence)
-                    form.sentiWordnetMajority = majority(form.sentiWordnetPolarity_sentence)
-                    form.sentiWordnetConfusionMatrix = confusionMatrix(form.annotations, form.sentiWordnetPolarity)
-                    form.sentiWordnetPrecise = round(precise(form.annotations, form.sentiWordnetPolarity),2)
-                    form.sentiWordnetRecall = round(recall(form.annotations, form.sentiWordnetPolarity),2)
-                    form.sentiWordnetF1Score = round(F1Score(form.textblobPrecise,form.sentiWordnetRecall),2)
-                elif i == "Stanford NLP":
-                    form.stanfordNLPPolarity, form.stanfordNLPCountpol = stanfordNLPSentimentFunction(form.content) #result of tweet
-                    form.stanfordNLPPolarity_sentence, form.stanfordNLPCountpol_sentence = stanfordNLPSentimentFunction_sentence(form.content_sentence)
-                    form.stanfordNLPMajority = majority(form.stanfordNLPPolarity_sentence)
-                    form.stanfordNLPConfusionMatrix = confusionMatrix(form.annotations, form.stanfordNLPPolarity)
-
-            #surface metric according to positive and negative
-            positiveSet,negativeSet=separatePN(form.annotations,form.content)
-            positiveList = list(positiveSet)
-            negativeList = list(negativeSet)
-            positiveHashtag= extractHashtag(positiveList)
-            negativeHashtag= extractHashtag(negativeList)
-            form.positiveTopFrequentHashtag=top_freqeunt(positiveHashtag)
-            form.negativeTopFrequentHashtag=top_freqeunt(negativeHashtag)
-
-            #surface metrics
-            positiveCleansingText = cleansing(positiveList)
-            form.positiveWord_frequent = word_frequent(positiveCleansingText)
-            form.positiveTopFrequentWords=top_freqeunt(positiveCleansingText)
-            form.positiveWordcounter = wordcounter(positiveCleansingText)
-            save_wordcloud(form.positiveWord_frequent,"positive")
-
-            negativeCleansingText = cleansing(negativeList)
-            form.negativeWord_frequent = word_frequent(negativeCleansingText)
-            form.negativeTopFrequentWords=top_freqeunt(negativeCleansingText)
-            form.negativeWordcounter = wordcounter(negativeCleansingText)
-            save_wordcloud(form.negativeWord_frequent,"negative")
-
-            #sorted Sentiment Result F1 Score
-            form.sortedF1ScoreLists = F1ScoreSorted(form.vaderF1Score,form.textblobF1Score,form.sentiWordnetF1Score)
-
-            #for kappa calculate
-            form.sumPolarity_sentence = sum_for_kappa_sentence(form.vaderCountpol_sentence, form.textblobCountpol_sentence, form.sentiWordnetCountpol_sentence, form.stanfordNLPCountpol_sentence)
-            form.sumPolarity_tweet = sum_for_kappa_tweet(form.vaderCountpol, form.textblobCountpol, form.sentiWordnetCountpol, form.stanfordNLPCountpol)
-            form.KappaScore_sentence = fleiss_kappa(form.sumPolarity_sentence)
-            form.KappaScore_tweet = fleiss_kappa(form.sumPolarity_tweet)
-
-            SAResult_sentence_List = []
-            SAResultObject_sentence_List = []
-            for i in range(0, len(form.ids)):
-                temp = SAResultSentence.objects.createSentenceresult(form.ids[i], str(form.vaderScores_sentence[i]), str(form.vaderPolarity_sentence[i]), form.vaderAverage[i], form.vaderMajority[i],
-                str(form.textblobScores_sentence[i]), str(form.textblobPolarity_sentence[i]), form.textblobAverage[i], form.textblobMajority[i], str(form.stanfordNLPPolarity_sentence[i]), form.stanfordNLPMajority[i],
-                str(form.sentiWordnetScore_sentence[i]), str(form.sentiWordnetPolarity_sentence[i]), form.sentiWordnetAverage[i], form.sentiWordnetMajority[i], form.KappaScore_sentence[i])
-                SAResultObject_sentence_List.append(temp)
-
-            for i in range(0,len(SAResultObject_sentence_List)):
-                SAResult_sentence_List.append(SAResultSentence.objects.filter(ids = SAResultObject_sentence_List[i].ids).values()[0])
-
-            for dicts in SAResult_sentence_List:
-                for key in dicts:
-                    if "List" in key:
-                        dicts[key] = dicts[key].replace("[","")
-                        dicts[key] = dicts[key].replace("]","")
-                        dicts[key] = dicts[key].split(",")
-
-            SAResult_sentence_List = sorted(SAResult_sentence_List, key = lambda SAResult_sentence_List: SAResult_sentence_List['sentenceKappa'])
-            form.SAResult_sentence_List = SAResult_sentence_List
-
-            SAResultList=[]
-            SAResultObjectList=[]
-            for i in range(0,len(ids)):
-                temp=SAResult.objects.create_result(form.ids[i],form.content[i],form.vaderScores[i],form.vaderPolarity[i],form.textblobScores[i],form.textblobPolarity[i],
-                form.stanfordNLPPolarity[i],form.sentiWordnetScore[i],form.sentiWordnetPolarity[i],form.KappaScore_tweet[i])
-                SAResultObjectList.append(temp)
-
-            for i in range(0,len(SAResultObjectList)):
-                SAResultList.append(SAResult.objects.filter(ids=SAResultObjectList[i].ids).values()[0])
-
-            sortedSAResultList=sorted(SAResultList,key=lambda SAResultList:(SAResultList['tweetKappa']))
-            form.SAResultList=sortedSAResultList
-
-            page = request.GET.get('page',1)
-            paginator = Paginator(form.SAResultList, 25)
-            try:
-                pageOfTweet = paginator.page(page)
-            except PageNotAnInteger:
-                pageOfTweet = paginator.page(1)
-            except EmptyPage:
-                pageOfTweet = paginator.page(paginator.num_pages)
-
-            form.pageOfTweet=pageOfTweet
-            form.page=page
-
-            sentence_page = request.GET.get('sentence_page',1)
-            sentence_paginator = Paginator(form.SAResult_sentence_List, 25)
-            try:
-                pageOfSentence = sentence_paginator.page(sentence_page)
-            except PageNotAnInteger:
-                pageOfSentence = sentence_paginator.page(1)
-            except EmptyPage:
-                pageOfSentence = sentence_paginator.page(sentence_paginator.num_pages)
-
-            form.pageOfSentence=pageOfSentence
-            form.sentence_page=sentence_page
-
-            context = {
-                'form':form,
-                }
-            global session
-            session=context
-            global forms
-            forms=form
-
-        return render(request, "result_page.html",session)
-        if not tools:
-            messages.warning(request, 'You should check the tool at least 1!', extra_tags='alert')
-
-    else:
-        form = UploadFileForm()
-    context = {
-        'form':form,
-    }
-    return render(request, 'main_page.html', context)
-
-
-def expert_page(request):
-    global session
-    global forms
-    if request.method == 'POST':
-        if 'download' in request.POST:
-            makeFile("expert")
-            path_to_file = os.path.realpath("result.txt")
-            file = open(path_to_file, 'r')
-            rfile = File(file)
-            response = HttpResponse(rfile, content_type='application/txt')
-            response['Content-Disposition'] = 'attachment; filename=' + "result.txt"
-            return response
-
-    page = request.GET.get('page',forms.page)
-    paginator = Paginator(session['form'].SAResultList, 25)
-
-    try:
-        pageOfTweet = paginator.get_page(page)
-    except PageNotAnInteger:
-        pageOfTweet = paginator.get_page(1)
-    except EmptyPage:
-        pageOfTweet = paginator.get_page(paginator.num_pages)
-
-
-    forms.pageOfTweet=pageOfTweet
-    forms.page=page
-
-    sentence_page = request.GET.get('sentence_page',forms.sentence_page)
-    sentence_paginator = Paginator(forms.SAResult_sentence_List, 25)
-    try:
-        pageOfSentence = sentence_paginator.page(sentence_page)
-    except PageNotAnInteger:
-        pageOfSentence = sentence_paginator.page(1)
-    except EmptyPage:
-        pageOfSentence = sentence_paginator.page(sentence_paginator.num_pages)
-
-    forms.pageOfSentence=pageOfSentence
-    forms.sentence_page=sentence_page
-
-    session = {
-        'form':forms,
-        }
-
-    return render(request,'expert_page.html',session)
-
-
-def makeFile(pageType):
-    file = open("result.txt", 'w')
-    file.write("id\tcontent\tannotation\tvaderScore\tvaderPolarity\ttextblobScores\ttextblobPolarity\tstanfordNLPPolarity\n")
-    for i in range(0,len(session['form'].ids)):
-        file.write(session['form'].ids[i])
-        file.write("\t")
-        file.write(session['form'].content[i])
-        file.write("\t")
-        file.write(session['form'].annotations[i])
-        file.write("\t")
-        file.write(str(session['form'].vaderScores[i]))
-        file.write("\t")
-        file.write(session['form'].vaderPolarity[i])
-        file.write("\t")
-        file.write(str(session['form'].textblobScores[i]))
-        file.write("\t")
-        file.write(session['form'].textblobPolarity[i])
-        file.write("\t")
-        file.write(session['form'].stanfordNLPPolarity[i])
-        file.write("\t")
-        file.write(str(session['form'].sentiWordnetScore[i]))
-        file.write("\t")
-        file.write(session['form'].sentiWordnetPolarity[i])
-        file.write("\n")
-
-    file.write("Word Counter : ")
-    file.write(str(session['form'].wordcounter))
-    file.write("\n")
-    file.write("Vader Confusion Matrix : ")
-    file.write(str(session['form'].vaderConfusionMatrix[0][0]))
-    file.write("\t")
-    file.write(str(session['form'].vaderConfusionMatrix[0][1]))
-    file.write("\t")
-    file.write(str(session['form'].vaderConfusionMatrix[1][0]))
-    file.write("\t")
-    file.write(str(session['form'].vaderConfusionMatrix[1][1]))
-    file.write("\n")
-    file.write("Vader Precise : ")
-    file.write(str(session['form'].vaderPrecise))
-    file.write("\n")
-    file.write("Vader Recall : ")
-    file.write(str(session['form'].vaderRecall))
-    file.write("\n")
-    file.write("Vader F1 Score : ")
-    file.write(str(session['form'].vaderF1Score))
-    file.write("\n")
-
-    file.write("TextBlob Confusion Matrix\n")
-    file.write(str(session['form'].textblobConfusionMatrix[0][0]))
-    file.write("\t")
-    file.write(str(session['form'].textblobConfusionMatrix[0][1]))
-    file.write("\t")
-    file.write(str(session['form'].textblobConfusionMatrix[1][0]))
-    file.write("\t")
-    file.write(str(session['form'].textblobConfusionMatrix[1][1]))
-    file.write("\n")
-    file.write("TextBlob Precise : ")
-    file.write(str(session['form'].textblobPrecise))
-    file.write("\n")
-    file.write("TextBlob Recall : ")
-    file.write(str(session['form'].textblobRecall))
-    file.write("\n")
-    file.write("TextBlob F1 Score : ")
-    file.write(str(session['form'].textblobF1Score))
-    file.write("\n")
-
-    file.write("SentiWordNet Dictionary Confusion Matrix\n")
-    file.write(str(session['form'].sentiWordnetConfusionMatrix[0][0]))
-    file.write("\t")
-    file.write(str(session['form'].sentiWordnetConfusionMatrix[0][1]))
-    file.write("\t")
-    file.write(str(session['form'].sentiWordnetConfusionMatrix[1][0]))
-    file.write("\t")
-    file.write(str(session['form'].sentiWordnetConfusionMatrix[1][1]))
-    file.write("\n")
-    file.write("SentiWordNet Dictionary Precise : ")
-    file.write(str(session['form'].sentiWordnetPrecise))
-    file.write("\n")
-    file.write("TextBlob Recall : ")
-    file.write(str(session['form'].sentiWordnetRecall))
-    file.write("\n")
-    file.write("TextBlob F1 Score : ")
-    file.write(str(session['form'].sentiWordnetF1Score))
-    file.write("\n")
-
-    file.write("Stanford NLP Confusion Matrix\n")
-    file.write(str(session['form'].stanfordNLPConfusionMatrix[0][0]))
-    file.write("\t")
-    file.write(str(session['form'].stanfordNLPConfusionMatrix[0][1]))
-    file.write("\t")
-    file.write(str(session['form'].stanfordNLPConfusionMatrix[1][0]))
-    file.write("\t")
-    file.write(str(session['form'].stanfordNLPConfusionMatrix[1][1]))
-    file.write("\n")
-
-    file.write("Top Frequent Words 5 : ")
-    for i in range(0,5):
-        file.write(str(session['form'].topFrequentWords[i]))
-        file.write("\t")
-    file.write("\n")
-    file.write("Top Frequent Hashtags 5 : ")
-    for i in range(0,5):
-        file.write(str(session['form'].hashtag_frequent[i]))
-        file.write("\t")
-    file.write("\n")
-    if pageType=="expert":
-        file.write("Positive Word Counter : ")
-        file.write(str(session['form'].positiveWordcounter))
-        file.write("\n")
-        file.write("Positive Top Frequent Words 5 : ")
-        for i in range(0,5):
-            file.write(str(session['form'].positiveTopFrequentWords[i]))
-            file.write("\t")
-        file.write("\n")
-        file.write("Positive Top Frequent Hashtags 5 : ")
-        for i in range(0,5):
-            file.write(str(session['form'].positiveTopFrequentHashtag[i]))
-            file.write("\t")
-        file.write("\n")
-        file.write("Negative Word Counter : ")
-        file.write(str(session['form'].negativeWordcounter))
-        file.write("\n")
-        file.write("Negative Top Frequent Words 5 : ")
-        for i in range(0,5):
-            file.write(str(session['form'].negativeTopFrequentWords[i]))
-            file.write("\t")
-        file.write("\n")
-        file.write("Negative Top Frequent Hashtags 5 : ")
-        for i in range(0,5):
-            file.write(str(session['form'].negativeTopFrequentHashtag[i]))
-            file.write("\t")
-        file.write("\n")
-    file.close()
-
-def preprocessFile(f):
-    fileName="text/"+f.name
-    file = open(fileName, "r", encoding='utf-8',errors="ignore")
-    text=file.readlines()
-
-    id = []
-    content = []
-    hashtag = []
-    annotation = []
-
-    pattern = '#([0-9a-zA-Z]*)'
-    hashtag_word = re.compile(pattern)
-
-    for line in text:
-        sentence = re.split(r'\t+', line)
-        text = ""
-        id.append(sentence[0])
-        content.append(sentence[1])
-        annotation.append(sentence[2].strip('\n'))
-
-        for tag in hashtag_word.findall(line):
-            hashtag.append(tag)
-
-    return id,content,annotation, hashtag
-
-def extractHashtag(list):
-    hashtag=[]
-    pattern = '#([0-9a-zA-Z]*)'
-    hashtag_word = re.compile(pattern)
-    for i in list:
-        for j in hashtag_word.findall(i):
-            hashtag.append(j)
-    return hashtag
-
-def separatePN(annotations,text):
-    positiveSet = set()
-    negativeSet = set()
-    for i in range(len(annotations)):
-        if annotations[i]=="Positive":
-            positiveSet.add(text[i])
-        elif annotations[i]=="Negative":
-            negativeSet.add(text[i])
-    return positiveSet,negativeSet
-
-def cleansing(content):
-    result = []
-    url_pattern ='https?://\S+|#([0-9a-zA-Z]*)'
-
-    for text in content:
-        #대문자 소문자 변환
-        lower_content = (text.lower())
-
-        #불용어 제거
-        shortword = re.compile(r'\W*\b\w{1,2}\b')
-        shortword_content = shortword.sub('', lower_content)
-        text = re.sub('[-=.#/?:$}!,@]', '', shortword_content)
-
-        stop_words = set(stopwords.words('english'))
-        content_tokens = word_tokenize(text)
-        real_content = re.sub(pattern=url_pattern, repl='', string = text)
-
-        for w in content_tokens:
-            if w not in stop_words:
-                    result.append(w)
-    return result
+    if(request.POST.get('email') != None):
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        try:
+            user = auther.create_user_with_email_and_password(email, password)
+            print('user: ', user)
+            return render(request, "main_page.html", {"e":email})
             
-#For WordCloud
-def wordcounter(text):
-    return(len(text))
+        except Exception as exception:
+            print("ERROR : ", exception)
+            messages = "unable to create account try again"
+            return render(request, "signUp.html", {"message":messages})
 
-def word_frequent(text):
-    fd_content = FreqDist(text)
-    return fd_content
+        uid = user['localId']
+        data = {"name":name, "status":"l"}
+        database.child("users").child(uid).child("details").set(data)
 
-def save_wordcloud(text,fileName):
-    wc = WordCloud(width=1000, height=600, background_color="white", random_state=0)
-    plt.imshow(wc.generate_from_frequencies(text))
-    plt.axis("off")
-    plt.savefig("sentimentAnalysis/static/img/"+fileName+".png", format = "png")
-
-#For Surface Metric
-def top_freqeunt(list):
-    fd_content = FreqDist(list)
-    return fd_content.most_common(5)
-
-def sentenceLevel(text):
-    result = []
-    for tweet in text:
-        result.append(nltk.sent_tokenize(tweet))
-    return result
-
-def vaderSentimentFucntion(sentences):
-    analyzer = SentimentIntensityAnalyzer()
-    scores = []
-    polarities = []
-    count_pol = []
-    for sentence in sentences:
-        positive = 0
-        negative = 0
-        neutral = 0
-        vs = analyzer.polarity_scores(sentence)
-        scores.append(vs['compound']) #only Compound value
-        if vs['compound'] >= 0.05:
-            polarities.append("Positive")
-            positive += 1
-            count_pol.append([positive, neutral, negative])
-        elif vs['compound'] <0.05 and vs['compound'] >-0.05:
-            polarities.append("Neutral")
-            neutral += 1
-            count_pol.append([positive, neutral, negative])
-        elif vs['compound']<=-0.05:
-            polarities.append("Negative")
-            negative += 1
-            count_pol.append([positive, neutral, negative])
-    return scores, polarities, count_pol
-  
-
-def vaderSentimentFucntion_sentence(sentences):
-    scores = []
-    polarities = []
-    count_polarity = []
-    count = len(sentences)
-    for i in range(count):
-        score, polarity, count_pol = vaderSentimentFucntion(sentences[i])
-        scores.append(score)
-        polarities.append(polarity)
-        count_polarity.append(count_pol)
-    return scores, polarities, count_polarity
-     
-
-def stanfordNLPSentimentFunction(sentences):
-    nlp = StanfordCoreNLP('http://localhost:9000')
-    result=[]
-    count_pol = []
-    for i in range(0,len(sentences)):
-        positive = 0
-        negative = 0
-        neutral = 0
-        cnt=[0,0,0,0,0]
-        res = nlp.annotate(sentences[i],properties={
-                        'annotators': 'sentiment',
-                        'outputFormat': 'json',
-                        'timeout': 50000,
-                    })
-        for s in res["sentences"]:
-            cnt[int(s["sentimentValue"])]+=1
-        index=cnt.index(max(cnt))
-        if index == (1 or 2):
-            negative += 1
-            count_pol.append([positive, neutral, negative])
-        elif index == (3 or 4):
-            positive += 1
-            count_pol.append([positive, neutral, negative])
-        else:
-            neutral += 1
-            count_pol.append([positive, neutral, negative])
-        result.append(getPolarity(index))
-    return result, count_pol
-
-
-def stanfordNLPSentimentFunction_sentence(sentences):
-    try:
-        polarities = []
-        count_polarity = []
-        count = len(sentences)
-        for i in range(count):
-            polarity, count_pol = stanfordNLPSentimentFunction(sentences[i])
-            polarities.append(polarity)
-            count_polarity.append(count_pol)
-        return polarities, count_polarity
-    except NameError as exception:
-        print("stanfordNLP import Error")    
-    except Exception as exception:
-        print("Check Server")
-
-#switch use dictionary
-def getPolarity(x):
-    return {
-        0: "Negative",
-        1: "Negative",
-        2: "Neutral",
-        3: "Positive",
-        4: "Positive",
-    }[x]
-
-def textblobSentimentFunction(sentences):
-    try:
-        scores = []
-        polarities = []
-        count_pol = []
-        for sentence in sentences:
-            positive = 0
-            negative = 0
-            neutral = 0
-            testimonial = TextBlob(sentence)
-            score = testimonial.sentiment.polarity
-            if score >= 0.05:
-                polarities.append("Positive")
-                positive += 1
-                count_pol.append([positive, neutral, negative])
-            elif score <0.05 and score >-0.05:
-                polarities.append("Neutral")
-                neutral += 1
-                count_pol.append([positive, neutral, negative])
-            elif score<=-0.05:
-                polarities.append("Negative")
-                negative += 1
-                count_pol.append([positive, neutral, negative])
-            scores.append(round(score,2))
-        return scores, polarities, count_pol
-    except NameError as exception:
-        print("Textblob import Error") 
-
-def textblobSentimentFunction_sentence(sentences):
-    try:
-        scores=[]
-        polarities = []
-        count_polarity = []
-        count = len(sentences)
-        for i in range(count):
-            score, polarity, count_pol = textblobSentimentFunction(sentences[i])
-            scores.append(score)
-            polarities.append(polarity)
-            count_polarity.append(count_pol)
-        return scores, polarities, count_polarity
-    except NameError as exception:
-        print("Textblob import Error")        
-
-#For sentiwordnet function
-def penn_to_wn(tag):
-    """
-    Convert between the PennTreebank tags to simple Wordnet tags
-    """
-    if tag.startswith('J'):
-        return wn.ADJ
-    elif tag.startswith('N'):
-        return wn.NOUN
-    elif tag.startswith('R'):
-        return wn.ADV
-    elif tag.startswith('V'):
-        return wn.VERB
-    return None
-
-def sentiWordnetSentimentFunction(text):
-    try:
-        scores = []
-        polarities = []
-        tokens_count = 0
-        count_pol=[]
-
-        for sentence in text:
-            sentiment = 0.0
-            raw_sentences = sent_tokenize(sentence)
-            positive = 0
-            negative = 0
-            neutral = 0
-            #품사 태그
-            for raw_sentence in raw_sentences:
-                tagged_sentence = pos_tag(word_tokenize(raw_sentence))
-
-                for word, tag in tagged_sentence:
-                    wn_tag = penn_to_wn(tag)
-                    if wn_tag not in (wn.NOUN, wn.ADJ, wn.ADV, wn.VERB):
-                        continue
-
-                    lemma = WordNetLemmatizer().lemmatize(word, pos=wn_tag)
-                    if not lemma:
-                        continue
-
-                    synsets = wn.synsets(lemma, pos=wn_tag)
-                    if not synsets:
-                        continue
-
-                    # Take the first sense, the most common
-                    synset = synsets[0]
-                    swn_synset = swn.senti_synset(synset.name())
-
-                    sentiment += swn_synset.pos_score() - swn_synset.neg_score()
-                    tokens_count += 1
-
-            scores.append(round(sentiment,2))
-            if sentiment > 0:
-                polarities.append("Positive")
-                positive += 1
-                count_pol.append([positive, neutral, negative])
-            elif sentiment < 0:
-                polarities.append("Negative")
-                negative += 1
-                count_pol.append([positive, neutral, negative])
-            else:
-                polarities.append("Neutral")
-                neutral += 1
-                count_pol.append([positive, neutral, negative])
-        return scores, polarities, count_pol
-    except NameError as exception:
-        print("SentiwordNet import Error")        
-
-def sentiWordnetSentimentFunction_sentence(sentences):
-    try:
-        scores=[]
-        polarities = []
-        count_polarity = []
-        count = len(sentences)
-        for i in range(count):
-            score, polarity, count_pol = sentiWordnetSentimentFunction(sentences[i])
-            scores.append(score)
-            polarities.append(polarity)
-            count_polarity.append(count_pol)
-        return scores, polarities, count_polarity
-    except NameError as exception:
-        print("SentiwordNet import Error") 
-
-def confusionMatrix (annotation_result, tool_result):
- return confusion_matrix(annotation_result, tool_result, labels=["Positive", "Negative"])
-
-def precise(annotation_result, tool_result):
-    return precision_score(annotation_result, tool_result, average='macro')
-
-def recall(annotation_result, tool_result):
-    return recall_score(annotation_result, tool_result, average='macro')
-
-def F1Score(precision, recall):
-    F1Score = 2*precision*recall/(precision+recall)
-    return F1Score
-
-def F1ScoreSorted(vaderF1,textBlobF1,sentiF1):
-    result=[("Vader F1 Score",vaderF1),("TextBlob",textBlobF1),("SentiWordNet Dictionary F1 Score",sentiF1)]
-    result.sort(key=lambda element : element[1],reverse=True)
-    return result
-
-def average(score):
-    result = []
-    for i in score:
-        avg = sum(i, 0.0)/len(i)
-        result.append(round(avg,2))
-    return result
-
-def majority(polarities):
-    result = []
-    count = len(polarities)
-    for i in range(count):
-        pos = 0
-        neg = 0
-        for polarity in polarities[i]:
-            if polarity == 'Positive':
-                pos += 1
-            elif polarity == 'Negative':
-                neg += 1
-            else:
-                continue
-        if pos == neg:
-            result.append("Neutral")
-        elif pos > neg:
-            result.append("Positive")
-        else:
-            result.append("Negative")
-    return result
-
-def sum_for_kappa_sentence(a,b,c,d):
-  count_pol = []
-  for i in range(len(a)):
-    count_polarity=[]
-    for j in range(len(a[i])):
-      sum_pos = a[i][j][0]+b[i][j][0]+c[i][j][0]+d[i][j][0]
-      sum_neu = a[i][j][1]+b[i][j][1]+c[i][j][1]+d[i][j][1]
-      sum_neg = a[i][j][2]+b[i][j][2]+c[i][j][2]+d[i][j][2]
-      count_polarity.append([sum_pos, sum_neu, sum_neg])
-    count_pol.append(count_polarity)
-  return count_pol
-
-def sum_for_kappa_tweet(a,b,c,d):
-    result = []
-    for i in range(len(a)):
-      count_pol = []
-      sum_pos = a[i][0]+b[i][0]+c[i][0]+d[i][0]
-      sum_neu = a[i][1]+b[i][1]+c[i][1]+d[i][1]
-      sum_neg = a[i][2]+b[i][2]+c[i][2]+d[i][2]
-      count_pol.append([sum_pos, sum_neu, sum_neg])
-      result.append(count_pol)
-    return result
-    
-
-def fleiss_kappa(matrixes):
-    result = []
-    for matrix in matrixes:
-        M = np.array(matrix)
-        N, k = M.shape  # N is # of items, k is # of categories
-        n_annotators = float(np.sum(M[0]))
-        p = np.sum(M, axis=0) / (N * n_annotators)
-        P = (np.sum(M * M, axis=1) - n_annotators) / (n_annotators * (n_annotators - 1))
-        Pbar = np.sum(P) / N
-        PbarE = np.sum(p * p)
-        kappa = (Pbar - PbarE) / (1 - PbarE)
-        if Pbar == 1.0:
-            result.append(1.0)
-        else:
-             result.append(round(kappa,2))
-    return result
+        return render(request, "loginpage.html")       
+    return render(request, 'signUp.html')

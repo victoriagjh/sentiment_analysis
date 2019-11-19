@@ -19,14 +19,12 @@ from sentimentAnalysis import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('expert/', views.expert_page, name='expert_page'),
-    path('', views.sentimentAnalysis, name='sentimentAnalysis'),
+    path('', views.main, name='main'),
     path('signIn/', views.signIn, name='signIn'),
-    path('signUp', views.signUp, name='signUp'),
-    path('postsign/', views.postsign, name='postsign'),
-    path('accounts/profile/', views.afterlogin, name='afterlogin'),
-    path('auth/', include('social_django.urls', namespace='social')),
+    path('signUp/', views.signUp, name='signUp'),
     path('logout_view/', views.logout_view, name='logout_view'),
-    path('google/', views.google_login, name = "google"), 
-    path('postsignup/', views.postsignup, name = 'postsignup')
+    #path('api/token/', obtain_jwt_token),
+    #path('api/token/verify/', verify_jwt_token),
+    #path('api/token/refresh/', refresh_jwt_token),
+    #path('api/check/', views.check),
     ]
