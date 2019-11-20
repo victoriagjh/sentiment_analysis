@@ -28,7 +28,7 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from django.core.files import File
 from pycorenlp import StanfordCoreNLP
 
-from .models import Requestlist, RequestlistManager
+from .models import Request, RequestlistManager,tasklist
 import time
 from .tasks import run
 import random
@@ -53,21 +53,24 @@ def main(request):
         if form.is_valid() and 'request_id' in request.POST:
             form.save() #Save the Input File
             filePath="text/"+request.FILES['file'].name
-            Requestlist(request_id = request.POST.get('request_id', ''), request_owner = request.POST.get('request_owner',0), request_status = "unassigned", request_pid = 0,
-            vader_status="unassigned", vader_pid = 0, textblob_status = "unassigned",textblob_pid = 0, stanfordNLP_status= "unassigned",stanfordNLP_pid = 0, sentiWordNet_status="unassigned", sentiWordNet_pid = 0,
+            Request(key=None, request_name = request.POST.get('request_id', ''), request_owner = request.POST.get('request_owner',0), request_status = "unassigned", request_pid = 0,
             request_issued_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()),request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()), file_path = filePath).save()
             unassignedRequest = None
-            unassignedRequest = Requestlist.objects.get(request_id = request.POST.get('request_id', ''))
+            tasklist(key=None, userEmail = request.POST.get('request_owner',0),requestName = request.POST.get('request_id', ''), toolName = "vader",toolStatus="unassigned", tool_pid = 0).save()
+            tasklist(key=None, userEmail = request.POST.get('request_owner',0),requestName = request.POST.get('request_id', ''), toolName = "textblob",toolStatus="unassigned", tool_pid = 0).save()
+            tasklist(key=None, userEmail = request.POST.get('request_owner',0),requestName = request.POST.get('request_id', ''), toolName = "sentiWordNet",toolStatus="unassigned", tool_pid = 0).save()
+            tasklist(key=None, userEmail = request.POST.get('request_owner',0),requestName = request.POST.get('request_id', ''), toolName = "stanfordNLP",toolStatus="unassigned", tool_pid = 0).save()
+            unassignedRequest = Request.objects.filter(request_name = request.POST.get('request_id', ''), request_owner = request.POST.get('request_owner', ''))
             if unassignedRequest != None :
                 try:
-                    run.apply_async(kwargs={'id': unassignedRequest.request_id},time_limit=60*30, soft_time_limit=60*30)
+                    run.apply_async(kwargs={'name': request.POST.get('request_id', ''), 'email': request.POST.get('request_owner', '')},time_limit=60*30, soft_time_limit=60*30)
                 except SoftTimeLimitExceeded:
                     print("SoftTimeLimitExceeded : ", SoftTimeLimitExceeded)
                     clean_up_in_a_hurry()
                 except TimeoutError as err:
                     print("Timeout Error : ", err)
                 #run.delay(unassignedRequest.request_id)
-            lists = Requestlist.objects.all()
+            lists = Request.objects.all()
             context = {'lists':lists}
             return render(request, "expert_page.html", context)
     return render(request, "main_page.html") # context)
