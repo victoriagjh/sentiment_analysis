@@ -28,6 +28,13 @@ import numpy as np
 import json
 from os import path
 
+import smtplib #module for SMTP
+from email.mime.text import MIMEText #settings for messages title and content
+
+import yaml
+stream = open("sentimentAnalysis/mailKey.yml", 'r')
+key = yaml.safe_load(stream)
+
 @shared_task
 def run(name,email):
     print("Process ID : " + str(os.getpid()))
@@ -151,18 +158,8 @@ def vaderAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,co
 
             #Checker 비동기적으로 짜면 수정할 코드
             if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
-                #mail보내기 코드
-                result = requestResult.objects.filter(requestName=requestName,userEmail = email).first()
-                requestResult.objects.filter(requestName=requestName,userEmail = email).update(sortedF1ScoreList = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score)))
+                totalAnalysis(requestName, email,tweet_id)
 
-                sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
-                sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
-                KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
-                kappas=fleiss_kappa(sumPolarity_tweet)
-                for i in range(0,len(tweet_id)):
-                    tweet.objects.filter(requestName=requestName,userEmail = email,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
-
-                Request.objects.filter(request_name = requestName, request_owner = email).update(request_status = "success",request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()))
         except NameError as exception:
             tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="vader").update(toolStatus = "failure")
             print("Vader import Error")
@@ -221,18 +218,7 @@ def textblobAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation
 
         #Checker 비동기적으로 짜면 수정할 코드
         if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
-            #mail보내기 코드
-            result = requestResult.objects.filter(requestName=requestName,userEmail = email).first()
-            requestResult.objects.filter(requestName=requestName,userEmail = email).update(sortedF1ScoreList = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score)))
-
-            sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
-            sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
-            KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
-            kappas=fleiss_kappa(sumPolarity_tweet)
-            for i in range(0,len(tweet_id)):
-                tweet.objects.filter(requestName=requestName,userEmail = email,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
-
-            Request.objects.filter(request_name = requestName, request_owner = email).update(request_status = "success",request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()))
+            totalAnalysis(requestName, email,tweet_id)
 
     except NameError as exception:
         tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="textblob").update(toolStatus = "failure")
@@ -318,18 +304,8 @@ def sentiWordNetAnalysis(requestName,email,tweet_id, tweet_content, tweet_annota
 
         #Checker 비동기적으로 짜면 수정할 코드
         if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
-            #mail보내기 코드
-            result = requestResult.objects.filter(requestName=requestName,userEmail = email).first()
-            requestResult.objects.filter(requestName=requestName,userEmail = email).update(sortedF1ScoreList = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score)))
+            totalAnalysis(requestName, email,tweet_id)
 
-            sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
-            sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
-            KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
-            kappas=fleiss_kappa(sumPolarity_tweet)
-            for i in range(0,len(tweet_id)):
-                tweet.objects.filter(requestName=requestName,userEmail = email,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
-
-            Request.objects.filter(request_name = requestName, request_owner = email).update(request_status = "success",request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()))
     except NameError as exception:
         tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="sentiWordNet").update(toolStatus = "failure")
         print("SentiWordNet import Error")
@@ -403,18 +379,8 @@ def stanfordNLPAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotat
 
         #Checker 비동기적으로 짜면 수정할 코드
         if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
-            #mail보내기 코드
-            result = requestResult.objects.filter(requestName=requestName,userEmail = email).first()
-            requestResult.objects.filter(requestName=requestName,userEmail = email).update(sortedF1ScoreList = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score)))
+            totalAnalysis(requestName, email,tweet_id)
 
-            sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
-            sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
-            KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
-            kappas=fleiss_kappa(sumPolarity_tweet)
-            for i in range(0,len(tweet_id)):
-                tweet.objects.filter(requestName=requestName,userEmail = email,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
-
-            Request.objects.filter(request_name = requestName, request_owner = email).update(request_status = "success",request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()))
     except NameError as exception:
         tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="stanfordNLP").update(toolStatus = "failure")
         print("Stanford NLP import Error")
@@ -422,6 +388,35 @@ def stanfordNLPAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotat
         print(exception)
         tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="stanfordNLP").update(toolStatus = "failure")
         print("Check Stanford NLP Server")
+
+@shared_task
+def totalAnalysis(requestName, email,tweet_id):
+    result = requestResult.objects.filter(requestName=requestName,userEmail = email).first()
+    requestResult.objects.filter(requestName=requestName,userEmail = email).update(sortedF1ScoreList = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score)))
+
+    sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
+    sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
+    KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
+    kappas=fleiss_kappa(sumPolarity_tweet)
+    for i in range(0,len(tweet_id)):
+        tweet.objects.filter(requestName=requestName,userEmail = email,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
+
+    Request.objects.filter(request_name = requestName, request_owner = email).update(request_status = "success",request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()))
+
+    sendMail(email)
+
+def sendMail(email):
+    print("Mail Sending Code")
+    s = smtplib.SMTP('smtp.gmail.com',587)
+    s.starttls() #setting about tls mode, tls : transport layer security
+
+    s.login('uci.salt.sender@gmail.com',key['mailKey'])
+
+    msg = MIMEText('This is the content of Sentiment Analysis Mail reporting.')
+    msg['Subject'] = 'Sentiment Analysis Mail Reporting test'
+
+    s.sendmail("uci.salt.sender@gmail.com",email,msg.as_string())
+    s.quit()
 
 #switch use dictionary
 def getPolarity(x):

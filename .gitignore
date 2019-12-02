@@ -20,3 +20,4 @@ ignore-migrations/
 venv/
 myvenv/
 *.png
+*.yml
