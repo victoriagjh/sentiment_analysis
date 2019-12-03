@@ -56,11 +56,12 @@ def main(request):
             Request(key=None, request_name = request.POST.get('request_id', ''), request_owner = request.POST.get('request_owner',0), request_status = "unassigned", request_pid = 0,
             request_issued_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()),request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()), file_path = filePath).save()
             unassignedRequest = None
-            tasklist(key=None, userEmail = request.POST.get('request_owner',0),requestName = request.POST.get('request_id', ''), toolName = "vader",toolStatus="unassigned", tool_pid = 0).save()
-            tasklist(key=None, userEmail = request.POST.get('request_owner',0),requestName = request.POST.get('request_id', ''), toolName = "textblob",toolStatus="unassigned", tool_pid = 0).save()
-            tasklist(key=None, userEmail = request.POST.get('request_owner',0),requestName = request.POST.get('request_id', ''), toolName = "sentiWordNet",toolStatus="unassigned", tool_pid = 0).save()
-            tasklist(key=None, userEmail = request.POST.get('request_owner',0),requestName = request.POST.get('request_id', ''), toolName = "stanfordNLP",toolStatus="unassigned", tool_pid = 0).save()
-            unassignedRequest = Request.objects.filter(request_name = request.POST.get('request_id', ''), request_owner = request.POST.get('request_owner', ''))
+            unassignedRequest = Request.objects.filter(request_name = request.POST.get('request_id', ''), request_owner = request.POST.get('request_owner', '')).first()
+
+            tasklist(key=None, request_key = unassignedRequest.key, toolName = "vader",toolStatus="unassigned", tool_pid = 0).save()
+            tasklist(key=None, request_key = unassignedRequest.key, toolName = "textblob",toolStatus="unassigned", tool_pid = 0).save()
+            tasklist(key=None, request_key = unassignedRequest.key, toolName = "sentiWordNet",toolStatus="unassigned", tool_pid = 0).save()
+            tasklist(key=None, request_key = unassignedRequest.key, toolName = "stanfordNLP",toolStatus="unassigned", tool_pid = 0).save()
             if unassignedRequest != None :
                 try:
                     run.apply_async(kwargs={'name': request.POST.get('request_id', ''), 'email': request.POST.get('request_owner', '')},time_limit=60*30, soft_time_limit=60*30)

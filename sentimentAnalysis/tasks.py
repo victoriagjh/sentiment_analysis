@@ -40,6 +40,7 @@ def run(name,email):
     print("Process ID : " + str(os.getpid()))
     Request.objects.filter(request_name = name, request_owner = email).update(request_status = "pending",request_pid = os.getpid())
     request = Request.objects.filter(request_name = name, request_owner = email).first()
+    request_id = request.key
     filePath = request.file_path
     file = open(filePath, "r", encoding='utf-8',errors="ignore")
     text=file.readlines()
@@ -74,11 +75,11 @@ def run(name,email):
 
     requestResult(key=None,requestName=name, userEmail = email,vaderConfusionMatrix="confusion", vaderPrecise=150.0, vaderRecall=150.0, vaderF1Score=150.0,textblobConfusionMatrix="confusion", textblobPrecise=150.0, textblobRecall=150.0, textblobF1Score=150.0,sentiWordNetConfusionMatrix="confusion", sentiWordNetPrecise=150.0, sentiWordNetRecall=150.0, sentiWordNetF1Score=150.0,stanfordNLPConfusionMatrix="confusion",
     topFrequentWords ="topFrequentWords",wordCounter=0,wordCloudFileName="wordCloudFileName",hashtagFrequent="hashtagFrequent",positiveTopFrequentHashtag="positiveTopFrequentHashtag",negativeTopFrequentHashtag="negativeTopFrequentHashtag",positiveTopFrequentWords="positiveTopFrequentWords",positiveWordcounter=0,positiveWordCloudFilename="positiveWordCloudFilename",negativeTopFrequentWords="negativeTopFrequentWords",negativeWordcounter=0,
-    negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="").save()
-    vaderAnalysis.delay(name,email, ids, content,annotation,content_sentence)
-    textblobAnalysis.delay(name,email, ids, content,annotation,content_sentence)
-    sentiWordNetAnalysis.delay(name,email, ids, content,annotation,content_sentence)
-    stanfordNLPAnalysis.delay(name,email, ids, content,annotation,content_sentence)
+    negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="",tweetIDs='').save()
+    vaderAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
+    textblobAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
+    sentiWordNetAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
+    stanfordNLPAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
 
     cleansingText = cleansing(content)
     word_frequents = word_frequent(cleansingText)
@@ -99,15 +100,15 @@ def run(name,email):
     negativeWord_frequent = word_frequent(negativeCleansingText)
     save_wordcloud(negativeWord_frequent,filenames+"_Negative")
 
-    req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = filenames,hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = wordcounter(positiveCleansingText), positiveWordCloudFilename = filenames+"_Positive", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = wordcounter(negativeCleansingText),negativeWordCloudFilename = filenames+"_Negative")
+    req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = filenames,hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = wordcounter(positiveCleansingText), positiveWordCloudFilename = filenames+"_Positive", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = wordcounter(negativeCleansingText),negativeWordCloudFilename = filenames+"_Negative", tweetIDs = str(ids))
 
     print("SUCCESS : ",str(os.getpid()))
 
 @shared_task
-def vaderAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence):
+def vaderAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence,request_id):
         try:
             print("Vader Process ID : " + str(os.getpid()))
-            tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="vader").update(toolStatus = "pending", tool_pid = os.getpid())
+            tasklist.objects.filter(request_key = request_id, toolName ="vader").update(toolStatus = "pending", tool_pid = os.getpid())
 
             analyzer = SentimentIntensityAnalyzer()
             polarities = []
@@ -149,26 +150,27 @@ def vaderAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,co
 
             requestResult.objects.filter(requestName=requestName,userEmail = email).update(vaderConfusionMatrix = str(confusion_matrix(tweet_annotation,polarities,labels=["Positive", "Negative"])),vaderPrecise = precise,vaderRecall = recall, vaderF1Score = round(2*precise*recall/(precise+recall),2),vaderCountpol = str(vaderCount),vaderCountpol_sentence = str(vaderCountpol_sentence))
 
-            tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="vader").update(toolStatus = "success")
+            tasklist.objects.filter(request_key = request_id, toolName ="vader").update(toolStatus = "success")
 
-            vader = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="vader").first()
-            text = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="textblob").first()
-            senti = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="sentiWordNet").first()
-            stan = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="stanfordNLP").first()
+            vader = tasklist.objects.filter(request_key = request_id, toolName ="vader").first()
+            text = tasklist.objects.filter(request_key = request_id, toolName ="textblob").first()
+            senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
+            stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
             #Checker 비동기적으로 짜면 수정할 코드
+            '''
             if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
                 totalAnalysis(requestName, email,tweet_id)
-
+            '''
         except NameError as exception:
-            tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="vader").update(toolStatus = "failure")
+            tasklist.objects.filter(request_key = request_id, toolName ="vader").update(toolStatus = "failure")
             print("Vader import Error")
 
 @shared_task
-def textblobAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence):
+def textblobAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence,request_id):
     try:
         print("TextBlob Process ID : " + str(os.getpid()))
-        tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="textblob").update(toolStatus = "pending", tool_pid = os.getpid())
+        tasklist.objects.filter(request_key = request_id, toolName ="textblob").update(toolStatus = "pending", tool_pid = os.getpid())
 
         scores = []
         polarities = []
@@ -209,26 +211,27 @@ def textblobAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation
         recall = round(recall_score(tweet_annotation, polarities, average='macro'),2)
 
         requestResult.objects.filter(requestName=requestName,userEmail = email).update(textblobConfusionMatrix = str(confusion_matrix(tweet_annotation,polarities,labels=["Positive", "Negative"])),textblobPrecise = precise,textblobRecall = recall, textblobF1Score = round(2*precise*recall/(precise+recall),2),textblobCountpol = str(count_pol),textblobCountpol_sentence = str(textblobCountpol_sentence))
-        tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="textblob").update(toolStatus = "success")
+        tasklist.objects.filter(request_key = request_id, toolName ="textblob").update(toolStatus = "success")
 
-        vader = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="vader").first()
-        text = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="textblob").first()
-        senti = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="sentiWordNet").first()
-        stan = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="stanfordNLP").first()
+        vader = tasklist.objects.filter(request_key = request_id, toolName ="vader").first()
+        text = tasklist.objects.filter(request_key = request_id, toolName ="textblob").first()
+        senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
+        stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
         #Checker 비동기적으로 짜면 수정할 코드
+        '''
         if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
             totalAnalysis(requestName, email,tweet_id)
-
+        '''
     except NameError as exception:
-        tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="textblob").update(toolStatus = "failure")
+        tasklist.objects.filter(request_key = request_id, toolName ="textblob").update(toolStatus = "failure")
         print("Vader import Error")
 
 @shared_task
-def sentiWordNetAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence):
+def sentiWordNetAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence,request_id):
     try:
         print("SentiWordNet Process ID : " + str(os.getpid()))
-        tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="sentiWordNet").update(toolStatus = "pending", tool_pid = os.getpid())
+        tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").update(toolStatus = "pending", tool_pid = os.getpid())
 
         scores = []
         polarities = []
@@ -295,17 +298,18 @@ def sentiWordNetAnalysis(requestName,email,tweet_id, tweet_content, tweet_annota
         recall = round(recall_score(tweet_annotation, polarities, average='macro'),2)
 
         requestResult.objects.filter(requestName=requestName,userEmail = email).update(sentiWordNetConfusionMatrix = str(confusion_matrix(tweet_annotation,polarities,labels=["Positive", "Negative"])),sentiWordNetPrecise = precise,sentiWordNetRecall = recall, sentiWordNetF1Score = round(2*precise*recall/(precise+recall),2),sentiWordNetCountpol = str(count_pol),sentiWordnetCountpol_sentence = str(sentiWordnetCountpol_sentence))
-        tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="sentiWordNet").update(toolStatus = "success")
+        tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").update(toolStatus = "success")
 
-        vader = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="vader").first()
-        text = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="textblob").first()
-        senti = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="sentiWordNet").first()
-        stan = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="stanfordNLP").first()
+        vader = tasklist.objects.filter(request_key = request_id, toolName ="vader").first()
+        text = tasklist.objects.filter(request_key = request_id, toolName ="textblob").first()
+        senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
+        stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
         #Checker 비동기적으로 짜면 수정할 코드
+        '''
         if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
             totalAnalysis(requestName, email,tweet_id)
-
+        '''
     except NameError as exception:
         tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="sentiWordNet").update(toolStatus = "failure")
         print("SentiWordNet import Error")
@@ -325,10 +329,10 @@ def penn_to_wn(tag):
     return None
 
 @shared_task
-def stanfordNLPAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence):
+def stanfordNLPAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence,request_id):
     try:
         print("StanfordNLP Process ID : " + str(os.getpid()))
-        tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="stanfordNLP").update(toolStatus = "pending", tool_pid = os.getpid())
+        tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").update(toolStatus = "pending", tool_pid = os.getpid())
 
         nlp = StanfordCoreNLP('http://localhost:9000')
         result=[]
@@ -370,23 +374,24 @@ def stanfordNLPAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotat
         requestRes = requestResult.objects.get(requestName=requestName)
 
         requestResult.objects.filter(requestName=requestName,userEmail = email).update(stanfordNLPConfusionMatrix = str(confusion_matrix(tweet_annotation,result,labels=["Positive", "Negative"])),stanfordNLPCountpol =str(count_pol),stanfordNLPCountpol_sentence = str(stanfordNLPCountpol_sentence))
-        tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="stanfordNLP").update(toolStatus = "success")
+        tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").update(toolStatus = "success")
 
-        vader = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="vader").first()
-        text = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="textblob").first()
-        senti = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="sentiWordNet").first()
-        stan = tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="stanfordNLP").first()
+        vader = tasklist.objects.filter(request_key = request_id, toolName ="vader").first()
+        text = tasklist.objects.filter(request_key = request_id, toolName ="textblob").first()
+        senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
+        stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
         #Checker 비동기적으로 짜면 수정할 코드
+        '''
         if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
             totalAnalysis(requestName, email,tweet_id)
-
+        '''
     except NameError as exception:
-        tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="stanfordNLP").update(toolStatus = "failure")
+        tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").update(toolStatus = "failure")
         print("Stanford NLP import Error")
     except Exception as exception:
         print(exception)
-        tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="stanfordNLP").update(toolStatus = "failure")
+        tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").update(toolStatus = "failure")
         print("Check Stanford NLP Server")
 
 @shared_task

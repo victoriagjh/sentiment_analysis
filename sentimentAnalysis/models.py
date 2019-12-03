@@ -24,17 +24,17 @@ class Request(models.Model):
     objects = RequestlistManager()
 
 class taskManager(models.Manager):
-    def create_request(self, key, userEmail, requestName, toolName, toolStatus, tool_pid):
-        task = self.create(key=key, userEmail = userEmail, requestName = requestName, toolName=toolName, toolStatus = toolStatus,tool_pid=tool_pid)
+    def create_request(self, key, request_id, toolName, toolStatus, tool_pid):
+        task = self.create(key=key, request_key = request_id, toolName=toolName, toolStatus = toolStatus,tool_pid=tool_pid)
         return task
 
 class tasklist(models.Model):
-    key = models.AutoField(primary_key=True,auto_created=True)
-    userEmail = models.TextField(default = "something")
-    requestName = models.TextField(default = "something")
+    key = models.AutoField(primary_key=True, auto_created=True)
+    request_key = models.IntegerField(default=0)
     toolName = models.TextField(default = "something")
     toolStatus = models.TextField(default = "something")
     tool_pid = models.IntegerField(default=0)
+    isMailSended = models.TextField(default="NOT YET")
     objects = taskManager()
 
 
@@ -78,11 +78,11 @@ class tweet(models.Model):
 
 class requestResultManager(models.Manager):
     def create_request(self, key,requestName,userEmail, vaderConfusionMatrix,vaderPrecise,vaderRecall,vaderF1Score, textblobConfusionMatrix,textblobPrecise,textblobRecall,textblobF1Score, sentiWordNetConfusionMatrix,sentiWordNetPrecise,sentiWordNetRecall,sentiWordNetF1Score, stanfordNLPConfusionMatrix,
-    topFrequentWords,wordCounter,wordCloudFileName,hashtagFrequent,positiveTopFrequentHashtag,negativeTopFrequentHashtag,positiveTopFrequentWords,positiveWordcounter,positiveWordCloudFilename,negativeTopFrequentWords,negativeWordcounter,negativeWordCloudFilename,sortedF1ScoreList,vaderCountpol,textblobCountpol,sentiWordNetCountpol,stanfordNLPCountpol,vaderCountpol_sentence ,textblobCountpol_sentence ,sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence ):
+    topFrequentWords,wordCounter,wordCloudFileName,hashtagFrequent,positiveTopFrequentHashtag,negativeTopFrequentHashtag,positiveTopFrequentWords,positiveWordcounter,positiveWordCloudFilename,negativeTopFrequentWords,negativeWordcounter,negativeWordCloudFilename,sortedF1ScoreList,vaderCountpol,textblobCountpol,sentiWordNetCountpol,stanfordNLPCountpol,vaderCountpol_sentence ,textblobCountpol_sentence ,sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence,tweetIDs ):
         request = self.create(key= key,requestName = requestName,userEmail=userEmail, vaderConfusionMatrix=vaderConfusionMatrix,vaderPrecise=vaderPrecise,vaderRecall=vaderRecall,vaderF1Score=vaderF1Score, textblobConfusionMatrix=textblobConfusionMatrix,textblobPrecise=textblobPrecise,textblobRecall=textblobRecall,textblobF1Score=textblobF1Score, sentiWordNetConfusionMatrix=sentiWordNetConfusionMatrix,sentiWordNetPrecise=sentiWordNetPrecise,
         sentiWordNetRecall=sentiWordNetRecall,sentiWordNetF1Score=sentiWordNetF1Score, stanfordNLPConfusionMatrix=stanfordNLPConfusionMatrix,
         topFrequentWords =topFrequentWords,wordCounter=wordCounter,wordCloudFileName=wordCloudFileName,hashtagFrequent=hashtagFrequent,positiveTopFrequentHashtag=positiveTopFrequentHashtag,negativeTopFrequentHashtag=negativeTopFrequentHashtag,positiveTopFrequentWords=positiveTopFrequentWords,positiveWordcounter=positiveWordcounter,positiveWordCloudFilename=positiveWordCloudFilename,negativeTopFrequentWords=negativeTopFrequentWords,negativeWordcounter=negativeWordcounter,
-        negativeWordCloudFilename=negativeWordCloudFilename,sortedF1ScoreList=sortedF1ScoreList, vaderCountpol=vaderCountpol,textblobCountpol=textblobCountpol,sentiWordNetCountpol=sentiWordNetCountpol,stanfordNLPCountpol=stanfordNLPCountpol,vaderCountpol_sentence=vaderCountpol_sentence ,textblobCountpol_sentence=textblobCountpol_sentence ,sentiWordNetCountpol_sentence=sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence =stanfordNLPCountpol_sentence)
+        negativeWordCloudFilename=negativeWordCloudFilename,sortedF1ScoreList=sortedF1ScoreList, vaderCountpol=vaderCountpol,textblobCountpol=textblobCountpol,sentiWordNetCountpol=sentiWordNetCountpol,stanfordNLPCountpol=stanfordNLPCountpol,vaderCountpol_sentence=vaderCountpol_sentence ,textblobCountpol_sentence=textblobCountpol_sentence ,sentiWordNetCountpol_sentence=sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence =stanfordNLPCountpol_sentence,tweetIDs=tweetIDs)
         return request
 
 class requestResult(models.Model): #Request당 나오는 결과물
@@ -134,6 +134,9 @@ class requestResult(models.Model): #Request당 나오는 결과물
     textblobCountpol_sentence = models.CharField(max_length=10000000,default='SOME STRING')
     sentiWordnetCountpol_sentence = models.CharField(max_length=10000000,default='SOME STRING')
     stanfordNLPCountpol_sentence = models.CharField(max_length=10000000,default='SOME STRING')
+
+    tweetIDs = models.CharField(max_length=10000000,default='SOME STRING')
+
 
     objects = requestResultManager()
 
