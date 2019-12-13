@@ -25,20 +25,15 @@
           <a class="mdl-navigation__link" href="">HOME</a>
           <a class="mdl-navigation__link" href="">Request</a>
           <a class="mdl-navigation__link" href="{% url 'logout_view' %}" href="">Logout</a>
+          <a class="mdl-navigation__link" href="{% url 'history' %}">History</a>
         </nav>
-        {% elif user.username %}
-        <span class="mdl-layout-title">{{ user.username }}!</span>
-        <nav class="mdl-navigation">
-            <a class="mdl-navigation__link" href="">HOME</a>
-            <a class="mdl-navigation__link" href="">Request</a>
-            <a class="mdl-navigation__link" href="{% url 'logout_view' %}" href="">Logout</a>
-          </nav>
         {% else %}
         <span class="mdl-layout-title">Account</span>
         <nav class="mdl-navigation">
           <a class="mdl-navigation__link" href="">HOME</a>
           <a class="mdl-navigation__link" href="">Request</a>
           <a class="mdl-navigation__link" href="{% url 'signIn' %}">LogIn</a>
+          <a class="mdl-navigation__link" href="{% url 'history' %}">History</a>
         </nav>
         {% endif %}
       </div>

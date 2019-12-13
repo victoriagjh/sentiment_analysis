@@ -27,5 +27,7 @@ urlpatterns = [
     path('auth/', include('social_django.urls', namespace='social')),
     path('logout_view/', views.logout_view, name='logout_view'),
     path('google/', views.google_login, name = "google"),
-    path('postsignup/', views.postsignup, name = 'postsignup')
+    path('postsignup/', views.postsignup, name = 'postsignup'),
+    path('history/', views.history, name = 'history'),
+    #path(r'^history/(?P<request_owner>[\w.@+-]+)/$', views.requestDetail, name = 'requestDetail'),
     ]

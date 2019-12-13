@@ -157,11 +157,6 @@ def vaderAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,co
             senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
             stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
-            #Checker 비동기적으로 짜면 수정할 코드
-            '''
-            if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
-                totalAnalysis(requestName, email,tweet_id)
-            '''
         except NameError as exception:
             tasklist.objects.filter(request_key = request_id, toolName ="vader").update(toolStatus = "failure")
             print("Vader import Error")
@@ -218,11 +213,6 @@ def textblobAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation
         senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
         stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
-        #Checker 비동기적으로 짜면 수정할 코드
-        '''
-        if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
-            totalAnalysis(requestName, email,tweet_id)
-        '''
     except NameError as exception:
         tasklist.objects.filter(request_key = request_id, toolName ="textblob").update(toolStatus = "failure")
         print("Vader import Error")
@@ -305,11 +295,6 @@ def sentiWordNetAnalysis(requestName,email,tweet_id, tweet_content, tweet_annota
         senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
         stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
-        #Checker 비동기적으로 짜면 수정할 코드
-        '''
-        if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
-            totalAnalysis(requestName, email,tweet_id)
-        '''
     except NameError as exception:
         tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="sentiWordNet").update(toolStatus = "failure")
         print("SentiWordNet import Error")
@@ -381,11 +366,6 @@ def stanfordNLPAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotat
         senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
         stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
-        #Checker 비동기적으로 짜면 수정할 코드
-        '''
-        if vader.toolStatus == "success" and text.toolStatus == "success" and senti.toolStatus =="success" and stan.toolStatus == "success" :
-            totalAnalysis(requestName, email,tweet_id)
-        '''
     except NameError as exception:
         tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").update(toolStatus = "failure")
         print("Stanford NLP import Error")

@@ -1,0 +1,51 @@
+
+<html lang='en'>
+  <head>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" type="text/css" href= "style.css">
+  </head>
+  <body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <span class="mdl-layout-title">Sentiment Analysis Tools</span>
+          <div class="mdl-layout-spacer"></div>
+        </div>
+      </header>
+      <main class="mdl-layout__content">
+        <div class="page-content">
+          <div class="history-table">
+            <table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp table">
+                <thead>
+                  <tr>
+                    <th>Reuqest Name</th>
+                    <th>FIle Name</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Detail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for request in requestList %}
+                    <form method="post" enctype="multipart/form-data" action = "http://localhost:8000/history/{{request.request_owner}}" novalidate>
+                    {% csrf_token %}
+                    <tr>
+                      <td>{{ request.request_name }}</td>
+                      <td>{{ request.file_path }}</td>
+                      <td>{{ request.request_issued_time }}</td>
+                      <td>{{ request.request_status }}</td>
+                      <td>
+                      <button class="mdl-button mdl-js-button mdl-button--raised button" style = "background-color:#3F51B5;" value="{{request.request_owner}}">
+                        Detail
+                      </button>
+                      </td>
+                    </tr>
+                  </form>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+        </div>
+  </body>
+</html>

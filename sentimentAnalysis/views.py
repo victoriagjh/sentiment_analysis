@@ -129,3 +129,16 @@ def postsignup(request):
     database.child("users").child(uid).child("details").set(data)
 
     return render(request, "loginpage.html")
+
+def history(request):
+    #Look the cookie and use the JWT, decode it
+    # request.POST.get('request_owner', '')
+    requestList = Request.objects.filter(request_owner = 'akrso06197@naver.com').order_by('request_issued_time')
+    form = {'requestList' : requestList}
+    print(requestList)
+    return render(request,"history.html", form)
+'''
+def requestDetail(request):
+    print("?")
+    return render(request,"historyDetail.html",form)
+'''
