@@ -29,5 +29,5 @@ urlpatterns = [
     path('google/', views.google_login, name = "google"),
     path('postsignup/', views.postsignup, name = 'postsignup'),
     path('history/', views.history, name = 'history'),
-    #path(r'^history/(?P<request_owner>[\w.@+-]+)/$', views.requestDetail, name = 'requestDetail'),
+    path('history/(?P<request_owner>[\w.@+-]+)-(?P<request_name>[\w.@+-]+)/$', views.requestDetail, name = 'requestDetail'),
     ]

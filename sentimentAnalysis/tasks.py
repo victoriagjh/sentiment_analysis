@@ -35,6 +35,8 @@ import yaml
 stream = open("sentimentAnalysis/mailKey.yml", 'r')
 key = yaml.safe_load(stream)
 
+import pandas as pd
+
 @shared_task
 def run(name,email):
     print("Process ID : " + str(os.getpid()))
@@ -75,7 +77,7 @@ def run(name,email):
 
     requestResult(key=None,requestName=name, userEmail = email,vaderConfusionMatrix="confusion", vaderPrecise=150.0, vaderRecall=150.0, vaderF1Score=150.0,textblobConfusionMatrix="confusion", textblobPrecise=150.0, textblobRecall=150.0, textblobF1Score=150.0,sentiWordNetConfusionMatrix="confusion", sentiWordNetPrecise=150.0, sentiWordNetRecall=150.0, sentiWordNetF1Score=150.0,stanfordNLPConfusionMatrix="confusion",
     topFrequentWords ="topFrequentWords",wordCounter=0,wordCloudFileName="wordCloudFileName",hashtagFrequent="hashtagFrequent",positiveTopFrequentHashtag="positiveTopFrequentHashtag",negativeTopFrequentHashtag="negativeTopFrequentHashtag",positiveTopFrequentWords="positiveTopFrequentWords",positiveWordcounter=0,positiveWordCloudFilename="positiveWordCloudFilename",negativeTopFrequentWords="negativeTopFrequentWords",negativeWordcounter=0,
-    negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="",tweetIDs='').save()
+    negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="",tweetIDs='',wordGraphFilename="").save()
     vaderAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
     textblobAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
     sentiWordNetAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
@@ -86,6 +88,7 @@ def run(name,email):
     topFrequentWords=top_freqeunt(cleansingText)
     wordcounters = wordcounter(cleansingText)
     filenames = str(name)+ "_"+str(email) + "_WordCloud"
+    #wordGraphFileNames = str(name)+ "_"+str(email) + "_WordGraph"
     save_wordcloud(word_frequents,filenames)
     hashtag_frequent = top_freqeunt(hashtag)
     positiveSet,negativeSet=separatePN(annotation,content)
@@ -94,13 +97,16 @@ def run(name,email):
     positiveHashtag= extractHashtag(positiveList)
     negativeHashtag= extractHashtag(negativeList)
     positiveCleansingText = cleansing(positiveList)
+    positiveWordCounter = wordcounter(positiveCleansingText)
     positiveWord_frequent = word_frequent(positiveCleansingText)
     save_wordcloud(positiveWord_frequent,filenames+"_Positive")
     negativeCleansingText = cleansing(negativeList)
+    negativeWordCounter = wordcounter(negativeCleansingText)
     negativeWord_frequent = word_frequent(negativeCleansingText)
     save_wordcloud(negativeWord_frequent,filenames+"_Negative")
+    #word_graph(wordcounters, positiveWordCounter, negativeWordCounter, wordGraphFileNames)
 
-    req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = filenames,hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = wordcounter(positiveCleansingText), positiveWordCloudFilename = filenames+"_Positive", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = wordcounter(negativeCleansingText),negativeWordCloudFilename = filenames+"_Negative", tweetIDs = str(ids))
+    req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = filenames, hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = positiveWordCounter, positiveWordCloudFilename = filenames+"_Positive", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = negativeWordCounter,negativeWordCloudFilename = filenames+"_Negative", tweetIDs = str(ids))
 
     print("SUCCESS : ",str(os.getpid()))
 
@@ -742,3 +748,23 @@ def stanfordNLPSentimentFunction_sentence(sentences):
         polarities.append(polarity)
         count_polarity.append(count_pol)
     return polarities, count_polarity
+
+def word_graph(wordconter, positiveWordcounter, negativeWordcounter,wordGraphFileName):
+    colors = ['green', 'orange', 'red']
+    pos_per = (positiveWordcounter/wordconter)*100
+    neg_per = (negativeWordcounter/wordconter)*100
+    neu_per = 100-pos_per-neg_per
+    a = np.array([[pos_per, neu_per, neg_per]])
+    df = pd.DataFrame(a, columns= ['positive', 'neutral', 'negative'])
+    ax = df.plot.barh(color = colors, stacked=True, figsize = (9, 1.5), edgecolor = "none")
+    fig1 = plt.gcf()
+    for p in ax.patches:
+        left, bottom, width, height = p.get_bbox().bounds
+        ax.annotate((width), xy=(left+width/2, bottom+height/2), ha='center', va='center', fontsize = 18)
+    plt.legend(loc='upper center', ncol=3, bbox_to_anchor=(0.5, 1), edgecolor = "none")
+    plt.sca(ax)
+    plt.box(False)
+    plt.axis('off')
+    plt.subplots_adjust(left = 0, bottom = 0, right = 1, top = 1, hspace = 0, wspace = 0)
+    plt.draw()
+    fig1.savefig(wordGraphFileName)

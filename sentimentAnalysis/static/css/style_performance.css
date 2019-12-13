@@ -1,0 +1,9 @@
+.performance-table{
+    display: flex;
+    justify-content: center;
+    padding: 25px 40px 0px;
+}
+
+.table {
+    width: 40%;
+}

@@ -28,7 +28,7 @@
                 </thead>
                 <tbody>
                   {% for request in requestList %}
-                    <form method="post" enctype="multipart/form-data" action = "http://localhost:8000/history/{{request.request_owner}}" novalidate>
+                    <form method="post" enctype="multipart/form-data" action = "{% url 'requestDetail' request.request_owner request.request_name %}" novalidate>
                     {% csrf_token %}
                     <tr>
                       <td>{{ request.request_name }}</td>

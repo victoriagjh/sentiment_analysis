@@ -137,8 +137,8 @@ def history(request):
     form = {'requestList' : requestList}
     print(requestList)
     return render(request,"history.html", form)
-'''
-def requestDetail(request):
-    print("?")
-    return render(request,"historyDetail.html",form)
-'''
+
+def requestDetail(request,request_owner,request_name):
+
+
+    return render(request,"requestDetail.html")

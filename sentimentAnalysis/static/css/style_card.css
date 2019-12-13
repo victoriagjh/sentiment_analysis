@@ -1,0 +1,38 @@
+.main-tasks-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.cards-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 25px;
+}
+
+.summary-container{
+    display: flex;
+    justify-content: center;
+    padding: 25px 40px 0px;
+    font-size: 16px;
+}
+
+.card {
+    width: 260px;
+    height: 98px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
+}
+
+.card-title{
+    margin: 0px 0px 10px;
+}
+
+.card-supporting-text {
+    color: rgba(0,0,0,.54);
+}

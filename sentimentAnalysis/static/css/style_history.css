@@ -1,0 +1,14 @@
+.history-table{
+    display: flex;
+    justify-content: center;
+    padding: 25px 40px 0px;
+}
+
+.table {
+    width: 65%;
+}
+
+.button{
+    color: white;
+    padding: 0px 3px;
+}
