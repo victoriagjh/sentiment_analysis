@@ -40,7 +40,7 @@
     padding:20px;
 }
 
-.polarity_button{
+.polarity_button_positive{
   background: white;
   padding:5px;
   border-radius: 5px;
@@ -50,6 +50,29 @@
   border: 1px solid green; 
   color:green;
 }
+
+.polarity_button{
+  background: white;
+  padding:5px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid grey; 
+  color:grey;
+}
+
+.polarity_button_negative{
+  background: white;
+  padding:5px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid red; 
+  color:red;
+}
+
 .info-button{
   color: indigo;
 }

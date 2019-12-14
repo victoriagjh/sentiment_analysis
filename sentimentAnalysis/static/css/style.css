@@ -70,6 +70,7 @@ footer {
   align-items: center;
   justify-content: space-between;
 }
+
 .file-buttons{
   height: 8%;
   width: 61%;
@@ -77,6 +78,7 @@ footer {
   flex-direction: row;
   justify-content: space-between;
 }
+
 .file-button{
   height: 50px;
   width: 200px;
@@ -112,4 +114,9 @@ label[for="file"]{
 
 input[type="file"]{
   display:none;
+}
+
+.close {
+  width: 24px !important; 
+  height: 24px !important; 
 }

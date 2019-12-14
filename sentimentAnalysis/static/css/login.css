@@ -6,20 +6,21 @@
     widows: 100%;
   }
   
-.email, .password{
-    height: 13%;
-    width: 88%;
+.email-box, .password-box{
+    width: 369px;
     color:grey;
 }
 
 .login-box{
-    width: 400px;
-    height: 350px;
+    width: 488px;
+    height: 500px;
     display:flex;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
+    padding: 48px 40px 36px;
 }
+
 
 .button{
     height: 13%;
@@ -46,4 +47,17 @@ color: white;
 
 .text{
     color:grey;
+}
+
+.login-font{
+    height: 47px;
+    width: 371px;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.continue-button {
+    background-color: #3B5998 !important ;
 }

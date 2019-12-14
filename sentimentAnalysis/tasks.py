@@ -1,6 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task
-from .models import Requestlist,tweet,requestResult,sentenceResult
+from .models import Request,tweet,requestResult,sentenceResult,tasklist
 import random,os,re,time
 import vaderSentiment
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
@@ -28,13 +28,17 @@ import numpy as np
 import json
 from os import path
 
+import smtplib #module for SMTP
+from email.mime.text import MIMEText #settings for messages title and content
+
+import pandas as pd
+
 @shared_task
-def run(id):
+def run(name,email):
     print("Process ID : " + str(os.getpid()))
-    request = Requestlist.objects.get(request_id=id)
-    request.request_status = "pending"
-    request.request_pid = os.getpid()
-    request.save()
+    Request.objects.filter(request_name = name, request_owner = email).update(request_status = "pending",request_pid = os.getpid())
+    request = Request.objects.filter(request_name = name, request_owner = email).first()
+    request_id = request.key
     filePath = request.file_path
     file = open(filePath, "r", encoding='utf-8',errors="ignore")
     text=file.readlines()
@@ -57,73 +61,56 @@ def run(id):
             hashtag.append(tag)
 
     for i in range(0,len(ids)):
-        tweet(key=None,request_id=id,tweet_id=ids[i],tweet_content=content[i],tweet_annotation=annotation[i],vaderScores=0.0,vaderPolarity='vpolarity',textblobScores=.0,textblobPolarity='tpolarity',sentiWordNetScores=0.0,
+        tweet(key=None,requestName=name,userEmail = email,tweet_id=ids[i],tweet_content=content[i],tweet_annotation=annotation[i],vaderScores=0.0,vaderPolarity='vpolarity',textblobScores=.0,textblobPolarity='tpolarity',sentiWordNetScores=0.0,
         sentiWordNetPolarity='spolarity',stanfordNLPPolarity='nlppolarity',kappa=0.0).save()
 
     content_sentence = sentenceLevel(content) #by sentence
 
     for i in range(0,len(ids)):
         for j in range(0,len(content_sentence[i])):
-            sentenceResult(key=None,request_id=id,tweet_id=ids[i],sentenceID=j,vaderScores=0.0,vaderPolarity='vpolarity',textblobScores=.0,textblobPolarity='tpolarity',sentiWordNetScores=0.0,
+            sentenceResult(key=None,requestName=name,userEmail = email,tweet_id=ids[i],sentenceID=j,vaderScores=0.0,vaderPolarity='vpolarity',textblobScores=.0,textblobPolarity='tpolarity',sentiWordNetScores=0.0,
             sentiWordNetPolarity='spolarity',stanfordNLPPolarity='nlppolarity').save()
 
-    requestResult(request_id=id, vaderConfusionMatrix="confusion", vaderPrecise=150.0, vaderRecall=150.0, vaderF1Score=150.0,textblobConfusionMatrix="confusion", textblobPrecise=150.0, textblobRecall=150.0, textblobF1Score=150.0,sentiWordNetConfusionMatrix="confusion", sentiWordNetPrecise=150.0, sentiWordNetRecall=150.0, sentiWordNetF1Score=150.0,stanfordNLPConfusionMatrix="confusion",
+    requestResult(key=None,requestName=name, userEmail = email,vaderConfusionMatrix="confusion", vaderPrecise=150.0, vaderRecall=150.0, vaderF1Score=150.0,textblobConfusionMatrix="confusion", textblobPrecise=150.0, textblobRecall=150.0, textblobF1Score=150.0,sentiWordNetConfusionMatrix="confusion", sentiWordNetPrecise=150.0, sentiWordNetRecall=150.0, sentiWordNetF1Score=150.0,stanfordNLPConfusionMatrix="confusion",
     topFrequentWords ="topFrequentWords",wordCounter=0,wordCloudFileName="wordCloudFileName",hashtagFrequent="hashtagFrequent",positiveTopFrequentHashtag="positiveTopFrequentHashtag",negativeTopFrequentHashtag="negativeTopFrequentHashtag",positiveTopFrequentWords="positiveTopFrequentWords",positiveWordcounter=0,positiveWordCloudFilename="positiveWordCloudFilename",negativeTopFrequentWords="negativeTopFrequentWords",negativeWordcounter=0,
-    negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="").save()
-    vaderAnalysis.delay(id, ids, content,annotation,content_sentence)
-    textblobAnalysis.delay(id, ids, content,annotation,content_sentence)
-    sentiWordNetAnalysis.delay(id, ids, content,annotation,content_sentence)
-    stanfordNLPAnalysis.delay(id, ids, content,annotation,content_sentence)
+    negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="",tweetIDs='',wordGraphFilename="").save()
+    vaderAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
+    textblobAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
+    sentiWordNetAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
+    stanfordNLPAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
 
     cleansingText = cleansing(content)
     word_frequents = word_frequent(cleansingText)
     topFrequentWords=top_freqeunt(cleansingText)
-    req = requestResult.objects.get(request_id=id)
-    req.topFrequentWords = topFrequentWords
-
     wordcounters = wordcounter(cleansingText)
-    req.wordCounter = wordcounters
-    filenames = str(id) + "_WordCloud"
+    filenames = str(name)+ "_"+str(email) + "_WordCloud"
+    wordGraphFileNames = str(name)+ "_"+str(email) + "_WordGraph"
     save_wordcloud(word_frequents,filenames)
-    req.wordCloudFileName = filenames
     hashtag_frequent = top_freqeunt(hashtag)
-    req.hashtagFrequent = hashtag_frequent
-
     positiveSet,negativeSet=separatePN(annotation,content)
     positiveList = list(positiveSet)
     negativeList = list(negativeSet)
     positiveHashtag= extractHashtag(positiveList)
     negativeHashtag= extractHashtag(negativeList)
-    req.positiveTopFrequentHashtag=top_freqeunt(positiveHashtag)
-    req.negativeTopFrequentHashtag=top_freqeunt(negativeHashtag)
-
     positiveCleansingText = cleansing(positiveList)
+    positiveWordCounter = wordcounter(positiveCleansingText)
     positiveWord_frequent = word_frequent(positiveCleansingText)
-    req.positiveTopFrequentWords=top_freqeunt(positiveCleansingText)
-    req.positiveWordcounter = wordcounter(positiveCleansingText)
     save_wordcloud(positiveWord_frequent,filenames+"_Positive")
-    req.positiveWordCloudFilename = filenames+"_Positive"
-
     negativeCleansingText = cleansing(negativeList)
+    negativeWordCounter = wordcounter(negativeCleansingText)
     negativeWord_frequent = word_frequent(negativeCleansingText)
-    req.negativeTopFrequentWords=top_freqeunt(negativeCleansingText)
-    req.negativeWordcounter = wordcounter(negativeCleansingText)
     save_wordcloud(negativeWord_frequent,filenames+"_Negative")
-    req.negativeWordCloudFilename = filenames+"_Negative"
-    req.save()
+    word_graph(wordcounters, positiveWordCounter, negativeWordCounter, wordGraphFileNames)
 
-    request.save()
+    req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = "img/"+ filenames +".png", hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = positiveWordCounter, positiveWordCloudFilename = "img/"+filenames+"_Positive.png", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = negativeWordCounter,negativeWordCloudFilename = "img/"+filenames+"_Negative.png", tweetIDs = str(ids))
+
     print("SUCCESS : ",str(os.getpid()))
 
 @shared_task
-def vaderAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,content_sentence):
+def vaderAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence,request_id):
         try:
             print("Vader Process ID : " + str(os.getpid()))
-            request = Requestlist.objects.get(request_id=request_id)
-            print(request)
-            request.vader_status = "pending"
-            request.vader_pid = os.getpid()
-            request.save()
+            tasklist.objects.filter(request_key = request_id, toolName ="vader").update(toolStatus = "pending", tool_pid = os.getpid())
 
             analyzer = SentimentIntensityAnalyzer()
             polarities = []
@@ -155,58 +142,32 @@ def vaderAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,content_s
 
             for i in range(0,len(tweet_id)):
                 for j in range(0,len(content_sentence[i])):
-                    sentenceResult.objects.filter(request_id=request_id,tweet_id=tweet_id[i],sentenceID=j).update(vaderScores = vaderScores_sentence[i][j], vaderPolarity = vaderPolarity_sentence[i][j])
+                    sentenceResult.objects.filter(requestName=requestName,userEmail=email,tweet_id=tweet_id[i],sentenceID=j).update(vaderScores = vaderScores_sentence[i][j], vaderPolarity = vaderPolarity_sentence[i][j])
 
             for i in range(0,len(tweet_id)):
-                tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(vaderScores = vaderScore[i], vaderPolarity = polarities[i],vaderAverage=vaderAverage[i],vaderMajority = vaderMajority[i])
+                tweet.objects.filter(requestName=requestName,userEmail=email,tweet_id=tweet_id[i]).update(vaderScores = vaderScore[i], vaderPolarity = polarities[i],vaderAverage=vaderAverage[i],vaderMajority = vaderMajority[i])
 
-            result = requestResult.objects.get(request_id=request_id)
-            result.vaderConfusionMatrix = str(confusion_matrix(tweet_annotation,polarities,labels=["Positive", "Negative"]))
             precise = round(precision_score(tweet_annotation, polarities, average='macro'),2)
-            result.vaderPrecise = precise
             recall = round(recall_score(tweet_annotation, polarities, average='macro'),2)
-            result.vaderRecall = recall
-            result.vaderF1Score = round(2*precise*recall/(precise+recall),2)
-            result.vaderCountpol = str(vaderCount)
-            result.vaderCountpol_sentence = str(vaderCountpol_sentence)
-            result.save()
 
-            request = Requestlist.objects.get(request_id=request_id)
-            request.vader_status = "success"
-            request.save()
+            requestResult.objects.filter(requestName=requestName,userEmail = email).update(vaderConfusionMatrix = str(confusion_matrix(tweet_annotation,polarities,labels=["Positive", "Negative"])),vaderPrecise = precise,vaderRecall = recall, vaderF1Score = round(2*precise*recall/(precise+recall),2),vaderCountpol = str(vaderCount),vaderCountpol_sentence = str(vaderCountpol_sentence))
 
-            #Checker 비동기적으로 짜면 수정할 코드
-            if request.vader_status == "success" and request.textblob_status == "success" and request.sentiWordNet_status =="success" and request.stanfordNLP_status == "success":
-                #mail보내기 코드
-                result = requestResult.objects.get(request_id=request_id)
-                result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordnetF1Score))
-                result.save()
+            tasklist.objects.filter(request_key = request_id, toolName ="vader").update(toolStatus = "success")
 
-                sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
-                sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
-                KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
-                kappas=fleiss_kappa(sumPolarity_tweet)
-                for i in range(0,len(tweet_id)):
-                    tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
+            vader = tasklist.objects.filter(request_key = request_id, toolName ="vader").first()
+            text = tasklist.objects.filter(request_key = request_id, toolName ="textblob").first()
+            senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
+            stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
-                request.request_status = "success"
-                request.request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime())
-                request.save()
         except NameError as exception:
-            request.request_status = "failure"
-            request.vader_status = "failure"
-            request.save()
+            tasklist.objects.filter(request_key = request_id, toolName ="vader").update(toolStatus = "failure")
             print("Vader import Error")
 
 @shared_task
-def textblobAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,content_sentence):
+def textblobAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence,request_id):
     try:
         print("TextBlob Process ID : " + str(os.getpid()))
-        request = Requestlist.objects.get(request_id=request_id)
-        print(request)
-        request.textblob_status = "pending"
-        request.textblob_pid = os.getpid()
-        request.save()
+        tasklist.objects.filter(request_key = request_id, toolName ="textblob").update(toolStatus = "pending", tool_pid = os.getpid())
 
         scores = []
         polarities = []
@@ -237,58 +198,32 @@ def textblobAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,conten
 
         for i in range(0,len(tweet_id)):
             for j in range(0,len(content_sentence[i])):
-                sentenceResult.objects.filter(request_id=request_id,tweet_id=tweet_id[i],sentenceID=j).update(textblobScores = textblobScores_sentence[i][j], textblobPolarity = textblobPolarity_sentence[i][j])
+                sentenceResult.objects.filter(requestName=requestName,userEmail=email, tweet_id=tweet_id[i],sentenceID=j).update(textblobScores = textblobScores_sentence[i][j], textblobPolarity = textblobPolarity_sentence[i][j])
 
         for i in range(0,len(tweet_id)):
-            tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(textblobScores = scores[i], textblobPolarity = polarities[i],textblobAverage=textblobAverage[i],textblobMajority = textblobMajority[i])
+            tweet.objects.filter(requestName=requestName,userEmail=email,tweet_id=tweet_id[i]).update(textblobScores = scores[i], textblobPolarity = polarities[i],textblobAverage=textblobAverage[i],textblobMajority = textblobMajority[i])
 
-        result = requestResult.objects.get(request_id=request_id)
-        result.textblobConfusionMatrix = str(confusion_matrix(tweet_annotation,polarities,labels=["Positive", "Negative"]))
+        result = requestResult.objects.get(requestName=requestName)
         precise = round(precision_score(tweet_annotation, polarities, average='macro'),2)
-        result.textblobPrecise = precise
         recall = round(recall_score(tweet_annotation, polarities, average='macro'),2)
-        result.textblobRecall = recall
-        result.textblobF1Score = round(2*precise*recall/(precise+recall),2)
-        result.textblobCountpol = str(count_pol)
-        result.textblobCountpol_sentence = str(textblobCountpol_sentence)
-        result.save()
 
-        request = Requestlist.objects.get(request_id=request_id)
-        request.textblob_status = "success"
-        request.save()
+        requestResult.objects.filter(requestName=requestName,userEmail = email).update(textblobConfusionMatrix = str(confusion_matrix(tweet_annotation,polarities,labels=["Positive", "Negative"])),textblobPrecise = precise,textblobRecall = recall, textblobF1Score = round(2*precise*recall/(precise+recall),2),textblobCountpol = str(count_pol),textblobCountpol_sentence = str(textblobCountpol_sentence))
+        tasklist.objects.filter(request_key = request_id, toolName ="textblob").update(toolStatus = "success")
 
-    #Checker 비동기적으로 짜면 수정할 코드
-        if request.vader_status == "success" and request.textblob_status == "success" and request.sentiWordNet_status =="success" and request.stanfordNLP_status == "success":
-        #mail보내기 코드
-            result = requestResult.objects.get(request_id=request_id)
-            result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordnetF1Score))
-            result.save()
+        vader = tasklist.objects.filter(request_key = request_id, toolName ="vader").first()
+        text = tasklist.objects.filter(request_key = request_id, toolName ="textblob").first()
+        senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
+        stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
-            sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
-            sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
-            KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
-            kappas=fleiss_kappa(sumPolarity_tweet)
-            for i in range(0,len(tweet_id)):
-                tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
-
-            request.request_status = "success"
-            request.request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime())
-            request.save()
     except NameError as exception:
-        request.request_status = "failure"
-        request.textblob_status = "failure"
-        request.save()
+        tasklist.objects.filter(request_key = request_id, toolName ="textblob").update(toolStatus = "failure")
         print("Vader import Error")
 
 @shared_task
-def sentiWordNetAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,content_sentence):
+def sentiWordNetAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence,request_id):
     try:
         print("SentiWordNet Process ID : " + str(os.getpid()))
-        request = Requestlist.objects.get(request_id=request_id)
-        print(request)
-        request.sentiWordNet_status = "pending"
-        request.sentiWordNet_pid = os.getpid()
-        request.save()
+        tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").update(toolStatus = "pending", tool_pid = os.getpid())
 
         scores = []
         polarities = []
@@ -345,47 +280,25 @@ def sentiWordNetAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,co
 
         for i in range(0,len(tweet_id)):
             for j in range(0,len(content_sentence[i])):
-                sentenceResult.objects.filter(request_id=request_id,tweet_id=tweet_id[i],sentenceID=j).update(sentiWordNetScores = sentiWordnetScore_sentence[i][j], sentiWordNetPolarity = sentiWordnetPolarity_sentence[i][j])
+                sentenceResult.objects.filter(requestName=requestName,userEmail=email,tweet_id=tweet_id[i],sentenceID=j).update(sentiWordNetScores = sentiWordnetScore_sentence[i][j], sentiWordNetPolarity = sentiWordnetPolarity_sentence[i][j])
 
         for i in range(0,len(tweet_id)):
-            tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(sentiWordNetScores = scores[i], sentiWordNetPolarity = polarities[i],sentiWordnetAverage=sentiWordnetAverage[i],sentiWordnetMajority = sentiWordnetMajority[i])
+            tweet.objects.filter(requestName=requestName,userEmail=email,tweet_id=tweet_id[i]).update(sentiWordNetScores = scores[i], sentiWordNetPolarity = polarities[i],sentiWordnetAverage=sentiWordnetAverage[i],sentiWordnetMajority = sentiWordnetMajority[i])
 
-        result = requestResult.objects.get(request_id=request_id)
-        result.sentiWordNetConfusionMatrix = str(confusion_matrix(tweet_annotation,polarities,labels=["Positive", "Negative"]))
+        result = requestResult.objects.get(requestName=requestName)
         precise = round(precision_score(tweet_annotation, polarities, average='macro'),2)
-        result.sentiWordNetPrecise = precise
         recall = round(recall_score(tweet_annotation, polarities, average='macro'),2)
-        result.sentiWordNetRecall = recall
-        result.sentiWordNetF1Score = round(2*precise*recall/(precise+recall),2)
-        result.sentiWordNetCountpol = str(count_pol)
-        result.sentiWordnetCountpol_sentence = str(sentiWordnetCountpol_sentence)
-        result.save()
 
-        request = Requestlist.objects.get(request_id=request_id)
-        request.sentiWordNet_status = "success"
-        request.save()
+        requestResult.objects.filter(requestName=requestName,userEmail = email).update(sentiWordNetConfusionMatrix = str(confusion_matrix(tweet_annotation,polarities,labels=["Positive", "Negative"])),sentiWordNetPrecise = precise,sentiWordNetRecall = recall, sentiWordNetF1Score = round(2*precise*recall/(precise+recall),2),sentiWordNetCountpol = str(count_pol),sentiWordnetCountpol_sentence = str(sentiWordnetCountpol_sentence))
+        tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").update(toolStatus = "success")
 
-    #Checker 비동기적으로 짜면 수정할 코드
-        if request.vader_status == "success" and request.textblob_status == "success" and request.sentiWordNet_status =="success" and request.stanfordNLP_status == "success":
-            #mail보내기 코드
-            result = requestResult.objects.get(request_id=request_id)
-            result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordnetF1Score))
-            result.save()
+        vader = tasklist.objects.filter(request_key = request_id, toolName ="vader").first()
+        text = tasklist.objects.filter(request_key = request_id, toolName ="textblob").first()
+        senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
+        stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
-            sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
-            sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
-            KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
-            kappas=fleiss_kappa(sumPolarity_tweet)
-            for i in range(0,len(tweet_id)):
-                tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
-
-            request.request_status = "success"
-            request.request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime())
-            request.save()
     except NameError as exception:
-        request.request_status = "failure"
-        request.sentiWordNet_status = "failure"
-        request.save()
+        tasklist.objects.filter(userEmail = email,requestName=requestName, toolName ="sentiWordNet").update(toolStatus = "failure")
         print("SentiWordNet import Error")
 
 def penn_to_wn(tag):
@@ -403,13 +316,10 @@ def penn_to_wn(tag):
     return None
 
 @shared_task
-def stanfordNLPAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,content_sentence):
+def stanfordNLPAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence,request_id):
     try:
         print("StanfordNLP Process ID : " + str(os.getpid()))
-        request = Requestlist.objects.get(request_id=request_id)
-        request.stanfordNLP_status = "pending"
-        request.stanfordNLP_pid = os.getpid()
-        request.save()
+        tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").update(toolStatus = "pending", tool_pid = os.getpid())
 
         nlp = StanfordCoreNLP('http://localhost:9000')
         result=[]
@@ -436,55 +346,64 @@ def stanfordNLPAnalysis(request_id,tweet_id, tweet_content, tweet_annotation,con
                 else:
                     neutral += 1
                     count_pol.append([positive, neutral, negative])
-                result.append(getPolarity(index))
+            result.append(getPolarity(index))
 
         stanfordNLPPolarity_sentence, stanfordNLPCountpol_sentence = stanfordNLPSentimentFunction_sentence(content_sentence)
         stanfordNLPMajority = majority(stanfordNLPPolarity_sentence)
 
         for i in range(0,len(tweet_id)):
             for j in range(0,len(content_sentence[i])):
-                sentenceResult.objects.filter(request_id=request_id,tweet_id=tweet_id[i],sentenceID=j).update(stanfordNLPPolarity = stanfordNLPPolarity_sentence[i][j])
+                sentenceResult.objects.filter(requestName=requestName,userEmail=email,tweet_id=tweet_id[i],sentenceID=j).update(stanfordNLPPolarity = stanfordNLPPolarity_sentence[i][j])
 
         for i in range(0,len(tweet_id)):
-            tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(stanfordNLPPolarity = result[i],stanfordNLPMajority = stanfordNLPMajority[i])
+            tweet.objects.filter(requestName=requestName,userEmail=email,tweet_id=tweet_id[i]).update(stanfordNLPPolarity = result[i],stanfordNLPMajority = stanfordNLPMajority[i])
 
-        requestRes = requestResult.objects.get(request_id=request_id)
-        requestRes.stanfordNLPConfusionMatrix = str(confusion_matrix(tweet_annotation,result,labels=["Positive", "Negative"]))
-        requestRes.stanfordNLPCountpol =str(count_pol)
-        requestRes.stanfordNLPCountpol_sentence = str(stanfordNLPCountpol_sentence)
-        requestRes.save()
+        requestRes = requestResult.objects.get(requestName=requestName)
 
-        request = Requestlist.objects.get(request_id=request_id)
-        request.stanfordNLP_status = "success"
-        request.save()
+        requestResult.objects.filter(requestName=requestName,userEmail = email).update(stanfordNLPConfusionMatrix = str(confusion_matrix(tweet_annotation,result,labels=["Positive", "Negative"])),stanfordNLPCountpol =str(count_pol),stanfordNLPCountpol_sentence = str(stanfordNLPCountpol_sentence))
+        tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").update(toolStatus = "success")
 
-    #Checker 비동기적으로 짜면 수정할 코드
-        if request.vader_status == "success" and request.textblob_status == "success" and request.sentiWordNet_status =="success" and request.stanfordNLP_status == "success":
-            #mail보내기 코드
-            result = requestResult.objects.get(request_id=request_id)
-            result.sortedF1ScoreLists = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score))
-            result.save()
+        vader = tasklist.objects.filter(request_key = request_id, toolName ="vader").first()
+        text = tasklist.objects.filter(request_key = request_id, toolName ="textblob").first()
+        senti = tasklist.objects.filter(request_key = request_id, toolName ="sentiWordNet").first()
+        stan = tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").first()
 
-            sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
-            sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
-            KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
-            kappas=fleiss_kappa(sumPolarity_tweet)
-            for i in range(0,len(tweet_id)):
-                tweet.objects.filter(request_id=request_id,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
-
-            request.request_status = "success"
-            request.request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime())
-            request.save()
     except NameError as exception:
-        request.request_status = "failure"
-        request.stanfordNLP_status = "failure"
-        request.save()
+        tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").update(toolStatus = "failure")
         print("Stanford NLP import Error")
     except Exception as exception:
-        request.request_status = "failure"
-        request.stanfordNLP_status = "failure"
-        request.save()
+        print(exception)
+        tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").update(toolStatus = "failure")
         print("Check Stanford NLP Server")
+
+@shared_task
+def totalAnalysis(requestName, email,tweet_id):
+    result = requestResult.objects.filter(requestName=requestName,userEmail = email).first()
+    requestResult.objects.filter(requestName=requestName,userEmail = email).update(sortedF1ScoreList = str(F1ScoreSorted(result.vaderF1Score,result.textblobF1Score,result.sentiWordNetF1Score)))
+
+    sumPolarity_sentence = sum_for_kappa_sentence(result.vaderCountpol_sentence, result.textblobCountpol_sentence, result.sentiWordnetCountpol_sentence, result.stanfordNLPCountpol_sentence)
+    sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
+    KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
+    kappas=fleiss_kappa(sumPolarity_tweet)
+    for i in range(0,len(tweet_id)):
+        tweet.objects.filter(requestName=requestName,userEmail = email,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
+
+    Request.objects.filter(request_name = requestName, request_owner = email).update(request_status = "success",request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()))
+
+    sendMail(email)
+
+def sendMail(email):
+    print("Mail Sending Code")
+    s = smtplib.SMTP('smtp.gmail.com',587)
+    s.starttls() #setting about tls mode, tls : transport layer security
+
+    s.login('uci.salt.sender@gmail.com',key['mailKey'])
+
+    msg = MIMEText('This is the content of Sentiment Analysis Mail reporting.')
+    msg['Subject'] = 'Sentiment Analysis Mail Reporting test'
+
+    s.sendmail("uci.salt.sender@gmail.com",email,msg.as_string())
+    s.quit()
 
 #switch use dictionary
 def getPolarity(x):
@@ -508,21 +427,10 @@ def save_wordcloud(text,fileName):
     wc.generate_from_frequencies(text)
     wc.to_file(path.join("sentimentAnalysis/static/img/", fileName+".png"))
 
-'''
 def save_wordcloud(text,fileName):
-    print("word안에 있")
     wc = WordCloud(width=1000, height=600, background_color="white", random_state=0)
-    print("wc 설")
-
-    plt.imshow(wc.generate_from_frequencies(text))
-    print("imshow실행")
-
-    plt.axis("off")
-    print("off하고있음")
-
-    plt.savefig("sentimentAnalysis/static/img/"+fileName+".png", format = "png")
-    print("저장")
-'''
+    wc.generate_from_frequencies(text)
+    wc.to_file(path.join("sentimentAnalysis/static/img/", fileName+".png"))
 
 #For Surface Metric
 def top_freqeunt(list):
@@ -608,19 +516,23 @@ def sum_for_kappa_tweet(a,b,c,d):
 
 def fleiss_kappa(matrixes):
     result = []
-    for matrix in matrixes:
-        M = np.array(matrix)
-        N, k = M.shape  # N is # of items, k is # of categories
-        n_annotators = float(np.sum(M[0]))
-        p = np.sum(M, axis=0) / (N * n_annotators)
-        P = (np.sum(M * M, axis=1) - n_annotators) / (n_annotators * (n_annotators - 1))
-        Pbar = np.sum(P) / N
-        PbarE = np.sum(p * p)
-        kappa = (Pbar - PbarE) / (1 - PbarE)
-        if Pbar == 1.0:
-            result.append(1.0)
-        else:
-             result.append(round(kappa,2))
+    try:
+        for matrix in matrixes:
+            M = np.array(matrix)
+            N, k = M.shape  # N is # of items, k is # of categories
+            n_annotators = float(np.sum(M[0]))
+            p = np.sum(M, axis=0) / (N * n_annotators)
+            P = (np.sum(M * M, axis=1) - n_annotators) / (n_annotators * (n_annotators - 1))
+            Pbar = np.sum(P) / N
+            PbarE = np.sum(p * p)
+            kappa = (Pbar - PbarE) / (1 - PbarE)
+            if Pbar == 1.0:
+                result.append(1.0)
+            else:
+                 result.append(round(kappa,2))
+    except Exception as exception:
+        print(exception)
+        print("this is KAPPA")
     return result
 
 def average(score):
@@ -832,3 +744,23 @@ def stanfordNLPSentimentFunction_sentence(sentences):
         polarities.append(polarity)
         count_polarity.append(count_pol)
     return polarities, count_polarity
+
+def word_graph(wordconter, positiveWordcounter, negativeWordcounter,wordGraphFileName):
+    colors = ['green', 'orange', 'red']
+    pos_per = (positiveWordcounter/wordconter)*100
+    neg_per = (negativeWordcounter/wordconter)*100
+    neu_per = 100-pos_per-neg_per
+    a = np.array([[pos_per, neu_per, neg_per]])
+    df = pd.DataFrame(a, columns= ['positive', 'neutral', 'negative'])
+    ax = df.plot.barh(color = colors, stacked=True, figsize = (9, 1.5), edgecolor = "none")
+    fig1 = plt.gcf()
+    for p in ax.patches:
+        left, bottom, width, height = p.get_bbox().bounds
+        ax.annotate((width), xy=(left+width/2, bottom+height/2), ha='center', va='center', fontsize = 18)
+    plt.legend(loc='upper center', ncol=3, bbox_to_anchor=(0.5, 1), edgecolor = "none")
+    plt.sca(ax)
+    plt.box(False)
+    plt.axis('off')
+    plt.subplots_adjust(left = 0, bottom = 0, right = 1, top = 1, hspace = 0, wspace = 0)
+    plt.draw()
+    fig1.savefig(wordGraphFileName)

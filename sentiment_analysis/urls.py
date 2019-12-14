@@ -23,8 +23,5 @@ urlpatterns = [
     path('signIn/', views.signIn, name='signIn'),
     path('signUp/', views.signUp, name='signUp'),
     path('logout_view/', views.logout_view, name='logout_view'),
-    #path('api/token/', obtain_jwt_token),
-    #path('api/token/verify/', verify_jwt_token),
-    #path('api/token/refresh/', refresh_jwt_token),
-    #path('api/check/', views.check),
+    path('explorer_page/', views.explorer_page, name = "explorer_page"),
     ]

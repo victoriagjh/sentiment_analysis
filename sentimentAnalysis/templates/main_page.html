@@ -14,7 +14,8 @@
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
       <header class="mdl-layout__header">
         <div class="mdl-layout__header-row">
-          <span class="mdl-layout-title">Sentiment Analysis Tools</span>
+                <span class="mdl-layout-title">Sentiment Analysis Tools</span>
+                <a class = "text" href="{% url 'signUp' %}">Login</a>
           <div class="mdl-layout-spacer"></div>
         </div>
       </header>
@@ -22,21 +23,21 @@
         {% if e %}
         <span class="mdl-layout-title">{{ e }}!</span>
         <nav class="mdl-navigation">
-          <a class="mdl-navigation__link" href="">HOME</a>
+          <a class="mdl-navigation__link" href="{% url 'explorer_page' %}">explorer_page</a>
           <a class="mdl-navigation__link" href="">Request</a>
           <a class="mdl-navigation__link" href="{% url 'logout_view' %}" href="">Logout</a>
         </nav>
         {% elif user.username %}
         <span class="mdl-layout-title">{{ user.username }}!</span>
         <nav class="mdl-navigation">
-            <a class="mdl-navigation__link" href="">HOME</a>
+            <a class="mdl-navigation__link" href="{% url 'explorer_page' %}">explorer_page</a>
             <a class="mdl-navigation__link" href="">Request</a>
             <a class="mdl-navigation__link" href="{% url 'logout_view' %}" href="">Logout</a>
           </nav>
         {% else %}
         <span class="mdl-layout-title">Account</span>
         <nav class="mdl-navigation">
-          <a class="mdl-navigation__link" href="">HOME</a>
+          <a class="mdl-navigation__link" href="{% url 'explorer_page' %}">explorer_page</a>         
           <a class="mdl-navigation__link" href="">Request</a>
           <a class="mdl-navigation__link" href="{% url 'signIn' %}">LogIn</a>
         </nav>
@@ -95,19 +96,19 @@
         <dialog class="mdl-dialog">
             <h3 class="mdl-dialog__title">About</h3>
             <h4>What is Sentiment Analysis</h4>
-            <p>This web application allows users to upload their text files, experiment with several
-                commonly used sentiment analysis tools, get sentiment scores and compare their performances
+            <p>This web application allows users to upload their text files, experiment with several
+                commonly used sentiment analysis tools, get sentiment scores and compare their performances
             </p>
             <br><br>
             <h4>About Tools for NLP</h4>
             <br>
             <h5>VADER</h5>
             <p>
-            VADER(Valence Aware Dictionary and Sentiment Reasoner) is a lexicon and rule -based 
-            sentiment analysis tool that is specifically attuned to sentiments expressed in social media.
+            VADER(Valence Aware Dictionary and Sentiment Reasoner) is a lexicon and rule -based 
+            sentiment analysis tool that is specifically attuned to sentiments expressed in social media.
             </p>
             <h5>Textblob</h5>
-            <p>TextBlob provides NLP tasks such as part-of-speech tagging, noun phrase extraction, sentiment analysis, and more.</p>
+            <p>TextBlob provides NLP tasks such as part-of-speech tagging, noun phrase extraction, sentiment analysis, and more.</p>
             <h5>StanfordNLP</h5>
             <p>StanfordNLP probide statistical NLP, deep learning NLP, and ruld-based NLP tools for major computational linguistics problems. which can be incorporated into applications with human language.</p>
             <h5>SentiWordNet</h5>
@@ -116,8 +117,7 @@
               <button type="button" class="mdl-button close">Close</button>
             </div>
           </dialog>
-      </main>
-      <footer class="mdl-mini-footer">
+      </main>      <footer class="mdl-mini-footer">
         <button id="show-dialog" type="button" class="mdl-button">
           More information
         </button>
