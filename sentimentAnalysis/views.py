@@ -51,6 +51,10 @@ def main(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid() and 'request_id' in request.POST:
+            overlapRequest = Request.objects.filter(request_name = request.POST.get('request_id', ''), request_owner = request.POST.get('request_owner', '')).first()
+            if overlapRequest != None:
+                messages.info(request, 'Your Request Name is overlapped. Please Try Again.')
+                return HttpResponseRedirect('/')
             form.save() #Save the Input File
             filePath="text/"+request.FILES['file'].name
             Request(key=None, request_name = request.POST.get('request_id', ''), request_owner = request.POST.get('request_owner',0), request_status = "unassigned", request_pid = 0,
@@ -146,10 +150,11 @@ def history(request):
     return render(request,"history.html", form)
 
 def requestDetail(request,request_owner,request_name):
-    #requests = requestResult.objects.all().first() explorer 페이지
+    performance = requestResult.objects.filter(userEmail = request_owner, requestName = request_name).first()
+    print(performance)
     tweets = tweet.objects.filter(userEmail = request_owner, requestName = request_name).order_by('kappa')
     sentences = sentenceResult.objects.filter(userEmail = request_owner, requestName = request_name)
-    context = {'tweets': tweets, 'sentences': sentences}
+    context = {'performance':performance, 'tweets': tweets, 'sentences': sentences}
     return render(request, "requestDetail.html", context)
 
 def requestExplorer(request,request_owner,request_name):

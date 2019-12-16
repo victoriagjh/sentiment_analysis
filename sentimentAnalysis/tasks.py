@@ -40,75 +40,83 @@ import pandas as pd
 
 @shared_task
 def run(name,email):
-    print("Process ID : " + str(os.getpid()))
-    Request.objects.filter(request_name = name, request_owner = email).update(request_status = "pending",request_pid = os.getpid())
-    request = Request.objects.filter(request_name = name, request_owner = email).first()
-    request_id = request.key
-    filePath = request.file_path
-    file = open(filePath, "r", encoding='utf-8',errors="ignore")
-    text=file.readlines()
-    ids = []
-    content = []
-    hashtag = []
-    annotation = []
+    try:
+        print("Process ID : " + str(os.getpid()))
+        Request.objects.filter(request_name = name, request_owner = email).update(request_status = "pending",request_pid = os.getpid())
+        request = Request.objects.filter(request_name = name, request_owner = email).first()
+        request_id = request.key
+        filePath = request.file_path
+        file = open(filePath, "r", encoding='utf-8',errors="ignore")
+        text=file.readlines()
+        ids = []
+        content = []
+        hashtag = []
+        annotation = []
 
-    pattern = '#([0-9a-zA-Z]*)'
-    hashtag_word = re.compile(pattern)
+        pattern = '#([0-9a-zA-Z]*)'
+        hashtag_word = re.compile(pattern)
 
-    for line in text:
-        sentence = re.split(r'\t+', line)
-        text = ""
-        ids.append(sentence[0])
-        content.append(sentence[1])
-        annotation.append(sentence[2].strip('\n'))
+        for line in text:
+            sentence = re.split(r'\t+', line)
+            text = ""
+            ids.append(sentence[0])
+            content.append(sentence[1])
+            annotation.append(sentence[2].strip('\n'))
 
-        for tag in hashtag_word.findall(line):
-            hashtag.append(tag)
+            for tag in hashtag_word.findall(line):
+                hashtag.append(tag)
 
-    for i in range(0,len(ids)):
-        tweet(key=None,requestName=name,userEmail = email,tweet_id=ids[i],tweet_content=content[i],tweet_annotation=annotation[i],vaderScores=0.0,vaderPolarity='vpolarity',textblobScores=.0,textblobPolarity='tpolarity',sentiWordNetScores=0.0,
-        sentiWordNetPolarity='spolarity',stanfordNLPPolarity='nlppolarity',kappa=0.0).save()
+        for i in range(0,len(ids)):
+            tweet(key=None,requestName=name,userEmail = email,tweet_id=ids[i],tweet_content=content[i],tweet_annotation=annotation[i],vaderScores=0.0,vaderPolarity='vpolarity',textblobScores=.0,textblobPolarity='tpolarity',sentiWordNetScores=0.0,
+            sentiWordNetPolarity='spolarity',stanfordNLPPolarity='nlppolarity',kappa=0.0).save()
 
-    content_sentence = sentenceLevel(content) #by sentence
+        content_sentence = sentenceLevel(content) #by sentence
 
-    for i in range(0,len(ids)):
-        for j in range(0,len(content_sentence[i])):
-            sentenceResult(key=None,requestName=name,userEmail = email,tweet_id=ids[i],sentenceID=j,sentence_content=content_sentence[i][j],vaderScores=0.0,vaderPolarity='vpolarity',textblobScores=.0,textblobPolarity='tpolarity',sentiWordNetScores=0.0,
-            sentiWordNetPolarity='spolarity',stanfordNLPPolarity='nlppolarity').save()
+        for i in range(0,len(ids)):
+            for j in range(0,len(content_sentence[i])):
+                sentenceResult(key=None,requestName=name,userEmail = email,tweet_id=ids[i],sentenceID=j,sentence_content=content_sentence[i][j],vaderScores=0.0,vaderPolarity='vpolarity',textblobScores=.0,textblobPolarity='tpolarity',sentiWordNetScores=0.0,
+                sentiWordNetPolarity='spolarity',stanfordNLPPolarity='nlppolarity').save()
 
-    requestResult(key=None,requestName=name, userEmail = email,vaderConfusionMatrix="confusion", vaderPrecise=150.0, vaderRecall=150.0, vaderF1Score=150.0,textblobConfusionMatrix="confusion", textblobPrecise=150.0, textblobRecall=150.0, textblobF1Score=150.0,sentiWordNetConfusionMatrix="confusion", sentiWordNetPrecise=150.0, sentiWordNetRecall=150.0, sentiWordNetF1Score=150.0,stanfordNLPConfusionMatrix="confusion",
-    topFrequentWords ="topFrequentWords",wordCounter=0,wordCloudFileName="wordCloudFileName",hashtagFrequent="hashtagFrequent",positiveTopFrequentHashtag="positiveTopFrequentHashtag",negativeTopFrequentHashtag="negativeTopFrequentHashtag",positiveTopFrequentWords="positiveTopFrequentWords",positiveWordcounter=0,positiveWordCloudFilename="positiveWordCloudFilename",negativeTopFrequentWords="negativeTopFrequentWords",negativeWordcounter=0,
-    negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="",tweetIDs='',wordGraphFilename="").save()
-    vaderAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
-    textblobAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
-    sentiWordNetAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
-    stanfordNLPAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
+        requestResult(key=None,requestName=name, userEmail = email,vaderConfusionMatrix="confusion", vaderPrecise=150.0, vaderRecall=150.0, vaderF1Score=150.0,textblobConfusionMatrix="confusion", textblobPrecise=150.0, textblobRecall=150.0, textblobF1Score=150.0,sentiWordNetConfusionMatrix="confusion", sentiWordNetPrecise=150.0, sentiWordNetRecall=150.0, sentiWordNetF1Score=150.0,stanfordNLPConfusionMatrix="confusion",
+        topFrequentWords ="topFrequentWords",wordCounter=0,wordCloudFileName="wordCloudFileName",hashtagFrequent="hashtagFrequent",positiveTopFrequentHashtag="positiveTopFrequentHashtag",negativeTopFrequentHashtag="negativeTopFrequentHashtag",positiveTopFrequentWords="positiveTopFrequentWords",positiveWordcounter=0,positiveWordCloudFilename="positiveWordCloudFilename",negativeTopFrequentWords="negativeTopFrequentWords",negativeWordcounter=0,
+        negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="",tweetIDs='',wordGraphFilename="").save()
+        vaderAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
+        textblobAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
+        sentiWordNetAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
+        stanfordNLPAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
 
-    cleansingText = cleansing(content)
-    word_frequents = word_frequent(cleansingText)
-    topFrequentWords=top_freqeunt(cleansingText)
-    wordcounters = wordcounter(cleansingText)
-    filenames = str(name)+ "_"+str(email) + "_WordCloud"
-    wordGraphFileNames = str(name)+ "_"+str(email) + "_WordGraph"
-    save_wordcloud(word_frequents,filenames)
-    hashtag_frequent = top_freqeunt(hashtag)
-    positiveSet,negativeSet=separatePN(annotation,content)
-    positiveList = list(positiveSet)
-    negativeList = list(negativeSet)
-    positiveHashtag= extractHashtag(positiveList)
-    negativeHashtag= extractHashtag(negativeList)
-    positiveCleansingText = cleansing(positiveList)
-    positiveWordCounter = wordcounter(positiveCleansingText)
-    positiveWord_frequent = word_frequent(positiveCleansingText)
-    save_wordcloud(positiveWord_frequent,filenames+"_Positive")
-    negativeCleansingText = cleansing(negativeList)
-    negativeWordCounter = wordcounter(negativeCleansingText)
-    negativeWord_frequent = word_frequent(negativeCleansingText)
-    save_wordcloud(negativeWord_frequent,filenames+"_Negative")
-    word_graph(wordcounters, positiveWordCounter, negativeWordCounter, wordGraphFileNames)
+        cleansingText = cleansing(content)
+        word_frequents = word_frequent(cleansingText)
+        topFrequentWords=top_freqeunt(cleansingText)
+        wordcounters = wordcounter(cleansingText)
+        filenames = str(name)+ "_"+str(email) + "_WordCloud"
+        wordGraphFileNames = str(name)+ "_"+str(email) + "_WordGraph"
+        save_wordcloud(word_frequents,filenames)
+        hashtag_frequent = top_freqeunt(hashtag)
+        positiveSet,negativeSet=separatePN(annotation,content)
+        positiveList = list(positiveSet)
+        negativeList = list(negativeSet)
+        positiveHashtag= extractHashtag(positiveList)
+        negativeHashtag= extractHashtag(negativeList)
+        positiveCleansingText = cleansing(positiveList)
+        positiveWordCounter = wordcounter(positiveCleansingText)
+        positiveWord_frequent = word_frequent(positiveCleansingText)
+        save_wordcloud(positiveWord_frequent,filenames+"_Positive")
+        negativeCleansingText = cleansing(negativeList)
+        negativeWordCounter = wordcounter(negativeCleansingText)
+        negativeWord_frequent = word_frequent(negativeCleansingText)
+        save_wordcloud(negativeWord_frequent,filenames+"_Negative")
+        word_graph(wordcounters, positiveWordCounter, negativeWordCounter, wordGraphFileNames)
 
-    req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = "img/"+ filenames +".png", hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = positiveWordCounter, positiveWordCloudFilename = "img/"+filenames+"_Positive.png", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = negativeWordCounter,negativeWordCloudFilename = "img/"+filenames+"_Negative.png", tweetIDs = str(ids),wordGraphFilename = "img/" + wordGraphFileNames + ".png")
-    print("SUCCESS : ",str(os.getpid()))
+        req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = "img/"+ filenames +".png", hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = positiveWordCounter, positiveWordCloudFilename = "img/"+filenames+"_Positive.png", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = negativeWordCounter,negativeWordCloudFilename = "img/"+filenames+"_Negative.png", tweetIDs = str(ids),wordGraphFilename = "img/" + wordGraphFileNames + ".png")
+        print("SUCCESS : ",str(os.getpid()))
+        if os.path.exists(filePath):
+            os.remove(filePath)
+    except Exception as exception:
+        print(exception)
+        request.request_status="failure"
+        request.save()
+
 
 @shared_task
 def vaderAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,content_sentence,request_id):

@@ -227,3 +227,16 @@ details div.content{
     width:400px;
     text-align: start;
   }
+
+  .performance-table{
+      display: flex;
+      justify-content: center;
+      padding: 25px 40px 0px;
+
+
+  }
+
+  .performance-table > .table {
+      width: 40%;
+      margin: auto;
+  }

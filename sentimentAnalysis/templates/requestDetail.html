@@ -19,12 +19,70 @@
         <main class = "mdl-layout__content">
             <div class = "mdl-tabs mdl-js-tabs">
                <div class = "mdl-tabs__tab-bar tab-bar">
-                  <a href = "#tab1-panel" class = "mdl-tabs__tab is-active">Overall</a>
+                  <a href = "#tab0-panel" class = "mdl-tabs__tab is-active">Performance</a>
+                  <a href = "#tab1-panel" class = "mdl-tabs__tab">Overall</a>
                   <a href = "#tab2-panel" class = "mdl-tabs__tab">Positive</a>
                   <a href = "#tab3-panel" class = "mdl-tabs__tab">Negative</a>
                </div>
 
-               <div class = "mdl-tabs__panel is-active" id = "tab1-panel">
+               <div class="mdl-tabs__panel is-active" id="tab0-panel">
+                <div class="cards-container">
+                  <div class="page-container">
+                    <h4 class = "title"> Tweet Detail Anaylsis</h4>
+                    <span class = "title-description"> You can check the detailed analysis results of the tweeters that completed the emotional analysis.</span>
+                    <div class="tweets-container">
+                      <div class="panel">
+                        <div class="performance-table">
+                          <table class="mdl-data-table mdl-js-data-table table">
+                              <thead>
+                                <tr>
+                                  <th>Tool Name</th>
+                                  <th>Overall</th>
+                                  <th>Positive</th>
+                                  <th>Neutral</th>
+                                  <th>Negative</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td>VADER</td>
+                                  <td>{{ performance.vaderF1Score }}</td>
+                                  <td>0.71</td>
+                                  <td>0.6</td>
+                                  <td>0.9</td>
+                                </tr>
+                                <tr>
+                                  <td>Textblob</td>
+                                  <td>{{performance.textblobF1Score}}</td>
+                                  <td>0.3</td>
+                                  <td>0.76</td>
+                                  <td>0.38</td>
+                                </tr>
+                                <tr>
+                                  <td>StanfordNLP</td>
+                                  <td>0.54</td>
+                                  <td>0.45</td>
+                                  <td>0.23</td>
+                                  <td>0.13</td>
+                                </tr>
+                                <tr>
+                                    <td>SentiWordNet</td>
+                                    <td>{{performance.sentiWordNetF1Score}}</td>
+                                    <td>0.51</td>
+                                    <td>0.39</td>
+                                    <td>0.78</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+               </div>
+
+               <div class = "mdl-tabs__panel" id = "tab1-panel">
                   <div class="cards-container">
                       <div class="page-content">
                           <h4 class = "title"> Tweet Detail Anaylsis</h4>
