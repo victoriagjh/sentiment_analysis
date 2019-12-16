@@ -28,7 +28,7 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from django.core.files import File
 from pycorenlp import StanfordCoreNLP
 
-from .models import Request, RequestlistManager,tasklist
+from .models import Request,tasklist,tweet,requestResult,sentenceResult
 import time
 from .tasks import run
 import random
@@ -133,12 +133,21 @@ def postsignup(request):
 def history(request):
     #Look the cookie and use the JWT, decode it
     # request.POST.get('request_owner', '')
+    '''
+    Request.objects.all().delete()
+    tasklist.objects.all().delete()
+    tweet.objects.all().delete()
+    requestResult.objects.all().delete()
+    sentenceResult.objects.all().delete()
+    '''
     requestList = Request.objects.filter(request_owner = 'akrso06197@naver.com').order_by('request_issued_time')
     form = {'requestList' : requestList}
     print(requestList)
     return render(request,"history.html", form)
 
 def requestDetail(request,request_owner,request_name):
-
-
-    return render(request,"requestDetail.html")
+    #requests = requestResult.objects.all().first() explorer 페이지
+    tweets = tweet.objects.filter(userEmail = request_owner, requestName = request_name).order_by('kappa')
+    sentences = sentenceResult.objects.filter(userEmail = request_owner, requestName = request_name)
+    context = {'tweets': tweets, 'sentences': sentences}
+    return render(request, "requestDetail.html", context)

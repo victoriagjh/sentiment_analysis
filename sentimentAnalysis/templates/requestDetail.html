@@ -1,10 +1,12 @@
-
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
 <html lang='en'>
     <head>
       <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
       <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
       <script src = "https://storage.googleapis.com/code.getmdl.io/1.0.6/material.min.js"></script>
-      <link rel="stylesheet" type="text/css" href="style.css">
+      <link rel="stylesheet" type="text/css" href="{% static 'css/style_detail.css' %}">
     </head>
     <body>
       <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
@@ -26,21 +28,38 @@
                   <div class="cards-container">
                       <div class="page-content">
                           <h4 class = "title"> Tweet Detail Anaylsis</h4>
-                          <span class = "title-description"> You can check the detailed analysis results of the tweeters that completed the emotional analysis. </span>
+                          <span class = "title-description"> You can check the detailed analysis results of the tweeters that completed the emotional analysis.</span>
                           <div class="tweets-container">
                             <div class="panel">
+                              <table class= "tweet-table">
+                                <thead>
+                                  <tr>
+                                    <th class = "tweet-content-title">Tweet Content</th>
+                                    <th class = "annotation-title">annotation</th>
+                                    <th class = "kappa-score-title">kappa-score</th>
+                                  </tr>
+                                </thead>
+                              </table>
+                              {% for tweet in tweets %}
                                 <details>
                                     <summary>
                                       <div class="tweet">
                                       <div class= "tweet-content">
-                                          "To increase #HPV vaccination rates, it is most effective to engage both the family and the clinician.“….
+                                        {{ tweet.tweet_content }}
                                       </div>
                                       <div class="annotation">
-                                          <div class='polarity_button'>annotation</div>
+                                        {% if tweet.tweet_annotation == 'Positive' %}
+                                        <div class='polarity_button_positive'>{{ tweet.tweet_annotation }}</div>
+                                        {% elif tweet.tweet_annotation == 'Negative' %}
+                                        <div class='polarity_button_negative'> {{ tweet.tweet_annotation }}</div>
+                                        {% else %}
+                                        <div class='polarity_button' >{{ tweet.tweet_annotation }}</div>
+                                        {%endif%}
                                       </div>
-                                      <p class="kappa-score">0.33</p>
+                                      <p class="kappa-score">{{ tweet.kappa }}</p>
                                     </div>
                                     </summary>
+
                                     <div class="content">
                                         <table>
                                             <thead>
@@ -54,15 +73,43 @@
                                             </thead>
                                             <tbody>
                                               <tr>
-                                                <td class = "full-tweet-content">To increase #HPV vaccination rates, it is most effective to engage both the family and the clinician.” This is so awful.</td>
-                                                <td> <div class='polarity_button'>positive</div> 0.33 </td>
-                                                <td><div class='polarity_button'>annotation</div> 0.33</td>
-                                                <td><div class='polarity_button'>annotation</div> 0.33 </td>
-                                                <td><div class='polarity_button'>annotation</div> 0.33 </td>
+                                                <td class = "full-tweet-content">{{ tweet.tweet_content }}</td>
+                                                {% if tweet.vaderPolarity == 'Positive' %}
+                                                <td><div class='polarity_button_positive' >{{ tweet.vaderScores }}</div></td>
+                                                {% elif tweet.vaderPolarity == 'Negative' %}
+                                                <td><div class='polarity_button_negative' >{{ tweet.vaderScores }}<div></td>
+                                                {% else %}
+                                                <td><div class='polarity_button' >{{ tweet.vaderScores }}</div></td>
+                                                {%endif%}
+
+                                                {% if tweet.textblobPolarity == 'Positive' %}
+                                                <td><div class='polarity_button_positive' >{{ tweet.textblobScores }}</div></td>
+                                                {% elif tweet.textblobPolarity == 'Negative' %}
+                                                <td><div class='polarity_button_negative' >{{ tweet.textblobScores }}<div></td>
+                                                {% else %}
+                                                <td><div class='polarity_button' >{{ tweet.textblobScores }}</div></td>
+                                                {%endif%}
+
+                                                {% if tweet.stanfordNLPPolarity == 'Positive' %}
+                                                <td><div class='polarity_button_positive' >{{ tweet.stanfordNLPPolarity }}</div></td>
+                                                {% elif tweet.stanfordNLPPolarity == 'Negative' %}
+                                                <td><div class='polarity_button_negative' >{{ tweet.stanfordNLPPolarity }}<div></td>
+                                                {% else %}
+                                                <td><div class='polarity_button' >{{ tweet.stanfordNLPPolarity }}</div></td>
+                                                {%endif%}
+
+                                                {% if tweet.sentiWordNetPolarity == 'Positive' %}
+                                                <td><div class='polarity_button_positive' >{{ tweet.sentiWordNetScores }}</div></td>
+                                                {% elif tweet.sentiWordNetPolarity == 'Negative' %}
+                                                <td><div class='polarity_button_negative' >{{ tweet.sentiWordNetScores }}<div></td>
+                                                {% else %}
+                                                <td><div class='polarity_button' >{{ tweet.sentiWordNetScores }}</div></td>
+                                                {%endif%}
                                               </tr>
                                             </tbody>
                                           </table>
                                           <br>
+
                                           <table>
                                               <thead>
                                                 <tr>
@@ -74,48 +121,350 @@
                                                 </tr>
                                               </thead>
                                               <tbody>
+                                                {% for sentence in sentences %}
+                                                 {% if tweet.tweet_id == sentence.tweet_id %}
                                                 <tr>
-                                                  <td class = "full-tweet-content">To increase #HPV vaccination rates, it is most effective to engage both the family and the clinician.” </td>
-                                                  <td> <div class='polarity_button'>positive</div></td>
-                                                  <td><div class='polarity_button'>annotation</div></td>
-                                                  <td><div class='polarity_button'>annotation</div></td>
-                                                  <td><div class='polarity_button'>annotation</div></td>
-                                                </tr>
-                                              </tbody>
+                                                  <td class = "full-tweet-content"> {{ sentence.sentence_content }} </td>
+                                                  {% if sentence.vaderPolarity == 'Positive' %}
+                                                  <td><div class='polarity_button_positive' >{{ sentence.vaderScores }}</div></td>
+                                                  {% elif sentence.vaderPolarity == 'Negative' %}
+                                                  <td><div class='polarity_button_negative' >{{ sentence.vaderScores }}<div></td>
+                                                  {% else %}
+                                                  <td><div class='polarity_button' >{{ sentence.vaderScores }}</div></td>
+                                                  {%endif%}
 
-                                              <tbody>
-                                                  <tr>
-                                                    <td class = "full-tweet-content">This is so awful.</td>
-                                                    <td> <div class='polarity_button'>positive</div></td>
-                                                    <td><div class='polarity_button'>annotation</div></td>
-                                                    <td><div class='polarity_button'>annotation</div></td>
-                                                    <td><div class='polarity_button'>annotation</div></td>
-                                                  </tr>
-                                                </tbody>
-                                            </table>
+                                                  {% if sentence.textblobPolarity == 'Positive' %}
+                                                  <td><div class='polarity_button_positive' >{{ sentence.textblobScores }}</div></td>
+                                                  {% elif sentence.textblobPolarity == 'Negative' %}
+                                                  <td><div class='polarity_button_negative' >{{ sentence.textblobScores }}<div></td>
+                                                  {% else %}
+                                                  <td><div class='polarity_button' >{{ sentence.textblobScores }}</div></td>
+                                                  {%endif%}
+
+                                                  {% if sentence.stanfordNLPPolarity == 'Positive' %}
+                                                  <td><div class='polarity_button_positive' >Positive</div></td>
+                                                  {% elif sentence.stanfordNLPPolarity == 'Negative' %}
+                                                  <td><div class='polarity_button_negative' >Negative<div></td>
+                                                  {% else %}
+                                                  <td><div class='polarity_button' >Neutral</div></td>
+                                                  {%endif%}
+
+                                                  {% if sentence.sentiWordNetPolarity == 'Positive' %}
+                                                  <td><div class='polarity_button_positive' >{{ sentence.sentiWordNetScores }}</div></td>
+                                                  {% elif sentence.sentiWordNetPolarity == 'Negative' %}
+                                                  <td><div class='polarity_button_negative' >{{ sentence.sentiWordNetScores }}<div></td>
+                                                  {% else %}
+                                                  <td><div class='polarity_button' >{{ sentence.sentiWordNetScores }}</div></td>
+                                                  {%endif%}
+
+
+                                                </tr>
+                                                  {%endif%}
+                                                {% endfor %}
+
+                                              </tbody>
+                                          </table>
                                     </div>
                                 </details>
-                            </div>
+                              {% endfor %}
                         </div>
                       </div>
-               </div>
+                    </div>
+                  </div>
+                </div>
 
-           </div>
-
+                <!-- tab2 -->
                <div class = "mdl-tabs__panel" id = "tab2-panel">
-                <div class="card">
-                  <h6 class = "card-title">wordcloud</h6>
-                  <img src = "img/word_could.JPG">
-              </div>
-               </div>
+                <div class="cards-container">
+                  <div class="page-content">
+                      <h4 class = "title"> Tweet Detail Anaylsis</h4>
+                      <span class = "title-description"> You can check the detailed analysis results of the tweeters that completed the emotional analysis.</span>
+                      <div class="tweets-container">
+                        <div class="panel">
+                          <table class= "tweet-table">
+                            <thead>
+                              <tr>
+                                <th class = "tweet-content-title">Tweet Content</th>
+                                <th class = "annotation-title">annotation</th>
+                                <th class = "kappa-score-title">kappa-score</th>
+                              </tr>
+                            </thead>
+                          </table>
+                          {% for tweet in tweets %}
+                          {% if tweet.tweet_annotation == 'Positive' %}
+                            <details>
+                                <summary>
+                                  <div class="tweet">
+                                  <div class= "tweet-content">
+                                    {{ tweet.tweet_content }}
+                                  </div>
+                                  <div class="annotation">
+                                    <div class='polarity_button_positive'>{{ tweet.tweet_annotation }}</div>
+                                  </div>
+                                  <p class="kappa-score">{{ tweet.kappa }}</p>
+                                </div>
+                                </summary>
 
-               <div class = "mdl-tabs__panel" id = "tab3-panel">
-                <div class="card">
-                  <h6 class = "card-title">wordcloud</h6>
-                  <img src = "img/word_could.JPG">
+                                <div class="content">
+                                    <table>
+                                        <thead>
+                                          <tr>
+                                            <th >Full Tweet Content</th>
+                                            <th>Vader</th>
+                                            <th>Textblob</th>
+                                            <th>StanfordNLP</th>
+                                            <th>SentiWordNet</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          <tr>
+                                            <td class = "full-tweet-content">{{ tweet.tweet_content }}</td>
+                                            {% if tweet.vaderPolarity == 'Positive' %}
+                                            <td><div class='polarity_button_positive' >{{ tweet.vaderScores }}</div></td>
+                                            {% elif tweet.vaderPolarity == 'Negative' %}
+                                            <td><div class='polarity_button_negative' >{{ tweet.vaderScores }}<div></td>
+                                            {% else %}
+                                            <td><div class='polarity_button' >{{ tweet.vaderscores }}</div></td>
+                                            {%endif%}
+
+                                            {% if tweet.textblobPolarity == 'Positive' %}
+                                            <td><div class='polarity_button_positive' >{{ tweet.textblobScores }}</div></td>
+                                            {% elif tweet.textblobPolarity == 'Negative' %}
+                                            <td><div class='polarity_button_negative' >{{ tweet.textblobScores }}<div></td>
+                                            {% else %}
+                                            <td><div class='polarity_button' >{{ tweet.textblobScores }}</div></td>
+                                            {%endif%}
+
+                                            {% if tweet.stanfordNLPPolarity == 'Positive' %}
+                                            <td><div class='polarity_button_positive' >{{ tweet.stanfordNLPPolarity }}</div></td>
+                                            {% elif tweet.stanfordNLPPolarity == 'Negative' %}
+                                            <td><div class='polarity_button_negative' >{{ tweet.stanfordNLPPolarity }}<div></td>
+                                            {% else %}
+                                            <td><div class='polarity_button' >{{ tweet.stanfordNLPPolarity }}</div></td>
+                                            {%endif%}
+
+                                            {% if tweet.sentiWordNetPolarity == 'Positive' %}
+                                            <td><div class='polarity_button_positive' >{{ tweet.sentiWordNetScores }}</div></td>
+                                            {% elif tweet.sentiWordNetPolarity == 'Negative' %}
+                                            <td><div class='polarity_button_negative' >{{ tweet.sentiWordNetScores }}<div></td>
+                                            {% else %}
+                                            <td><div class='polarity_button' >{{ tweet.sentiWordNetscore }}</div></td>
+                                            {%endif%}
+                                          </tr>
+                                        </tbody>
+                                      </table>
+                                      <br>
+
+                                      <table>
+                                          <thead>
+                                            <tr>
+                                              <th>Sentence Tweet Content</th>
+                                              <th>Vader</th>
+                                              <th>Textblob</th>
+                                              <th>StanfordNLP</th>
+                                              <th>SentiWordNet</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {% for sentence in sentences %}
+                                             {% if tweet.tweet_id == sentence.tweet_id %}
+                                            <tr>
+                                              <td class = "full-tweet-content"> {{ sentence.sentence_content }} </td>
+                                              {% if sentence.vaderPolarity == 'Positive' %}
+                                              <td><div class='polarity_button_positive' >{{ sentence.vaderScores }}</div></td>
+                                              {% elif sentence.vaderPolarity == 'Negative' %}
+                                              <td><div class='polarity_button_negative' >{{ sentence.vaderScores }}<div></td>
+                                              {% else %}
+                                              <td><div class='polarity_button' >{{ sentence.vaderScores }}</div></td>
+                                              {%endif%}
+
+                                              {% if sentence.textblobPolarity == 'Positive' %}
+                                              <td><div class='polarity_button_positive' >{{ sentence.textblobScores }}</div></td>
+                                              {% elif sentence.textblobPolarity == 'Negative' %}
+                                              <td><div class='polarity_button_negative' >{{ sentence.textblobScores }}<div></td>
+                                              {% else %}
+                                              <td><div class='polarity_button' >{{ sentence.textblobScores }}</div></td>
+                                              {%endif%}
+
+                                              {% if sentence.stanfordNLPPolarity == 'Positive' %}
+                                              <td><div class='polarity_button_positive' >Positive</div></td>
+                                              {% elif sentence.stanfordNLPPolarity == 'Negative' %}
+                                              <td><div class='polarity_button_negative' >Negative<div></td>
+                                              {% else %}
+                                              <td><div class='polarity_button' >Neutral</div></td>
+                                              {%endif%}
+
+                                              {% if sentence.sentiWordNetPolarity == 'Positive' %}
+                                              <td><div class='polarity_button_positive' >{{ sentence.sentiWordNetScores }}</div></td>
+                                              {% elif sentence.sentiWordNetPolarity == 'Negative' %}
+                                              <td><div class='polarity_button_negative' >{{ sentence.sentiWordNetScores }}<div></td>
+                                              {% else %}
+                                              <td><div class='polarity_button' >{{ sentence.sentiWordNetScores }}</div></td>
+                                              {%endif%}
+
+
+                                            </tr>
+                                              {%endif%}
+                                            {% endfor %}
+                                          </tbody>
+                                      </table>
+                                </div>
+                            </details>
+                            {% endif %}
+                          {% endfor %}
+                    </div>
+                  </div>
+                </div>
               </div>
-               </div>
-            </div>
-         </main>
+             </div>
+
+               <!-- tab3 -->
+               <div class = "mdl-tabs__panel" id = "tab3-panel">
+                <div class="cards-container">
+                  <div class="page-content">
+                      <h4 class = "title"> Tweet Detail Anaylsis</h4>
+                      <span class = "title-description"> You can check the detailed analysis results of the tweeters that completed the emotional analysis.</span>
+                      <div class="tweets-container">
+                        <div class="panel">
+                          <table class= "tweet-table">
+                            <thead>
+                              <tr>
+                                <th class = "tweet-content-title">Tweet Content</th>
+                                <th class = "annotation-title">annotation</th>
+                                <th class = "kappa-score-title">kappa-score</th>
+                              </tr>
+                            </thead>
+                          </table>
+                          {% for tweet in tweets %}
+                          {% if tweet.tweet_annotation == 'Negative' %}
+                            <details>
+                                <summary>
+                                  <div class="tweet">
+                                  <div class= "tweet-content">
+                                    {{ tweet.tweet_content }}
+                                  </div>
+                                  <div class="annotation">
+                                    <div class='polarity_button_negative'>{{ tweet.tweet_annotation }}</div>
+                                  </div>
+                                  <p class="kappa-score">{{ tweet.kappa }}</p>
+                                </div>
+                                </summary>
+
+                                <div class="content">
+                                    <table>
+                                        <thead>
+                                          <tr>
+                                            <th >Full Tweet Content</th>
+                                            <th>Vader</th>
+                                            <th>Textblob</th>
+                                            <th>StanfordNLP</th>
+                                            <th>SentiWordNet</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          <tr>
+                                            <td class = "full-tweet-content">{{ tweet.tweet_content }}</td>
+                                            {% if tweet.vaderPolarity == 'Positive' %}
+                                            <td><div class='polarity_button_positive' >{{ tweet.vaderScores }}</div></td>
+                                            {% elif tweet.vaderPolarity == 'Negative' %}
+                                            <td><div class='polarity_button_negative' >{{ tweet.vaderScores }}<div></td>
+                                            {% else %}
+                                            <td><div class='polarity_button' >{{ tweet.vaderscores }}</div></td>
+                                            {%endif%}
+
+                                            {% if tweet.textblobPolarity == 'Positive' %}
+                                            <td><div class='polarity_button_positive' >{{ tweet.textblobScores }}</div></td>
+                                            {% elif tweet.textblobPolarity == 'Negative' %}
+                                            <td><div class='polarity_button_negative' >{{ tweet.textblobScores }}<div></td>
+                                            {% else %}
+                                            <td><div class='polarity_button' >{{ tweet.textblobScores }}</div></td>
+                                            {%endif%}
+
+                                            {% if tweet.stanfordNLPPolarity == 'Positive' %}
+                                            <td><div class='polarity_button_positive' >{{ tweet.stanfordNLPPolarity }}</div></td>
+                                            {% elif tweet.stanfordNLPPolarity == 'Negative' %}
+                                            <td><div class='polarity_button_negative' >{{ tweet.stanfordNLPPolarity }}<div></td>
+                                            {% else %}
+                                            <td><div class='polarity_button' >{{ tweet.stanfordNLPPolarity }}</div></td>
+                                            {%endif%}
+
+                                            {% if tweet.sentiWordNetPolarity == 'Positive' %}
+                                            <td><div class='polarity_button_positive' >{{ tweet.sentiWordNetScores }}</div></td>
+                                            {% elif tweet.sentiWordNetPolarity == 'Negative' %}
+                                            <td><div class='polarity_button_negative' >{{ tweet.sentiWordNetScores }}<div></td>
+                                            {% else %}
+                                            <td><div class='polarity_button' >{{ tweet.sentiWordNetscore }}</div></td>
+                                            {%endif%}
+                                          </tr>
+                                        </tbody>
+                                      </table>
+                                      <br>
+
+                                      <table>
+                                          <thead>
+                                            <tr>
+                                              <th>Sentence Tweet Content</th>
+                                              <th>Vader</th>
+                                              <th>Textblob</th>
+                                              <th>StanfordNLP</th>
+                                              <th>SentiWordNet</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {% for sentence in sentences %}
+                                             {% if tweet.tweet_id == sentence.tweet_id %}
+                                            <tr>
+                                              <td class = "full-tweet-content"> {{ sentence.sentence_content }} </td>
+                                              {% if sentence.vaderPolarity == 'Positive' %}
+                                              <td><div class='polarity_button_positive' >{{ sentence.vaderScores }}</div></td>
+                                              {% elif sentence.vaderPolarity == 'Negative' %}
+                                              <td><div class='polarity_button_negative' >{{ sentence.vaderScores }}<div></td>
+                                              {% else %}
+                                              <td><div class='polarity_button' >{{ sentence.vaderScores }}</div></td>
+                                              {%endif%}
+
+                                              {% if sentence.textblobPolarity == 'Positive' %}
+                                              <td><div class='polarity_button_positive' >{{ sentence.textblobScores }}</div></td>
+                                              {% elif sentence.textblobPolarity == 'Negative' %}
+                                              <td><div class='polarity_button_negative' >{{ sentence.textblobScores }}<div></td>
+                                              {% else %}
+                                              <td><div class='polarity_button' >{{ sentence.textblobScores }}</div></td>
+                                              {%endif%}
+
+                                              {% if sentence.stanfordNLPPolarity == 'Positive' %}
+                                              <td><div class='polarity_button_positive' >Positive</div></td>
+                                              {% elif sentence.stanfordNLPPolarity == 'Negative' %}
+                                              <td><div class='polarity_button_negative' >Negative<div></td>
+                                              {% else %}
+                                              <td><div class='polarity_button' >Neutral</div></td>
+                                              {%endif%}
+
+                                              {% if sentence.sentiWordNetPolarity == 'Positive' %}
+                                              <td><div class='polarity_button_positive' >{{ sentence.sentiWordNetScores }}</div></td>
+                                              {% elif sentence.sentiWordNetPolarity == 'Negative' %}
+                                              <td><div class='polarity_button_negative' >{{ sentence.sentiWordNetScores }}<div></td>
+                                              {% else %}
+                                              <td><div class='polarity_button' >{{ sentence.sentiWordNetScores }}</div></td>
+                                              {%endif%}
+
+
+                                            </tr>
+                                              {%endif%}
+                                            {% endfor %}
+                                          </tbody>
+                                      </table>
+                                </div>
+                            </details>
+                            {% endif %}
+                          {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              </div>
+
+          </div>
+      </main>
     </body>
   </html>
+  {% endblock %}

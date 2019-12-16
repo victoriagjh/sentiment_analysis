@@ -142,8 +142,8 @@ class requestResult(models.Model): #Request당 나오는 결과물
     objects = requestResultManager()
 
 class sentenceResultManager(models.Manager):
-    def create_request(self, key, requestName,userEmail, tweet_id, sentenceID,tweet_content, tweet_annotation, vaderScores,vaderPolarity,textblobScores,textblobPolarity, sentiWordNetScores,sentiWordNetPolarity,stanfordNLPPolarity):
-        request = self.create(key=key, requestName = requestName,userEmail=userEmail, tweet_id=tweet_id, sentenceID = sentenceID,tweet_content=tweet_content, tweet_annotation=tweet_annotation, vaderScores=vaderScores,vaderPolarity=vaderPolarity, textblobScores=textblobScores,textblobPolarity=textblobPolarity, sentiWordNetScores=sentiWordNetScores,sentiWordNetPolarity=sentiWordNetPolarity,
+    def create_request(self, key, requestName,userEmail, tweet_id, sentenceID,sentence_content,weet_content, tweet_annotation, vaderScores,vaderPolarity,textblobScores,textblobPolarity, sentiWordNetScores,sentiWordNetPolarity,stanfordNLPPolarity):
+        request = self.create(key=key, requestName = requestName,userEmail=userEmail, tweet_id=tweet_id, sentenceID = sentenceID,sentence_content=sentence_content, tweet_content=tweet_content, tweet_annotation=tweet_annotation, vaderScores=vaderScores,vaderPolarity=vaderPolarity, textblobScores=textblobScores,textblobPolarity=textblobPolarity, sentiWordNetScores=sentiWordNetScores,sentiWordNetPolarity=sentiWordNetPolarity,
         stanfordNLPPolarity = stanfordNLPPolarity)
         return request
 
@@ -154,6 +154,8 @@ class sentenceResult(models.Model):
 
     tweet_id = models.TextField(default = "tweet_id")
     sentenceID =  models.IntegerField(default=0)
+
+    sentence_content = models.CharField(max_length=200,default='SOME STRING')
 
     vaderScores = models.FloatField(default=150.0)
     vaderPolarity = models.CharField(max_length=200,default='SOME STRING')

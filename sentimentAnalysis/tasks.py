@@ -72,7 +72,7 @@ def run(name,email):
 
     for i in range(0,len(ids)):
         for j in range(0,len(content_sentence[i])):
-            sentenceResult(key=None,requestName=name,userEmail = email,tweet_id=ids[i],sentenceID=j,vaderScores=0.0,vaderPolarity='vpolarity',textblobScores=.0,textblobPolarity='tpolarity',sentiWordNetScores=0.0,
+            sentenceResult(key=None,requestName=name,userEmail = email,tweet_id=ids[i],sentenceID=j,sentence_content=content_sentence[i][j],vaderScores=0.0,vaderPolarity='vpolarity',textblobScores=.0,textblobPolarity='tpolarity',sentiWordNetScores=0.0,
             sentiWordNetPolarity='spolarity',stanfordNLPPolarity='nlppolarity').save()
 
     requestResult(key=None,requestName=name, userEmail = email,vaderConfusionMatrix="confusion", vaderPrecise=150.0, vaderRecall=150.0, vaderF1Score=150.0,textblobConfusionMatrix="confusion", textblobPrecise=150.0, textblobRecall=150.0, textblobF1Score=150.0,sentiWordNetConfusionMatrix="confusion", sentiWordNetPrecise=150.0, sentiWordNetRecall=150.0, sentiWordNetF1Score=150.0,stanfordNLPConfusionMatrix="confusion",
@@ -425,11 +425,6 @@ def wordcounter(text):
 def word_frequent(text):
     fd_content = FreqDist(text)
     return fd_content
-
-def save_wordcloud(text,fileName):
-    wc = WordCloud(width=1000, height=600, background_color="white", random_state=0)
-    wc.generate_from_frequencies(text)
-    wc.to_file(path.join("sentimentAnalysis/static/img/", fileName+".png"))
 
 def save_wordcloud(text,fileName):
     wc = WordCloud(width=1000, height=600, background_color="white", random_state=0)

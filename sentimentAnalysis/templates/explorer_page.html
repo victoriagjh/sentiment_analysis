@@ -1,0 +1,65 @@
+
+<html lang='en'>
+    <head>
+      <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+      <script src = "https://storage.googleapis.com/code.getmdl.io/1.0.6/material.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+      <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+        <header class="mdl-layout__header">
+          <div class="mdl-layout__header-row">
+            <span class="mdl-layout-title">Sentiment Analysis Tools</span>
+            <div class="mdl-layout-spacer"></div>
+          </div>
+        </header>
+        <main class = "mdl-layout__content">    
+            <div class = "mdl-tabs mdl-js-tabs">
+               <div class = "mdl-tabs__tab-bar tab-bar">
+                  <a href = "#tab1-panel" class = "mdl-tabs__tab is-active">Overall</a>
+                  <a href = "#tab2-panel" class = "mdl-tabs__tab">Positive</a>
+                  <a href = "#tab3-panel" class = "mdl-tabs__tab">Negative</a>
+               </div>
+            
+               <div class = "mdl-tabs__panel is-active" id = "tab1-panel">
+                  <div class="cards-container">
+                      <div class="card">
+                        <div class="word-size-card">
+                          <h6 class = "card-title">annotation</h6>
+                          <h2 class="mdl-card__title-text word-size">34484</h2>
+                          <h6 class = "size">size</h6>
+                        </div>
+                        <img class = "word_size_graph" src = "img/fig3.png">
+                        <div class ="card-supporting-text">
+                          <h6 class = "card-title">About</h6>
+                            That graph show the proportion of polarity. And show the size of the vocabulary. That size is not include stop words.
+                        </div>
+                      </div>
+                      <br>
+                      <div class="card">
+                          <h6 class = "card-title">wordcloud</h6>
+                          <img src = "img/word_could.JPG">
+                      </div>    
+               </div>
+
+           </div>
+            
+               <div class = "mdl-tabs__panel" id = "tab2-panel">
+                <div class="card">
+                  <h6 class = "card-title">wordcloud</h6>
+                  <img src = "img/word_could.JPG">
+              </div>  
+               </div>
+            
+               <div class = "mdl-tabs__panel" id = "tab3-panel">
+                <div class="card">
+                  <h6 class = "card-title">wordcloud</h6>
+                  <img src = "img/word_could.JPG">
+              </div>  
+               </div>
+            </div>
+         </main>
+    </body>
+  </html>
+  
