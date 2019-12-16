@@ -24,6 +24,8 @@
         <span class="mdl-layout-title">{{ e }}!</span>
         <nav class="mdl-navigation">
           <a class="mdl-navigation__link" href="{% url 'explorer_page' %}">explorer_page</a>
+          <a class="mdl-navigation__link" href="{% url 'detail_page' %}">detail</a>
+          <a class="mdl-navigation__link" href="{% url 'performance_page' %}">detail</a>
           <a class="mdl-navigation__link" href="">Request</a>
           <a class="mdl-navigation__link" href="{% url 'logout_view' %}" href="">Logout</a>
         </nav>
@@ -31,13 +33,17 @@
         <span class="mdl-layout-title">{{ user.username }}!</span>
         <nav class="mdl-navigation">
             <a class="mdl-navigation__link" href="{% url 'explorer_page' %}">explorer_page</a>
+            <a class="mdl-navigation__link" href="{% url 'detail_page' %}">detail</a>
+                      <a class="mdl-navigation__link" href="{% url 'performance_page' %}">detail</a>
             <a class="mdl-navigation__link" href="">Request</a>
             <a class="mdl-navigation__link" href="{% url 'logout_view' %}" href="">Logout</a>
           </nav>
         {% else %}
         <span class="mdl-layout-title">Account</span>
         <nav class="mdl-navigation">
-          <a class="mdl-navigation__link" href="{% url 'explorer_page' %}">explorer_page</a>         
+          <a class="mdl-navigation__link" href="{% url 'explorer_page' %}">explorer_page</a> 
+          <a class="mdl-navigation__link" href="{% url 'detail_page' %}">detail</a>  
+          <a class="mdl-navigation__link" href="{% url 'performance_page' %}">detail</a>      
           <a class="mdl-navigation__link" href="">Request</a>
           <a class="mdl-navigation__link" href="{% url 'signIn' %}">LogIn</a>
         </nav>

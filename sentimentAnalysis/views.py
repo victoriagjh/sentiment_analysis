@@ -29,10 +29,7 @@ from django.core.files import File
 from pycorenlp import StanfordCoreNLP
 
 
-from .models import tweet, tweetResultManager
-from .models import RequestlistManager, Request
-from .models import requestResult, requestResultManager
-from .models import tasklist, taskManager
+from .models import tweet, tweetResultManager, RequestlistManager, Request, requestResult, requestResultManager, sentenceResult, sentenceResultManager, tasklist, taskManager
 import time
 from .tasks import run
 import random
@@ -104,7 +101,9 @@ def main(request):
                    print("Timeout Error : ", err)
                 #run.delay(unasscignedRequest.request_id
             requests = requestResult.objects.all().first()
-            context = {'requests': requests } 
+            tweets = tweet.objects.all()
+            sentences = sentenceResult.objects.all()
+            context = {'requests': requests, 'tweets': tweets, 'sentences': sentences} 
             print(requests)
             return render(request, "explorer_page.html", context) 
     return render(request, "main_page.html")
@@ -166,11 +165,24 @@ def main(request):
 
 def explorer_page(request):
     form = {}
-    lists = Request.objects.all()
-    context = {'request':request}
+    requests = requestResult.objects.all().first()
+    context = {'requests':requests }
 
     return render(request, "explorer_page.html", context) 
 
+def detail_page(request):
+    form = {}
+    tweets = tweet.objects.all()
+    sentences = sentenceResult.objects.all()
+    context = {'tweets':tweets , 'sentences': sentences}
+
+    return render(request, "detail_page.html", context) 
+
+def performance_page(reqeust):
+    form = {}
+    requests = requestResult.objects.all().first()
+    context = {'requests':requests }
+    return render(requests, "performance_page.html", context)
 
 def signIn(request):
     return render(request, "loginpage.html")

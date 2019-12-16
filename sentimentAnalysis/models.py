@@ -78,11 +78,14 @@ class tweet(models.Model):
 
 class requestResultManager(models.Manager):
     def create_request(self, key,requestName,userEmail, vaderConfusionMatrix,vaderPrecise,vaderRecall,vaderF1Score, textblobConfusionMatrix,textblobPrecise,textblobRecall,textblobF1Score, sentiWordNetConfusionMatrix,sentiWordNetPrecise,sentiWordNetRecall,sentiWordNetF1Score, stanfordNLPConfusionMatrix,
-    topFrequentWords,wordCounter,wordCloudFileName,hashtagFrequent,positiveTopFrequentHashtag,negativeTopFrequentHashtag,positiveTopFrequentWords,positiveWordcounter,positiveWordCloudFilename,negativeTopFrequentWords,negativeWordcounter,negativeWordCloudFilename,sortedF1ScoreList,vaderCountpol,textblobCountpol,sentiWordNetCountpol,stanfordNLPCountpol,vaderCountpol_sentence ,textblobCountpol_sentence ,sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence,tweetIDs,wordGraphFilename ):
+    topFrequentWords,wordCounter,wordCloudFileName,hashtagFrequent,positiveTopFrequentHashtag,negativeTopFrequentHashtag,positiveTopFrequentWords,positiveWordcounter,positiveWordCloudFilename,negativeTopFrequentWords,negativeWordcounter,negativeWordCloudFilename,sortedF1ScoreList,vaderCountpol,textblobCountpol,sentiWordNetCountpol,stanfordNLPCountpol,vaderCountpol_sentence ,textblobCountpol_sentence ,sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence,tweetIDs,wordGraphFilename,
+    vader_pos_f1score, textblob_pos_f1score, sentiWord_pos_f1score, stanfordNLP_pos_f1score, vader_neg_f1score, textblob_neg_f1score, sentiWord_neg_f1score, stanfordNLP_neg_f1score, vader_neu_f1score, textblob_neu_f1score, sentiWord_neu_f1score, stanfordNLP_neu_f1score, pos_f1score_max, neg_f1score_max, neu_f1score_max ):
         request = self.create(key= key,requestName = requestName,userEmail=userEmail, vaderConfusionMatrix=vaderConfusionMatrix,vaderPrecise=vaderPrecise,vaderRecall=vaderRecall,vaderF1Score=vaderF1Score, textblobConfusionMatrix=textblobConfusionMatrix,textblobPrecise=textblobPrecise,textblobRecall=textblobRecall,textblobF1Score=textblobF1Score, sentiWordNetConfusionMatrix=sentiWordNetConfusionMatrix,sentiWordNetPrecise=sentiWordNetPrecise,
         sentiWordNetRecall=sentiWordNetRecall,sentiWordNetF1Score=sentiWordNetF1Score, stanfordNLPConfusionMatrix=stanfordNLPConfusionMatrix,
         topFrequentWords =topFrequentWords,wordCounter=wordCounter,wordCloudFileName=wordCloudFileName,hashtagFrequent=hashtagFrequent,positiveTopFrequentHashtag=positiveTopFrequentHashtag,negativeTopFrequentHashtag=negativeTopFrequentHashtag,positiveTopFrequentWords=positiveTopFrequentWords,positiveWordcounter=positiveWordcounter,positiveWordCloudFilename=positiveWordCloudFilename,negativeTopFrequentWords=negativeTopFrequentWords,negativeWordcounter=negativeWordcounter,
-        negativeWordCloudFilename=negativeWordCloudFilename,sortedF1ScoreList=sortedF1ScoreList, vaderCountpol=vaderCountpol,textblobCountpol=textblobCountpol,sentiWordNetCountpol=sentiWordNetCountpol,stanfordNLPCountpol=stanfordNLPCountpol,vaderCountpol_sentence=vaderCountpol_sentence ,textblobCountpol_sentence=textblobCountpol_sentence ,sentiWordNetCountpol_sentence=sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence =stanfordNLPCountpol_sentence,tweetIDs=tweetIDs,wordGraphFilename=wordGraphFilename)
+        negativeWordCloudFilename=negativeWordCloudFilename,sortedF1ScoreList=sortedF1ScoreList, vaderCountpol=vaderCountpol,textblobCountpol=textblobCountpol,sentiWordNetCountpol=sentiWordNetCountpol,stanfordNLPCountpol=stanfordNLPCountpol,vaderCountpol_sentence=vaderCountpol_sentence ,textblobCountpol_sentence=textblobCountpol_sentence ,sentiWordNetCountpol_sentence=sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence =stanfordNLPCountpol_sentence,tweetIDs=tweetIDs,wordGraphFilename=wordGraphFilename, 
+        vader_pos_f1score= vader_pos_f1score, textblob_pos_f1score=textblob_pos_f1score, sentiWord_pos_f1score=sentiWord_pos_f1score, stanfordNLP_pos_f1score=stanfordNLP_pos_f1score, vader_neg_f1score=vader_neg_f1score, textblob_neg_f1score=textblob_neg_f1score, sentiWord_neg_f1score=sentiWord_neg_f1score, stanfordNLP_neg_f1score=stanfordNLP_neg_f1score, vader_neu_f1score=vader_neu_f1score, textblob_neu_f1score=textblob_neu_f1score, sentiWord_neu_f1score=sentiWord_neu_f1score, stanfordNLP_neu_f1score= stanfordNLP_neu_f1score,
+        pos_f1score_max=pos_f1score_max, neg_f1score_max=neg_f1score_max, neu_f1score_max=neu_f1score_max)
         return request
 
 class requestResult(models.Model): #Request당 나오는 결과물
@@ -135,6 +138,25 @@ class requestResult(models.Model): #Request당 나오는 결과물
     sentiWordnetCountpol_sentence = models.CharField(max_length=10000000,default='SOME STRING')
     stanfordNLPCountpol_sentence = models.CharField(max_length=10000000,default='SOME STRING')
 
+    vader_pos_f1score= models.FloatField(default=150.0)
+    textblob_pos_f1score= models.FloatField(default=150.0)
+    sentiWord_pos_f1score= models.FloatField(default=150.0)
+    stanfordNLP_pos_f1score= models.FloatField(default=150.0)
+    
+    vader_neg_f1score= models.FloatField(default=150.0)
+    textblob_neg_f1score= models.FloatField(default=150.0)
+    sentiWord_neg_f1score= models.FloatField(default=150.0)
+    stanfordNLP_neg_f1score= models.FloatField(default=150.0)
+    
+    vader_neu_f1score= models.FloatField(default=150.0)
+    textblob_neu_f1score= models.FloatField(default=150.0)
+    sentiWord_neu_f1score= models.FloatField(default=150.0)
+    stanfordNLP_neu_f1score= models.FloatField(default=150.0)
+
+    pos_f1score_max= models.FloatField(default=150.0)
+    neg_f1score_max= models.FloatField(default=150.0)
+    neu_f1score_max= models.FloatField(default=150.0)
+
     tweetIDs = models.CharField(max_length=10000000,default='SOME STRING')
 
     wordGraphFilename = models.CharField(max_length=200,default='SOME STRING')
@@ -142,7 +164,7 @@ class requestResult(models.Model): #Request당 나오는 결과물
     objects = requestResultManager()
 
 class sentenceResultManager(models.Manager):
-    def create_request(self, key, requestName,userEmail, tweet_id, sentenceID,tweet_content, tweet_annotation, vaderScores,vaderPolarity,textblobScores,textblobPolarity, sentiWordNetScores,sentiWordNetPolarity,stanfordNLPPolarity):
+    def create_request(self, key, requestName,userEmail, tweet_id, sentenceID,tweet_content, tweet_annotation, vaders,vaderPolarity,textblobScores,textblobPolarity, sentiWordNetScores,sentiWordNetPolarity,stanfordNLPPolarity):
         request = self.create(key=key, requestName = requestName,userEmail=userEmail, tweet_id=tweet_id, sentenceID = sentenceID,tweet_content=tweet_content, tweet_annotation=tweet_annotation, vaderScores=vaderScores,vaderPolarity=vaderPolarity, textblobScores=textblobScores,textblobPolarity=textblobPolarity, sentiWordNetScores=sentiWordNetScores,sentiWordNetPolarity=sentiWordNetPolarity,
         stanfordNLPPolarity = stanfordNLPPolarity)
         return request

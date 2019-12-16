@@ -35,6 +35,15 @@ import pandas as pd
 
 @shared_task
 def run(name,email):
+
+    '''
+    Request.objects.all().delete()
+    tasklist.objects.all().delete()
+    tweet.objects.all().delete()
+    requestResult.objects.all().delete()
+    sentenceResult.objects.all().delete()
+    '''
+
     print("Process ID : " + str(os.getpid()))
     Request.objects.filter(request_name = name, request_owner = email).update(request_status = "pending",request_pid = os.getpid())
     request = Request.objects.filter(request_name = name, request_owner = email).first()
@@ -73,7 +82,8 @@ def run(name,email):
 
     requestResult(key=None,requestName=name, userEmail = email,vaderConfusionMatrix="confusion", vaderPrecise=150.0, vaderRecall=150.0, vaderF1Score=150.0,textblobConfusionMatrix="confusion", textblobPrecise=150.0, textblobRecall=150.0, textblobF1Score=150.0,sentiWordNetConfusionMatrix="confusion", sentiWordNetPrecise=150.0, sentiWordNetRecall=150.0, sentiWordNetF1Score=150.0,stanfordNLPConfusionMatrix="confusion",
     topFrequentWords ="topFrequentWords",wordCounter=0,wordCloudFileName="wordCloudFileName",hashtagFrequent="hashtagFrequent",positiveTopFrequentHashtag="positiveTopFrequentHashtag",negativeTopFrequentHashtag="negativeTopFrequentHashtag",positiveTopFrequentWords="positiveTopFrequentWords",positiveWordcounter=0,positiveWordCloudFilename="positiveWordCloudFilename",negativeTopFrequentWords="negativeTopFrequentWords",negativeWordcounter=0,
-    negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="",tweetIDs='',wordGraphFilename="").save()
+    negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="",tweetIDs='',wordGraphFilename="", vader_pos_f1score= 150.0, textblob_pos_f1score=150.0, sentiWord_pos_f1score=150.0, stanfordNLP_pos_f1score=150.0, vader_neg_f1score=150.0, textblob_neg_f1score=150.0, sentiWord_neg_f1score=150.0, stanfordNLP_neg_f1score=150.0, 
+    vader_neu_f1score=150.0, textblob_neu_f1score=150.0, sentiWord_neu_f1score=150.0, stanfordNLP_neu_f1score= 150.0, pos_f1score_max=150.0, neg_f1score_max=150.0, neu_f1score_max=150.0).save()
     vaderAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
     textblobAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
     sentiWordNetAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
@@ -102,7 +112,7 @@ def run(name,email):
     save_wordcloud(negativeWord_frequent,filenames+"_Negative")
     word_graph(wordcounters, positiveWordCounter, negativeWordCounter, wordGraphFileNames)
 
-    req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = "img/"+ filenames +".png", hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = positiveWordCounter, positiveWordCloudFilename = "img/"+filenames+"_Positive.png", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = negativeWordCounter,negativeWordCloudFilename = "img/"+filenames+"_Negative.png", tweetIDs = str(ids))
+    req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters, wordCloudFileName = "img/"+ filenames +".png", hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = positiveWordCounter, wordGraphFileName ="img/"+ wordGraphFileNames, positiveWordCloudFilename = "img/"+filenames+"_Positive.png", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = negativeWordCounter,negativeWordCloudFilename = "img/"+filenames+"_Negative.png", tweetIDs = str(ids))
 
     print("SUCCESS : ",str(os.getpid()))
 
@@ -116,6 +126,7 @@ def vaderAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotation,co
             polarities = []
             vaderScore = []
             vaderCount = []
+
             for i in range(0,len(tweet_id)):
                 positive = 0
                 negative = 0
@@ -385,12 +396,18 @@ def totalAnalysis(requestName, email,tweet_id):
     sumPolarity_tweet = sum_for_kappa_tweet(result.vaderCountpol, result.textblobCountpol, result.sentiWordNetCountpol, result.stanfordNLPCountpol)
     KappaScore_sentence = fleiss_kappa(sumPolarity_sentence)
     kappas=fleiss_kappa(sumPolarity_tweet)
+
+            #####################################################각각의 polarity List 끌어오기 ############################################################################
+    # vaderPolarity = 
+    # , textblobPolarity, sentiWordNetPolarity, stanfordNLPPolarity annotation
     for i in range(0,len(tweet_id)):
         tweet.objects.filter(requestName=requestName,userEmail = email,tweet_id=tweet_id[i]).update(kappa = kappas[i],sentenceKappa = KappaScore_sentence[i])
 
     Request.objects.filter(request_name = requestName, request_owner = email).update(request_status = "success",request_completed_time = time.strftime(r"%Y-%m-%d %H:%M:%S", time.localtime()))
 
     sendMail(email)
+
+    #f1score_poloarity(annotation=annotation, vaderPolarity=vaderPolarity, textblobPolarity=textblobPolarity, sentiWordNetPolarity=sentiWordNetPolarity, stanfordNLPPolarity=stanfordNLPPolarity, requestName=requestName, email=email)
 
 def sendMail(email):
     print("Mail Sending Code")
@@ -427,10 +444,6 @@ def save_wordcloud(text,fileName):
     wc.generate_from_frequencies(text)
     wc.to_file(path.join("sentimentAnalysis/static/img/", fileName+".png"))
 
-def save_wordcloud(text,fileName):
-    wc = WordCloud(width=1000, height=600, background_color="white", random_state=0)
-    wc.generate_from_frequencies(text)
-    wc.to_file(path.join("sentimentAnalysis/static/img/", fileName+".png"))
 
 #For Surface Metric
 def top_freqeunt(list):
@@ -753,14 +766,124 @@ def word_graph(wordconter, positiveWordcounter, negativeWordcounter,wordGraphFil
     a = np.array([[pos_per, neu_per, neg_per]])
     df = pd.DataFrame(a, columns= ['positive', 'neutral', 'negative'])
     ax = df.plot.barh(color = colors, stacked=True, figsize = (9, 1.5), edgecolor = "none")
-    fig1 = plt.gcf()
     for p in ax.patches:
         left, bottom, width, height = p.get_bbox().bounds
         ax.annotate((width), xy=(left+width/2, bottom+height/2), ha='center', va='center', fontsize = 18)
-    plt.legend(loc='upper center', ncol=3, bbox_to_anchor=(0.5, 1), edgecolor = "none")
+    plt.figure()
     plt.sca(ax)
     plt.box(False)
     plt.axis('off')
     plt.subplots_adjust(left = 0, bottom = 0, right = 1, top = 1, hspace = 0, wspace = 0)
-    plt.draw()
-    fig1.savefig(wordGraphFileName)
+    plt.legend(loc='upper center', ncol=3, bbox_to_anchor=(0.5, 1), edgecolor = "none")
+    plt.savefig("file1.png")
+
+
+def f1score_poloarity(annotation, vaderPolarity, textblobPolarity, sentiWordNetPolarity, stanfordNLPPolarity, requestName, email):
+    positiveList = []
+    negativeList = []
+    neutralList = []
+
+    vader_pos_Polarity = [] 
+    textblob_pos_Polarity= [] 
+    sentiWord_pos_Polarity= []
+    stanfordNLP_pos_Polarity= []
+
+    vader_neg_Polarity = [] 
+    textblob_neg_Polarity= [] 
+    sentiWord_neg_Polarity= []
+    stanfordNLP_neg_Polarity= []
+
+    vader_neu_Polarity = [] 
+    textblob_neu_Polarity= [] 
+    sentiWord_neu_Polarity= []
+    stanfordNLP_neu_Polarity= []
+
+    for i in range(len(annotation)):
+        if annotation[i]=="Positive":
+            positiveList.append("Positive")
+            vader_pos_Polarity.append("Positive") 
+            textblob_pos_Polarity.append("Positive") 
+            sentiWord_pos_Polarity.append("Positive")
+            stanfordNLP_pos_Polarity.append("Positive")
+
+        elif annotation[i]=="Negative":
+            negativeList.append("Negative")
+            vader_neg_Polarity.append("Negative") 
+            textblob_neg_Polarity.append("Negative") 
+            sentiWord_neg_Polarity.append("Negative")
+            stanfordNLP_neg_Polarity.append("Negative")
+        
+        else:
+            neutralList.append("Negative")
+            vader_neu_Polarity.append("Negative") 
+            textblob_neu_Polarity.append("Negative") 
+            sentiWord_neu_Polarity.append("Negative")
+            stanfordNLP_neu_Polarity.append("Negative")
+
+    #vader precise, recall
+    vader_pos_precise = round(precision_score(positiveList, vader_pos_Polarity, average='macro'),2)
+    vader_neg_precise = round(precision_score(negativeList, vader_neg_Polarity, average='macro'),2)
+    vader_neu_precise = round(precision_score(neutralList, vader_neu_Polarity, average='macro'),2)
+
+    vader_pos_recall = round(precision_score(positiveList, vader_pos_Polarity, average='macro'),2)
+    vader_neg_recall = round(precision_score(negativeList, vader_neg_Polarity, average='macro'),2)
+    vader_neu_recall = round(precision_score(neutralList, vader_neu_Polarity, average='macro'),2)
+
+    #textblob precise, recall
+    textblob_pos_precise = round(precision_score(positiveList, textblob_pos_Polarity, average='macro'),2)
+    textblob_neg_precise = round(precision_score(negativeList, textblob_neg_Polarity, average='macro'),2)
+    textblob_neu_precise = round(precision_score(neutralList, textblob_neu_Polarity, average='macro'),2)
+
+    textblob_pos_recall = round(precision_score(positiveList, textblob_pos_Polarity, average='macro'),2)
+    textblob_neg_recall = round(precision_score(negativeList, textblob_neg_Polarity, average='macro'),2)
+    textblob_neu_recall = round(precision_score(neutralList, textblob_neu_Polarity, average='macro'),2)
+  
+    #sentiWord precise, recall
+    sentiWord_pos_precise = round(precision_score(positiveList, sentiWord_pos_Polarity, average='macro'),2)
+    sentiWord_neg_precise = round(precision_score(negativeList, sentiWord_neg_Polarity, average='macro'),2)
+    sentiWord_neu_precise = round(precision_score(neutralList, sentiWord_neu_Polarity, average='macro'),2)
+
+    sentiWord_pos_recall = round(precision_score(positiveList, sentiWord_pos_Polarity, average='macro'),2)
+    sentiWord_neg_recall = round(precision_score(negativeList, sentiWord_neg_Polarity, average='macro'),2)
+    sentiWord_neu_recall = round(precision_score(neutralList, sentiWord_neu_Polarity, average='macro'),2)
+
+    #stanfordNLP precise, recall
+    stanfordNLP_pos_precise = round(precision_score(positiveList, stanfordNLP_pos_Polarity, average='macro'),2)
+    stanfordNLP_neg_precise = round(precision_score(negativeList, stanfordNLP_neg_Polarity, average='macro'),2)
+    stanfordNLP_neu_precise = round(precision_score(neutralList, stanfordNLP_neu_Polarity, average='macro'),2)
+
+    stanfordNLP_pos_recall = round(precision_score(positiveList, stanfordNLP_pos_Polarity, average='macro'),2)
+    stanfordNLP_neg_recall = round(precision_score(negativeList, stanfordNLP_neg_Polarity, average='macro'),2)
+    stanfordNLP_neu_recall = round(precision_score(neutralList, stanfordNLP_neu_Polarity, average='macro'),2)
+
+    #positive f1score
+    vader_pos_f1score = round(2*vader_pos_precise*vader_pos_recall/(vader_pos_precise+vader_pos_recall),2)
+    textblob_pos_f1score= round(2*textblob_pos_precise*textblob_pos_recall/(textblob_pos_precise+textblob_pos_recall),2)
+    sentiWord_pos_f1score= round(2*sentiWord_pos_precise*sentiWord_pos_recall/(sentiWord_pos_precise+sentiWord_pos_recall),2)    
+    stanfordNLP_pos_f1score= round(2*stanfordNLP_pos_precise*stanfordNLP_pos_recall/(stanfordNLP_pos_precise+stanfordNLP_pos_recall),2)  
+
+    #negative f1score
+    vader_neg_f1score = round(2*vader_neg_precise*vader_neg_recall/(vader_neg_precise+vader_neg_recall),2)
+    textblob_neg_f1score= round(2*textblob_neg_precise*textblob_neg_recall/(textblob_neg_precise+textblob_neg_recall),2) 
+    sentiWord_neg_f1score= round(2*sentiWord_neg_precise*sentiWord_neg_recall/(sentiWord_neg_precise+sentiWord_neg_recall),2)
+    stanfordNLP_neg_f1score= round(2*stanfordNLP_neg_precise*stanfordNLP_neg_recall/(stanfordNLP_neg_precise+stanfordNLP_neg_recall),2)
+
+    #neutral f1score
+    vader_neu_f1score = round(2*vader_neu_precise*vader_neu_recall/(vader_neu_precise+vader_neu_recall),2)
+    textblob_neu_f1score= round(2*textblob_neu_precise*textblob_neu_recall/(textblob_neu_precise+textblob_neu_recall),2)
+    sentiWord_neu_f1score= round(2*sentiWord_neu_precise*sentiWord_neu_recall/(sentiWord_neu_precise+sentiWord_neu_recall),2)  
+    stanfordNLP_neu_f1score= round(2*stanfordNLP_neu_precise*stanfordNLP_neu_recall/(stanfordNLP_neu_precise+stanfordNLP_neu_recall),2)   
+
+    positive_f1score = [vader_pos_f1score, textblob_pos_f1score, sentiWord_pos_f1score, stanfordNLP_pos_f1score]
+    pos_f1score_max = max(positive_f1score)
+
+    negative_f1score = [vader_neg_f1score, textblob_neg_f1score, sentiWord_neg_f1score, stanfordNLP_neg_f1score]
+    neg_f1score_max = max(negative_f1score)
+
+    neutral_f1score = [vader_neu_f1score, textblob_neu_f1score, sentiWord_neu_f1score, stanfordNLP_neu_f1score]
+    neu_f1score_max = max(neutral_f1score)
+    
+    Request.objects.filter(request_name = requestName, request_owner = email).update(vader_pos_f1score= vader_pos_f1score, textblob_pos_f1score=textblob_pos_f1score, sentiWord_pos_f1score=sentiWord_pos_f1score, stanfordNLP_pos_f1score=stanfordNLP_pos_f1score, vader_neg_f1score=vader_neg_f1score, textblob_neg_f1score=textblob_neg_f1score, sentiWord_neg_f1score=sentiWord_neg_f1score, stanfordNLP_neg_f1score=stanfordNLP_neg_f1score, vader_neu_f1score=vader_neu_f1score, textblob_neu_f1score=textblob_neu_f1score, sentiWord_neu_f1score=sentiWord_neu_f1score, stanfordNLP_neu_f1score= stanfordNLP_neu_f1score,
+        pos_f1score_max=pos_f1score_max, neg_f1score_max=neg_f1score_max, neu_f1score_max=neu_f1score_max)
+
+    return vader_pos_f1score, textblob_pos_f1score, sentiWord_pos_f1score, stanfordNLP_pos_f1score, vader_neg_f1score, textblob_neg_f1score, sentiWord_neg_f1score, stanfordNLP_neg_f1score, vader_neu_f1score, textblob_neu_f1score, sentiWord_neu_f1score, stanfordNLP_neu_f1score, pos_f1score_max, neg_f1score_max, neu_f1score_max
