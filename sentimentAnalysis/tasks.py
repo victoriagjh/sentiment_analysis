@@ -21,6 +21,7 @@ from nltk.corpus import stopwords
 
 from nltk import FreqDist
 from wordcloud import WordCloud
+import matplotlib
 import matplotlib.pyplot as plt
 
 from sklearn.metrics import cohen_kappa_score
@@ -88,7 +89,7 @@ def run(name,email):
     topFrequentWords=top_freqeunt(cleansingText)
     wordcounters = wordcounter(cleansingText)
     filenames = str(name)+ "_"+str(email) + "_WordCloud"
-    #wordGraphFileNames = str(name)+ "_"+str(email) + "_WordGraph"
+    wordGraphFileNames = str(name)+ "_"+str(email) + "_WordGraph"
     save_wordcloud(word_frequents,filenames)
     hashtag_frequent = top_freqeunt(hashtag)
     positiveSet,negativeSet=separatePN(annotation,content)
@@ -104,10 +105,9 @@ def run(name,email):
     negativeWordCounter = wordcounter(negativeCleansingText)
     negativeWord_frequent = word_frequent(negativeCleansingText)
     save_wordcloud(negativeWord_frequent,filenames+"_Negative")
-    #word_graph(wordcounters, positiveWordCounter, negativeWordCounter, wordGraphFileNames)
+    word_graph(wordcounters, positiveWordCounter, negativeWordCounter, wordGraphFileNames)
 
-    req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = filenames, hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = positiveWordCounter, positiveWordCloudFilename = filenames+"_Positive", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = negativeWordCounter,negativeWordCloudFilename = filenames+"_Negative", tweetIDs = str(ids))
-
+    req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = "img/"+ filenames +".png", hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = positiveWordCounter, positiveWordCloudFilename = "img/"+filenames+"_Positive.png", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = negativeWordCounter,negativeWordCloudFilename = "img/"+filenames+"_Negative.png", tweetIDs = str(ids),wordGraphFilename = "img/" + wordGraphFileNames + ".png")
     print("SUCCESS : ",str(os.getpid()))
 
 @shared_task
@@ -745,10 +745,11 @@ def stanfordNLPSentimentFunction_sentence(sentences):
     return polarities, count_polarity
 
 def word_graph(wordconter, positiveWordcounter, negativeWordcounter,wordGraphFileName):
+    matplotlib.use("Agg")
     colors = ['green', 'orange', 'red']
-    pos_per = (positiveWordcounter/wordconter)*100
-    neg_per = (negativeWordcounter/wordconter)*100
-    neu_per = 100-pos_per-neg_per
+    pos_per = round((positiveWordcounter/wordconter)*100)
+    neg_per = round((negativeWordcounter/wordconter)*100)
+    neu_per = round(100-pos_per-neg_per)
     a = np.array([[pos_per, neu_per, neg_per]])
     df = pd.DataFrame(a, columns= ['positive', 'neutral', 'negative'])
     ax = df.plot.barh(color = colors, stacked=True, figsize = (9, 1.5), edgecolor = "none")
@@ -762,4 +763,5 @@ def word_graph(wordconter, positiveWordcounter, negativeWordcounter,wordGraphFil
     plt.axis('off')
     plt.subplots_adjust(left = 0, bottom = 0, right = 1, top = 1, hspace = 0, wspace = 0)
     plt.draw()
-    fig1.savefig(wordGraphFileName)
+    fig1.savefig("sentimentAnalysis/static/img/"+wordGraphFileName+'.png')
+    plt.close(fig1)

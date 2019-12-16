@@ -9,6 +9,7 @@
     align-items: center;
     padding: 25px;
 }
+
 .card {
     display: flex;
     flex-direction: row;
@@ -16,6 +17,7 @@
     padding: 16px;
     box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
 }
+
 
 .card-title{
     margin: 0px 0px 10px;
@@ -30,7 +32,7 @@
 .word_size_graph {
     width: 600px;
     height: 120px;
-    border-left: 1px solid rgba(0,0,0,.2);   
+    border-left: 1px solid rgba(0,0,0,.2);
 }
 
 .word-size {
@@ -39,5 +41,13 @@
 
 .size{
     margin: 0px 0px 10px;
-    padding: 0px 35px;  
+    padding: 0px 35px;
+}
+
+.graph {
+    width: 700px;
+}
+
+.frequent_graph {
+    width: 400px;
 }

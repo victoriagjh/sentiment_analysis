@@ -151,3 +151,10 @@ def requestDetail(request,request_owner,request_name):
     sentences = sentenceResult.objects.filter(userEmail = request_owner, requestName = request_name)
     context = {'tweets': tweets, 'sentences': sentences}
     return render(request, "requestDetail.html", context)
+
+def requestExplorer(request,request_owner,request_name):
+    requests = requestResult.objects.filter(userEmail = request_owner, requestName = request_name).first()
+    tweets = tweet.objects.filter(userEmail = request_owner, requestName = request_name).order_by('kappa')
+    sentences = sentenceResult.objects.filter(userEmail = request_owner, requestName = request_name)
+    context = {'requests': requests,'tweets': tweets, 'sentences': sentences}
+    return render(request, "explorer_page.html", context)

@@ -25,24 +25,34 @@
                     <th>Date</th>
                     <th>Status</th>
                     <th>Detail</th>
+                    <th>Explorer</th>
                   </tr>
                 </thead>
                 <tbody>
                   {% for request in requestList %}
-                    <form method="post" enctype="multipart/form-data" action = "{% url 'requestDetail' request.request_owner request.request_name %}" novalidate>
-                    {% csrf_token %}
                     <tr>
                       <td>{{ request.request_name }}</td>
                       <td>{{ request.file_path }}</td>
                       <td>{{ request.request_issued_time }}</td>
                       <td>{{ request.request_status }}</td>
+                      <form method="post" enctype="multipart/form-data" action = "{% url 'requestDetail' request.request_owner request.request_name %}" novalidate>
+                        {% csrf_token %}
                       <td>
                         <button class="mdl-button mdl-js-button mdl-button--icon">
                           <i class="material-icons">chrome_reader_mode</i>
                         </button>
                       </td>
+                    </form>
+                    <form method="post" enctype="multipart/form-data" action = "{% url 'requestExplorer' request.request_owner request.request_name %}" novalidate>
+                      {% csrf_token %}
+                      <td>
+                        <button class="mdl-button mdl-js-button mdl-button--icon">
+                          <i class="material-icons">search</i>
+                        </button>
+                      </td>
                     </tr>
                   </form>
+
                   {% endfor %}
                 </tbody>
               </table>

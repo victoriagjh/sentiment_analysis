@@ -30,4 +30,6 @@ urlpatterns = [
     path('postsignup/', views.postsignup, name = 'postsignup'),
     path('history/', views.history, name = 'history'),
     path('history/(?P<request_owner>[\w.@+-]+)-(?P<request_name>[\w.@+-]+)/$', views.requestDetail, name = 'requestDetail'),
+    path('history/(?P<request_owner>[\w.@+-]+)_(?P<request_name>[\w.@+-]+)/$', views.requestExplorer, name = 'requestExplorer'),
+
     ]
