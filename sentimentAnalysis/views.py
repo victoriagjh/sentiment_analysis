@@ -79,60 +79,37 @@ def main(request):
             context = {'lists':lists}
             return render(request, "expert_page.html", context)
     return render(request, "main_page.html") # context)
-#이지 코드 넣은 부분
-def google_login(request):
-    return render(request, "google.html")
 
-def afterlogin(request):
-    return  render(request, "main_page.html")
-
-#로그인 페이지 들어가기
 def signIn(request):
     return render(request, "loginpage.html")
 
-#로그인 진행
-def postsign(request):
-    email = request.POST.get('email')
-    password = request.POST.get('password')
-    try:
-        user = auther.sign_in_with_email_and_password(email, password)
-        print('user: ', user)
-    except Exception as exception:
-        print("ERROR : ", exception)
-        messages = "invalid credentials"
-        return render(request, "loginpage.html", {"message":messages})
-    #print(user['idToken'])
-    session_id=user['idToken']
-    request.session['uid'] = str(session_id)
-
-    return render(request, "main_page.html", {"e":email})
-
 def logout_view(request):
+    response = render(request, "main_page.html")
+    response.delete_cookie('token_info')
     auth.logout(request)
     return render(request, "main_page.html")
 
-#회원가입 창
 def signUp(request):
+    if(request.POST.get('email') != None):
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        try:
+            user = auther.create_user_with_email_and_password(email, password)
+            print('user: ', user)
+            return render(request, "main_page.html", {"e":email})
+
+        except Exception as exception:
+            print("ERROR : ", exception)
+            messages = "unable to create account try again"
+            return render(request, "signUp.html", {"message":messages})
+
+        uid = user['localId']
+        data = {"name":name, "status":"l"}
+        database.child("users").child(uid).child("details").set(data)
+
+        return render(request, "loginpage.html")
     return render(request, 'signUp.html')
-
-#회원가입진행
-def postsignup(request):
-    name = request.POST.get('name')
-    email = request.POST.get('email')
-    password = request.POST.get('password')
-    try:
-        user = auther.create_user_with_email_and_password(email, password)
-        print("user:" , user)
-    except Exception as exception:
-        print("ERROR : ", exception)
-        messages = "unable to create account try again"
-        return render(request, "signUp.html", {"message":messages})
-
-    uid = user['localId']
-    data = {"name":name, "status":"l"}
-    database.child("users").child(uid).child("details").set(data)
-
-    return render(request, "loginpage.html")
 
 def history(request):
     #Look the cookie and use the JWT, decode it

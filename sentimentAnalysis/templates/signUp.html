@@ -1,25 +1,73 @@
 {% load static %}
-{% block content %}
-
 {% if message %}
 <script>
     alert('{{ message }}');
 </script>
 {% endif %}
 
-<head>
-<meta charset="UTF-8">
-<title>SignIn</title>
-</head>
+<html lang='en'>
+  <head>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-deep_purple.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 
-<form action = "/postsignup/" method="post">
-{% csrf_token %}
-    Name:
-    <input type = "text" name = "name"><br><br>
-    Email:
-    <input type = "email" name = "email"><br><br>
-    Password:
-    <input type="password" name="password"><br><br>
-    <input type="submit">
-</form>
-{% endblock %}
+  </head>
+  <body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <span class="mdl-layout-title">Sentiment Analysis Tools</span>
+          <div class="mdl-layout-spacer"></div>
+        </div>
+      </header>
+      <div class="mdl-layout__drawer">
+        <span class="mdl-layout-title">Account</span>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="{% url 'main' %}">HOME</a>
+          <a class="mdl-navigation__link" href="">Request</a>
+          <a class="mdl-navigation__link" href="">LogIn</a>
+
+        </nav>
+      </div>
+      <main class="mdl-layout__content">
+        <form action = "{% url 'signUp' %}" method="post">
+          <div class="page-content">
+            {% csrf_token %}
+              <div class="demo-card-square mdl-card mdl-shadow--2dp login-box" style = "width: 488px; height: 700px;">
+                <h1 class = "login-font">
+                  <span style = "font-size: 24px;">Making SALT Account</span>
+                </h1>
+
+                <div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label email-box">
+                    <input class="mdl-textfield__input" type="text"  name = "name"  id="name">
+                    <label class="mdl-textfield__label" for="name">name</label>
+                    </div>
+
+                  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label email-box">
+                    <input class="mdl-textfield__input email" type="email"  name = "email" pattern = "[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]" id="email">
+                    <label class="mdl-textfield__label" for="email">email</label>
+                    <span class="mdl-textfield__error">Input is not a email!</span>
+                  </div>
+
+                  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label password-box">
+                    <input class="mdl-textfield__input password" type="password" name = "password" id="password">
+                    <label class="mdl-textfield__label" for="password">Password</label>
+                  </div>
+
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label password-box">
+                        <input class="mdl-textfield__input password" type="password" name = "password" id="password2">
+                        <label class="mdl-textfield__label" for="password2">Check Password</label>
+                    </div>
+                </div>
+                <input type="submit" value ="Continue" style = "background-color:#3F51B5;" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"/>
+
+              </div>
+          </div>
+          </form>
+      </main>
+    </div>
+  </body>
+</html>

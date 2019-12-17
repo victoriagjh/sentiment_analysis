@@ -70,7 +70,7 @@ WSGI_APPLICATION = 'sentiment_analysis.wsgi.application'
 
 DATABASES = {
     'default': {
-        # Database 엔진으로 postgresql을 사용
+        # We use postgresql for Database engine
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'sentimentdb',
         'USER': 'jooheekwon',

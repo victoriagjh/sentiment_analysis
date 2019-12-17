@@ -79,7 +79,9 @@ def run(name,email):
 
         requestResult(key=None,requestName=name, userEmail = email,vaderConfusionMatrix="confusion", vaderPrecise=150.0, vaderRecall=150.0, vaderF1Score=150.0,textblobConfusionMatrix="confusion", textblobPrecise=150.0, textblobRecall=150.0, textblobF1Score=150.0,sentiWordNetConfusionMatrix="confusion", sentiWordNetPrecise=150.0, sentiWordNetRecall=150.0, sentiWordNetF1Score=150.0,stanfordNLPConfusionMatrix="confusion",
         topFrequentWords ="topFrequentWords",wordCounter=0,wordCloudFileName="wordCloudFileName",hashtagFrequent="hashtagFrequent",positiveTopFrequentHashtag="positiveTopFrequentHashtag",negativeTopFrequentHashtag="negativeTopFrequentHashtag",positiveTopFrequentWords="positiveTopFrequentWords",positiveWordcounter=0,positiveWordCloudFilename="positiveWordCloudFilename",negativeTopFrequentWords="negativeTopFrequentWords",negativeWordcounter=0,
+        frequentwordFilename = "frequentwordFilename",   frequentHashtagFilename = "frequentHashtagFilename", positive_frequentwordFilename= "positive_frequentwordFilename", positive_frequentHashtagFilename = "positive_frequentHashtagFilename", negative_frequentwordFilename = "negative_frequentwordFilename", negative_frequentHashtagFilename = "negative_frequentHashtagFilename",
         negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="",tweetIDs='',wordGraphFilename="").save()
+
         vaderAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
         textblobAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
         sentiWordNetAnalysis.delay(name,email, ids, content,annotation,content_sentence,request_id)
@@ -91,8 +93,13 @@ def run(name,email):
         wordcounters = wordcounter(cleansingText)
         filenames = str(name)+ "_"+str(email) + "_WordCloud"
         wordGraphFileNames = str(name)+ "_"+str(email) + "_WordGraph"
+        frequntwordfilename = str(name)+ "_"+str(email) + "_FrequentWord"
+        frequenthashtagfilename = str(name)+ "_"+str(email) + "_FrequentHashtag"
         save_wordcloud(word_frequents,filenames)
         hashtag_frequent = top_freqeunt(hashtag)
+        frequent_graph(topFrequentWords, frequntwordfilename)
+        frequent_hashtag_graph(hashtag_frequent, frequenthashtagfilename)
+
         positiveSet,negativeSet=separatePN(annotation,content)
         positiveList = list(positiveSet)
         negativeList = list(negativeSet)
@@ -107,8 +114,15 @@ def run(name,email):
         negativeWord_frequent = word_frequent(negativeCleansingText)
         save_wordcloud(negativeWord_frequent,filenames+"_Negative")
         word_graph(wordcounters, positiveWordCounter, negativeWordCounter, wordGraphFileNames)
+        positivefrequentHashtag = word_frequent(positiveHashtag)
+        negativefrequentHashtag = word_frequent(negativeHashtag)
+        frequent_graph(positiveWord_frequent,frequntwordfilename+"_Positive")
+        frequent_hashtag_graph(positivefrequentHashtag,frequntwordfilename+"_Positive")
+        frequent_graph(negativeWord_frequent,frequntwordfilename+"_Negative")
+        frequent_hashtag_graph(negativefrequentHashtag,frequntwordfilename+"_Negative")
 
-        req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters,wordCloudFileName = "img/"+ filenames +".png", hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = positiveWordCounter, positiveWordCloudFilename = "img/"+filenames+"_Positive.png", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = negativeWordCounter,negativeWordCloudFilename = "img/"+filenames+"_Negative.png", tweetIDs = str(ids),wordGraphFilename = "img/" + wordGraphFileNames + ".png")
+        req = requestResult.objects.filter(requestName=name, userEmail = email).update(topFrequentWords = topFrequentWords,wordCounter =wordcounters, wordCloudFileName = "img/"+ filenames +".png", hashtagFrequent = hashtag_frequent, positiveTopFrequentHashtag=top_freqeunt(positiveHashtag),negativeTopFrequentHashtag=top_freqeunt(negativeHashtag),positiveTopFrequentWords=top_freqeunt(positiveCleansingText),positiveWordcounter = positiveWordCounter, wordGraphFilename ="img/"+ wordGraphFileNames+".png", positiveWordCloudFilename = "img/"+filenames+"_Positive.png", negativeTopFrequentWords=top_freqeunt(negativeCleansingText),negativeWordcounter = negativeWordCounter,negativeWordCloudFilename = "img/"+filenames+"_Negative.png",
+        frequentwordFilename = "img/"+ frequntwordfilename +".png", frequentHashtagFilename= "img/"+ frequenthashtagfilename +".png", positive_frequentwordFilename= "img/"+ frequntwordfilename +"_Positive.png", positive_frequentHashtagFilename= "img/"+ frequenthashtagfilename +"_Positive.png", negative_frequentwordFilename= "img/"+ frequntwordfilename +"_Negative.png", negative_frequentHashtagFilename= "img/"+ frequenthashtagfilename +"_Negative.png" , tweetIDs = str(ids))
         print("SUCCESS : ",str(os.getpid()))
         if os.path.exists(filePath):
             os.remove(filePath)
@@ -773,3 +787,31 @@ def word_graph(wordconter, positiveWordcounter, negativeWordcounter,wordGraphFil
     plt.draw()
     fig1.savefig("sentimentAnalysis/static/img/"+wordGraphFileName+'.png')
     plt.close(fig1)
+
+#frequnt_graph
+def frequent_graph(list, frequentWordFilename):
+    matplotlib.use("Agg")
+    keyword = []
+    value = []
+    for i in list:
+        keyword.append(i[0])
+        value.append(i[1])
+    fig= plt.gcf()
+    plt.barh(keyword, value)
+    plt.draw()
+    fig.savefig("sentimentAnalysis/static/img/"+frequentWordFilename+'.png')
+    plt.close(fig)
+
+
+def frequent_hashtag_graph(list, frequentHashtahFilename):
+    matplotlib.use("Agg")
+    keyword = []
+    value = []
+    for i in list:
+        keyword.append(i[0])
+        value.append(i[1])
+    fig= plt.gcf()
+    plt.barh(keyword, value)
+    plt.draw()
+    fig.savefig("sentimentAnalysis/static/img/"+frequentHashtahFilename+'.png')
+    plt.close(fig)
