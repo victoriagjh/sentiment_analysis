@@ -43,6 +43,9 @@ data_loaded = yaml.safe_load(stream)
 config =  data_loaded
 
 #Initialize Firebase
+import pyrebase
+from django.contrib import auth
+
 firebase = pyrebase.initialize_app(config)
 auther = firebase.auth()
 database = firebase.database()
@@ -77,7 +80,19 @@ def main(request):
                 #run.delay(unassignedRequest.request_id)
             lists = Request.objects.all()
             context = {'lists':lists}
-            return render(request, "expert_page.html", context)
+            return render(request, "request_submitted.html", context)
+                #try login
+        if(request.POST.get('email') != None and request.POST.get('password') != None):
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            try:
+                user = auther.sign_in_with_email_and_password(email, password)
+                print('user: ', user)  #for checking
+                return render(request, "main_page.html", {"e": email})
+            except Exception as exception:
+                print("ERROR : ", exception)
+                messages = "invalided account"
+                return render(request, "loginpage.html", {"message":messages})
     return render(request, "main_page.html") # context)
 
 def signIn(request):
@@ -97,7 +112,6 @@ def signUp(request):
         try:
             user = auther.create_user_with_email_and_password(email, password)
             print('user: ', user)
-            return render(request, "main_page.html", {"e":email})
 
         except Exception as exception:
             print("ERROR : ", exception)

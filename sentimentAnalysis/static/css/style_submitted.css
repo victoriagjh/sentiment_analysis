@@ -1,0 +1,21 @@
+.accept-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2.2em;
+    font-weight: 200;
+  }
+
+p {
+    margin: 0;
+    font-size: .875em;
+    font-weight: 400;
+}

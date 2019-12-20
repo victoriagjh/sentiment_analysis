@@ -77,12 +77,19 @@ class tweet(models.Model):
     objects = tweetResultManager()
 
 class requestResultManager(models.Manager):
-    def create_request(self, key,requestName,userEmail, vaderConfusionMatrix,vaderPrecise,vaderRecall,vaderF1Score, textblobConfusionMatrix,textblobPrecise,textblobRecall,textblobF1Score, sentiWordNetConfusionMatrix,sentiWordNetPrecise,sentiWordNetRecall,sentiWordNetF1Score, stanfordNLPConfusionMatrix,
-    topFrequentWords,wordCounter,wordCloudFileName,hashtagFrequent,positiveTopFrequentHashtag,negativeTopFrequentHashtag,positiveTopFrequentWords,positiveWordcounter,positiveWordCloudFilename,negativeTopFrequentWords,negativeWordcounter,negativeWordCloudFilename,sortedF1ScoreList,vaderCountpol,textblobCountpol,sentiWordNetCountpol,stanfordNLPCountpol,vaderCountpol_sentence ,textblobCountpol_sentence ,sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence,tweetIDs,wordGraphFilename,frequentwordFilename, frequentHashtagFilename, positive_frequentwordFilename, positive_frequentHashtagFilename, negative_frequentwordFilename, negative_frequentHashtagFilename ):
-        request = self.create(key= key,requestName = requestName,userEmail=userEmail, vaderConfusionMatrix=vaderConfusionMatrix,vaderPrecise=vaderPrecise,vaderRecall=vaderRecall,vaderF1Score=vaderF1Score, textblobConfusionMatrix=textblobConfusionMatrix,textblobPrecise=textblobPrecise,textblobRecall=textblobRecall,textblobF1Score=textblobF1Score, sentiWordNetConfusionMatrix=sentiWordNetConfusionMatrix,sentiWordNetPrecise=sentiWordNetPrecise,
-        sentiWordNetRecall=sentiWordNetRecall,sentiWordNetF1Score=sentiWordNetF1Score, stanfordNLPConfusionMatrix=stanfordNLPConfusionMatrix,
-        topFrequentWords =topFrequentWords,wordCounter=wordCounter,wordCloudFileName=wordCloudFileName,hashtagFrequent=hashtagFrequent,positiveTopFrequentHashtag=positiveTopFrequentHashtag,negativeTopFrequentHashtag=negativeTopFrequentHashtag,positiveTopFrequentWords=positiveTopFrequentWords,positiveWordcounter=positiveWordcounter,positiveWordCloudFilename=positiveWordCloudFilename,negativeTopFrequentWords=negativeTopFrequentWords,negativeWordcounter=negativeWordcounter,
-        negativeWordCloudFilename=negativeWordCloudFilename,sortedF1ScoreList=sortedF1ScoreList, vaderCountpol=vaderCountpol,textblobCountpol=textblobCountpol,sentiWordNetCountpol=sentiWordNetCountpol,stanfordNLPCountpol=stanfordNLPCountpol,vaderCountpol_sentence=vaderCountpol_sentence ,textblobCountpol_sentence=textblobCountpol_sentence ,sentiWordNetCountpol_sentence=sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence =stanfordNLPCountpol_sentence,tweetIDs=tweetIDs,wordGraphFilename=wordGraphFilename,frequentwordFilename = frequentwordFilename, frequentHashtagFilename = frequentHashtagFilename, positive_frequentwordFilename= positive_frequentwordFilename, positive_frequentHashtagFilename = positive_frequentHashtagFilename, negative_frequentwordFilename = negative_frequentwordFilename, negative_frequentHashtagFilename = negative_frequentHashtagFilename)
+    def create_request(self, key,requestName,userEmail, vaderConfusionMatrix,vaderPrecise,vaderRecall,vaderF1Score,textblobConfusionMatrix,textblobPrecise,textblobRecall,textblobF1Score,sentiWordNetConfusionMatrix,sentiWordNetPrecise,sentiWordNetRecall,sentiWordNetF1Score, stanfordNLPConfusionMatrix,
+    topFrequentWords,wordCounter,wordCloudFileName,hashtagFrequent,positiveTopFrequentHashtag,negativeTopFrequentHashtag, positiveTopFrequentWords,positiveWordcounter,positiveWordCloudFilename,negativeTopFrequentWords,negativeWordcounter,negativeWordCloudFilename, sortedF1ScoreList,
+    vaderCountpol,textblobCountpol,sentiWordNetCountpol,stanfordNLPCountpol,vaderCountpol_sentence ,textblobCountpol_sentence ,sentiWordNetCountpol_sentence ,stanfordNLPCountpol_sentence,
+    tweetIDs, annotations, vaderPolarities, textblobPolarities, sentiPolarities, stanPolarities,
+    wordGraphFilename, vader_pos_f1score, textblob_pos_f1score, sentiWord_pos_f1score, stanfordNLP_pos_f1score, vader_neg_f1score, textblob_neg_f1score, sentiWord_neg_f1score, stanfordNLP_neg_f1score, vader_neu_f1score, textblob_neu_f1score, sentiWord_neu_f1score, stanfordNLP_neu_f1score, pos_f1score_max, neg_f1score_max, neu_f1score_max,
+    frequentwordFilename, frequentHashtagFilename, positive_frequentwordFilename, positive_frequentHashtagFilename, negative_frequentwordFilename, negative_frequentHashtagFilename, f1score_max ):
+
+        request = self.create(key= key,requestName = requestName,userEmail=userEmail, vaderConfusionMatrix = vaderConfusionMatrix,vaderPrecise= vaderPrecise,vaderRecall= vaderRecall,vaderF1Score= vaderF1Score,textblobConfusionMatrix= textblobConfusionMatrix,textblobPrecise= textblobPrecise,textblobRecall= textblobRecall,textblobF1Score= textblobF1Score,sentiWordNetConfusionMatrix= sentiWordNetConfusionMatrix,sentiWordNetPrecise= sentiWordNetPrecise,sentiWordNetRecall= sentiWordNetRecall,sentiWordNetF1Score= sentiWordNetF1Score, stanfordNLPConfusionMatrix= stanfordNLPConfusionMatrix,
+    topFrequentWords= topFrequentWords,wordCounter= wordCounter, wordCloudFileName= wordCloudFileName,hashtagFrequent = hashtagFrequent,positiveTopFrequentHashtag= positiveTopFrequentHashtag,negativeTopFrequentHashtag= negativeTopFrequentHashtag, positiveTopFrequentWords= positiveTopFrequentWords,positiveWordcounter= positiveWordcounter,positiveWordCloudFilename= positiveWordCloudFilename,negativeTopFrequentWords= negativeTopFrequentWords,negativeWordcounter= negativeWordcounter,negativeWordCloudFilename= negativeWordCloudFilename, sortedF1ScoreList= sortedF1ScoreList,
+    vaderCountpol= vaderCountpol, textblobCountpol= textblobCountpol,sentiWordNetCountpol= sentiWordNetCountpol, stanfordNLPCountpol= stanfordNLPCountpol,vaderCountpol_sentence= vaderCountpol_sentence, textblobCountpol_sentence=textblobCountpol_sentence, sentiWordnetCountpol_sentence=sentiWordNetCountpol_sentence, stanfordNLPCountpol_sentence= stanfordNLPCountpol_sentence,
+    tweetIDs= tweetIDs, annotations= annotations, vaderPolarities= vaderPolarities, textblobPolarities= textblobPolarities, sentiPolarities= sentiPolarities, stanPolarities= stanPolarities,
+    wordGraphFilename= wordGraphFilename, vader_pos_f1score= vader_pos_f1score, textblob_pos_f1score= textblob_pos_f1score, sentiWord_pos_f1score= sentiWord_pos_f1score, stanfordNLP_pos_f1score= stanfordNLP_pos_f1score, vader_neg_f1score= vader_neg_f1score, textblob_neg_f1score= textblob_neg_f1score, sentiWord_neg_f1score= sentiWord_neg_f1score, stanfordNLP_neg_f1score= stanfordNLP_neg_f1score, vader_neu_f1score= vader_neu_f1score, textblob_neu_f1score= textblob_neu_f1score, sentiWord_neu_f1score= sentiWord_neu_f1score, stanfordNLP_neu_f1score= stanfordNLP_neu_f1score, pos_f1score_max= pos_f1score_max, neg_f1score_max=neg_f1score_max, neu_f1score_max= neu_f1score_max,
+    frequentwordFilename= frequentwordFilename, frequentHashtagFilename= frequentHashtagFilename, positive_frequentwordFilename=positive_frequentwordFilename, positive_frequentHashtagFilename= positive_frequentHashtagFilename, negative_frequentwordFilename= negative_frequentwordFilename, negative_frequentHashtagFilename= negative_frequentHashtagFilename, f1score_max=f1score_max)
         return request
 
 class requestResult(models.Model): #Request당 나오는 결과물
@@ -135,9 +142,33 @@ class requestResult(models.Model): #Request당 나오는 결과물
     sentiWordnetCountpol_sentence = models.CharField(max_length=10000000,default='SOME STRING')
     stanfordNLPCountpol_sentence = models.CharField(max_length=10000000,default='SOME STRING')
 
+    pos_f1score_max= models.FloatField(default=150.0)
+    neg_f1score_max= models.FloatField(default=150.0)
+    neu_f1score_max= models.FloatField(default=150.0)
+
     tweetIDs = models.CharField(max_length=10000000,default='SOME STRING')
+    annotations= models.CharField(max_length=10000000,default='SOME STRING')
+    vaderPolarities= models.CharField(max_length=10000000,default='SOME STRING')
+    textblobPolarities = models.CharField(max_length=10000000,default='SOME STRING')
+    sentiPolarities = models.CharField(max_length=10000000,default='SOME STRING')
+    stanPolarities = models.CharField(max_length=10000000,default='SOME STRING')
 
     wordGraphFilename = models.CharField(max_length=200,default='SOME STRING')
+
+    vader_pos_f1score= models.FloatField(default=150.0)
+    textblob_pos_f1score= models.FloatField(default=150.0)
+    sentiWord_pos_f1score= models.FloatField(default=150.0)
+    stanfordNLP_pos_f1score= models.FloatField(default=150.0)
+
+    vader_neg_f1score= models.FloatField(default=150.0)
+    textblob_neg_f1score= models.FloatField(default=150.0)
+    sentiWord_neg_f1score= models.FloatField(default=150.0)
+    stanfordNLP_neg_f1score= models.FloatField(default=150.0)
+
+    vader_neu_f1score= models.FloatField(default=150.0)
+    textblob_neu_f1score= models.FloatField(default=150.0)
+    sentiWord_neu_f1score= models.FloatField(default=150.0)
+    stanfordNLP_neu_f1score= models.FloatField(default=150.0)
 
     frequentwordFilename = models.CharField(max_length=200,default='SOME STRING')
     frequentHashtagFilename = models.CharField(max_length=200,default='SOME STRING')
@@ -145,6 +176,8 @@ class requestResult(models.Model): #Request당 나오는 결과물
     positive_frequentHashtagFilename= models.CharField(max_length=200,default='SOME STRING')
     negative_frequentwordFilename = models.CharField(max_length=200,default='SOME STRING')
     negative_frequentHashtagFilename = models.CharField(max_length=200,default='SOME STRING')
+
+    f1score_max = models.FloatField(default=150.0)
 
     objects = requestResultManager()
 

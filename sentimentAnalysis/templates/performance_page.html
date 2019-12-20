@@ -3,7 +3,7 @@
   <head>
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style_performance.css' %}">
   </head>
   <body>
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
@@ -29,36 +29,113 @@
                 <tbody>
                   <tr>
                     <td>VADER</td>
-                    <td>0.83</td>
-                    <td>0.71</td>
-                    <td>0.6</td>
-                    <td>0.9</td>
+                    {% if performance.vaderF1score  == performance.f1score_max%}
+                    <td style = "color: green;">{{ performance.vaderF1score }}</td>
+                    {% else %}
+                    <td >{{ performance.vaderF1score }}</td>
+                    {% endif %}
+
+                    {% if performance.vader_pos_f1score  == performance.pos_f1score_max%}
+                    <td style = "color: green;">{{ performance.vader_pos_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.vader_pos_f1score }}</td>
+                    {% endif %}
+
+                    {% if performance.vader_neu_f1score  == performance.neu_f1score_max%}
+                    <td style = "color: green;">{{ performance.vader_neu_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.vader_neu_f1score }}</td>
+                    {% endif %}
+
+                    {% if performance.vader_neg_f1score  == performance.neg_f1score_max%}
+                    <td style = "color: green;">{{ performance.vader_neg_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.vader_neg_f1score }}</td>
+                    {% endif %}
                   </tr>
+
                   <tr>
                     <td>Textblob</td>
-                    <td>0.4</td>
-                    <td>0.3</td>
-                    <td>0.76</td>
-                    <td>0.38</td>
+                    {% if performance.textblobF1score  == performance.f1score_max%}
+                    <td style = "color: green;">{{ performance.textblobF1score }}</td>
+                    {% else %}
+                    <td >{{ performance.textblobF1score }}</td>
+                    {% endif %}
+
+                    {% if performance.textblob_pos_f1score  == performance.pos_f1score_max%}
+                    <td style = "color: green;">{{ performance.textblob_pos_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.textblob_pos_f1score }}</td>
+                    {% endif %}
+
+                    {% if performance.textblob_neu_f1score  == performance.neu_f1score_max%}
+                    <td style = "color: green;">{{ performance.textblob_neu_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.textblob_neu_f1score }}</td>
+                    {% endif %}
+
+                    {% if performance.textblob_neg_f1score  == performance.neg_f1score_max%}
+                    <td style = "color: green;">{{ performance.textblob_neg_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.textblob_neg_f1score }}</td>
+                    {% endif %}
                   </tr>
+
                   <tr>
                     <td>StanfordNLP</td>
-                    <td>0.54</td>
-                    <td>0.45</td>
-                    <td>0.23</td>
-                    <td>0.13</td>
+                    {% if performance.stanfordNLPF1score  == performance.f1score_max%}
+                    <td style = "color: green;">{{ performance.stanfordNLPF1score }}</td>
+                    {% else %}
+                    <td >{{ performance.stanfordNLPF1score }}</td>
+                    {% endif %}
+
+                    {% if performance.stanfordNLP_pos_f1score  == performance.pos_f1score_max%}
+                    <td style = "color: green;">{{ performance.stanfordNLP_pos_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.stanfordNLP_pos_f1score }}</td>
+                    {% endif %}
+
+                    {% if performance.stanfordNLP_neu_f1score  == performance.neu_f1score_max%}
+                    <td style = "color: green;">{{ performance.stanfordNLP_neu_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.stanfordNLP_neu_f1score }}</td>
+                    {% endif %}
+
+                    {% if performance.stanfordNLP_neg_f1score  == performance.neg_f1score_max%}
+                    <td style = "color: green;">{{ performance.stanfordNLP_neg_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.stanfordNLP_neg_f1score }}</td>
+                    {% endif %}
                   </tr>
                   <tr>
-                      <td>SentiWordNet</td>
-                      <td>0.33</td>
-                      <td>0.51</td>
-                      <td>0.39</td>
-                      <td>0.78</td>
+                    <td>SentiWordNet</td>
+                    {% if performance.sentiWordF1score  == performance.f1score_max%}
+                    <td style = "color: green;">{{ performance.sentiWordF1score }}</td>
+                    {% else %}
+                    <td >{{ performance.sentiWordF1score }}</td>
+                    {% endif %}
+
+                    {% if performance.sentiWord_pos_f1score  == performance.pos_f1score_max%}
+                    <td style = "color: green;">{{ performance.sentiWord_pos_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.sentiWord_pos_f1score }}</td>
+                    {% endif %}
+
+                    {% if performance.sentiWord_neu_f1score  == performance.neu_f1score_max%}
+                    <td style = "color: green;">{{ performance.sentiWord_neu_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.sentiWord_neu_f1score }}</td>
+                    {% endif %}
+
+                    {% if performance.sentiWord_neg_f1score  == performance.neg_f1score_max%}
+                    <td style = "color: green;">{{ performance.sentiWord_neg_f1score }}</td>
+                    {% else %}
+                    <td >{{ performance.sentiWord_neg_f1score }}</td>
+                    {% endif %}
                   </tr>
                 </tbody>
               </table>
-            </div>  
+            </div>
         </div>
   </body>
 </html>
-

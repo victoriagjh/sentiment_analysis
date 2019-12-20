@@ -22,7 +22,6 @@ urlpatterns = [
     path('', views.main, name='main'),
     path('signIn/', views.signIn, name='signIn'),
     path('signUp/', views.signUp, name='signUp'),
-    path('logout_view/', views.logout_view, name='logout_view'),
     path('history/', views.history, name = 'history'),
     path('history/(?P<request_owner>[\w.@+-]+)-(?P<request_name>[\w.@+-]+)/$', views.requestDetail, name = 'requestDetail'),
     path('history/(?P<request_owner>[\w.@+-]+)_(?P<request_name>[\w.@+-]+)/$', views.requestExplorer, name = 'requestExplorer'),
