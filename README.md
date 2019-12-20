@@ -16,6 +16,7 @@ Once the user uploads a dataset, the web application will automatically compute 
 #### 2. Turn on the stanford NLP server for analysis
 
 `cd stanford-corenlp-full-2018-10-05 java -mx5g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -timeout 10000`
+<br>
 Link : https://stackoverflow.com/questions/32879532/stanford-nlp-for-python
 
 #### 3. Turn on the Celery
