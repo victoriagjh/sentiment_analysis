@@ -80,7 +80,7 @@ def run(name,email):
 
         requestResult(key=None,requestName=name, userEmail = email,vaderConfusionMatrix="confusion", vaderPrecise=150.0, vaderRecall=150.0, vaderF1Score=150.0,textblobConfusionMatrix="confusion", textblobPrecise=150.0, textblobRecall=150.0, textblobF1Score=150.0,sentiWordNetConfusionMatrix="confusion", sentiWordNetPrecise=150.0, sentiWordNetRecall=150.0, sentiWordNetF1Score=150.0,stanfordNLPConfusionMatrix="confusion",
         topFrequentWords ="topFrequentWords",wordCounter=0,wordCloudFileName="wordCloudFileName",hashtagFrequent="hashtagFrequent",positiveTopFrequentHashtag="positiveTopFrequentHashtag",negativeTopFrequentHashtag="negativeTopFrequentHashtag",positiveTopFrequentWords="positiveTopFrequentWords",positiveWordcounter=0,positiveWordCloudFilename="positiveWordCloudFilename",negativeTopFrequentWords="negativeTopFrequentWords", negativeWordcounter = 0, negativeWordCloudFilename="negativeWordCloudFilename",sortedF1ScoreList="sortedF1ScoreList",
-        vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="",
+        vaderCountpol="",textblobCountpol="",sentiWordNetCountpol ="", stanfordNLPCountpol="", stanfordNLPF1Score =0,
         tweetIDs='', annotations = str(annotation), vaderPolarities= "vaderPolarities", textblobPolarities= "textblobPolarities", sentiPolarities= "sentiPolarities" , stanPolarities ="stanPolarities",
         wordGraphFilename="", vader_pos_f1score= 150.0, textblob_pos_f1score=150.0, sentiWord_pos_f1score=150.0, stanfordNLP_pos_f1score=150.0, vader_neg_f1score=150.0, textblob_neg_f1score=150.0, sentiWord_neg_f1score=150.0, stanfordNLP_neg_f1score=150.0, vader_neu_f1score=150.0, textblob_neu_f1score=150.0, sentiWord_neu_f1score=150.0, stanfordNLP_neu_f1score= 150.0, pos_f1score_max=150.0, neg_f1score_max=150.0, neu_f1score_max=150.0,
         frequentwordFilename = "frequentwordFilename",   frequentHashtagFilename = "frequentHashtagFilename", positive_frequentwordFilename= "positive_frequentwordFilename", positive_frequentHashtagFilename = "positive_frequentHashtagFilename", negative_frequentwordFilename = "negative_frequentwordFilename", negative_frequentHashtagFilename = "negative_frequentHashtagFilename",f1score_max=0.0).save()
@@ -394,8 +394,11 @@ def stanfordNLPAnalysis(requestName,email,tweet_id, tweet_content, tweet_annotat
             tweet.objects.filter(requestName=requestName,userEmail=email,tweet_id=tweet_id[i]).update(stanfordNLPPolarity = result[i],stanfordNLPMajority = stanfordNLPMajority[i])
 
         requestRes = requestResult.objects.get(requestName=requestName)
+        precise = round(precision_score(tweet_annotation, result, average='macro'),2)
+        recall = round(recall_score(tweet_annotation, result, average='macro'),2)
 
-        requestResult.objects.filter(requestName=requestName,userEmail = email).update(stanfordNLPConfusionMatrix = str(confusion_matrix(tweet_annotation,result,labels=["Positive", "Negative"])),stanfordNLPCountpol =str(count_pol),stanfordNLPCountpol_sentence = str(stanfordNLPCountpol_sentence), stanPolarities = str(result))
+
+        requestResult.objects.filter(requestName=requestName,userEmail = email).update(stanfordNLPConfusionMatrix = str(confusion_matrix(tweet_annotation,result,labels=["Positive", "Negative"])),stanfordNLPCountpol =str(count_pol),stanfordNLPCountpol_sentence = str(stanfordNLPCountpol_sentence), stanPolarities = str(result), stanfordNLPF1Score = round(2*precise*recall/(precise+recall),2))
         tasklist.objects.filter(request_key = request_id, toolName ="stanfordNLP").update(toolStatus = "success")
 
         vader = tasklist.objects.filter(request_key = request_id, toolName ="vader").first()
