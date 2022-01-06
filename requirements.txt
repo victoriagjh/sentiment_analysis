@@ -8,7 +8,7 @@ blis==0.2.4
 boto==2.49.0
 boto3==1.9.191
 botocore==1.12.191
-celery==4.3.0
+celery==5.2.2
 certifi==2019.6.16
 chardet==3.0.4
 closure==20190417
