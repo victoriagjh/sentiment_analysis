@@ -78,7 +78,7 @@ Pyrebase==3.0.27
 pyrsistent==0.15.2
 pytest==5.0.1
 python-dateutil==2.8.0
-python-jwt==2.0.1
+python-jwt==3.3.4
 python-social-auth==0.3.6
 python3-openid==3.1.0
 pytz==2019.1
